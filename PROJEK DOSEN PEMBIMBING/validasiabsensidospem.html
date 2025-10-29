@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Validasi Absensi | SI MAGANG</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
+    <link rel="stylesheet" href="styles.css" />
+
+    <style>
+      .container-validasi {
+        background: #fff;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        max-width: 1100px;
+        margin: 40px auto;
+      }
+
+      .container-validasi h2 {
+        color: #262a39;
+        text-align: center;
+        margin-bottom: 25px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+      }
+
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: center;
+        font-size: 14px;
+      }
+
+      th {
+        background: #f2f4fa;
+        color: #333;
+      }
+
+      .btn-validasi,
+      .btn-foto {
+        background: #4270f4;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: 0.3s;
+        font-size: 13px;
+      }
+
+      .btn-validasi:hover,
+      .btn-foto:hover {
+        background: #3056c5;
+      }
+
+      .status-valid {
+        color: green;
+        font-weight: bold;
+      }
+
+      .status-belum {
+        color: red;
+        font-weight: bold;
+      }
+
+      .note {
+        margin-top: 20px;
+        font-size: 14px;
+        color: #555;
+      }
+
+      /* Modal Foto */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.6);
+      }
+
+      .modal-content {
+        background-color: #fff;
+        margin: 10% auto;
+        padding: 20px;
+        border-radius: 12px;
+        width: 50%;
+        text-align: center;
+        position: relative;
+      }
+
+      .modal-content img {
+        width: 100%;
+        border-radius: 10px;
+      }
+
+      .close {
+        position: absolute;
+        right: 15px;
+        top: 10px;
+        color: #333;
+        font-size: 22px;
+        cursor: pointer;
+      }
+
+      .close:hover {
+        color: red;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="logo">
+        <svg width="100" height="40" viewBox="0 0 100 40">
+          <path d="M12,15 L30,15 L24,27 L12,27 Z" fill="#4270F4" />
+          <text x="38" y="27" fill="#262A39" font-size="20" font-weight="bold">
+            SMG
+          </text>
+        </svg>
+      </div>
+
+     <div class="nav-menu">
+        <a href="coba.html" class="nav-item">
+          <i class="fas fa-home"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i class="fas fa-user-circle"></i>
+          <span>Akun</span>
+        </a>
+        <a href="daftarBimbingan.html" class="nav-item">
+          <i class="fas fa-user-graduate"></i>
+          <span>Daftar Bimbingan</span>
+        </a>
+        <a href="monitoring.html" class="nav-item">
+          <i class="fas fa-clipboard-list"></i>
+          <span>Monitoring</span>
+        </a>
+        <a href="validasiabsensidospem.html" class="nav-item active">
+          <i class="fas fa-calendar-check"></i>
+          <span>Validasi Absensi</span>
+        </a>
+        <a href="evaluasiNilai.html" class="nav-item">
+          <i class="fas fa-star-half-alt"></i>
+          <span>Evaluasi & Nilai</span>
+        </a>
+        <a href="NotifikasiDosen.html" class="nav-item">
+          <i class="fas fa-bell"></i>
+          <span>Notifikasi</span>
+        </a>
+      </div>
+
+      <div class="premium-box">
+        <h3>Buku Panduan</h3>
+        <button class="premium-btn">Selengkapnya</button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Header -->
+      <div class="header">
+        <div class="welcome-section">
+          <p class="greeting">Selamat Datang, E31241242 Septiya Qorrata Ayun</p>
+          <h1 class="welcome-title">Validasi Absensi & Kegiatan Mahasiswa</h1>
+        </div>
+
+        <div class="header-right">
+          <div class="notification-bell">
+            <i class="fas fa-bell"></i>
+            <div class="notification-indicator"></div>
+          </div>
+
+          <div class="user-profile">
+            <img src="images/tyakk.png" alt="Foto Profil" class="profile-pic" />
+          </div>
+
+          <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Mencari" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Validasi Container -->
+      <div class="container-validasi">
+        <h2>Daftar Absensi Mahasiswa Bimbingan</h2>
+        <table id="tabelAbsensi">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Nama Mahasiswa</th>
+              <th>NIM</th>
+              <th>Tanggal</th>
+              <th>Kegiatan</th>
+              <th>Jam Masuk</th>
+              <th>Jam Keluar</th>
+              <th>Status Validasi</th>
+              <th>Bukti Foto</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+
+        <p class="note">
+          <i class="fas fa-info-circle"></i> Dosen hanya melakukan validasi absensi mahasiswa. Data kegiatan dan foto bukti dikirim otomatis oleh mahasiswa.
+        </p>
+      </div>
+    </div>
+
+    <!-- Modal Foto -->
+    <div id="modalFoto" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h3>Foto Bukti Kehadiran</h3>
+        <img id="fotoMahasiswa" src="" alt="Foto Mahasiswa" />
+      </div>
+    </div>
+
+    <script>
+      const dataAbsensi = [
+        {
+          nama: "Ahmad Fauzan",
+          nim: "E31241111",
+          tanggal: "2025-10-06",
+          kegiatan: "Membuat laporan harian magang",
+          masuk: "08:00",
+          keluar: "16:00",
+          status: "Belum Divalidasi",
+          foto: "images/fauzan.jpg",
+        },
+        {
+          nama: "Siti Rahmawati",
+          nim: "E31241122",
+          tanggal: "2025-10-06",
+          kegiatan: "Input data proyek Kominfo",
+          masuk: "08:15",
+          keluar: "16:05",
+          status: "Valid",
+          foto: "images/siti.jpg",
+        },
+        {
+          nama: "Bagus Setiawan",
+          nim: "E31241133",
+          tanggal: "2025-10-06",
+          kegiatan: "Maintenance sistem internal",
+          masuk: "08:05",
+          keluar: "15:55",
+          status: "Belum Divalidasi",
+          foto: "images/bagus.jpg",
+        },
+      ];
+
+      const tbody = document.querySelector("#tabelAbsensi tbody");
+      const modal = document.getElementById("modalFoto");
+      const modalImg = document.getElementById("fotoMahasiswa");
+      const closeModal = document.querySelector(".close");
+
+      dataAbsensi.forEach((data, i) => {
+        const row = document.createElement("tr");
+        let statusClass =
+          data.status === "Valid" ? "status-valid" : "status-belum";
+
+        row.innerHTML = `
+          <td>${i + 1}</td>
+          <td>${data.nama}</td>
+          <td>${data.nim}</td>
+          <td>${data.tanggal}</td>
+          <td>${data.kegiatan}</td>
+          <td>${data.masuk}</td>
+          <td>${data.keluar}</td>
+          <td class="${statusClass}">${data.status}</td>
+          <td><button class="btn-foto" data-foto="${data.foto}"><i class="fas fa-image"></i> Lihat Foto</button></td>
+          <td>
+            ${
+              data.status === "Belum Divalidasi"
+                ? `<button class="btn-validasi">Validasi</button>`
+                : `<i class="fas fa-check-circle" style="color: green;"></i>`
+            }
+          </td>
+        `;
+
+        tbody.appendChild(row);
+
+        // Tombol Validasi
+        const btn = row.querySelector(".btn-validasi");
+        if (btn) {
+          btn.addEventListener("click", () => {
+            row.querySelector("td:nth-child(8)").textContent = "Valid";
+            row.querySelector("td:nth-child(8)").className = "status-valid";
+            btn.outerHTML = `<i class="fas fa-check-circle" style="color: green;"></i>`;
+          });
+        }
+
+        // Tombol Lihat Foto
+        const btnFoto = row.querySelector(".btn-foto");
+        btnFoto.addEventListener("click", () => {
+          modal.style.display = "block";
+          modalImg.src = btnFoto.getAttribute("data-foto");
+        });
+      });
+
+      // Tutup modal
+      closeModal.addEventListener("click", () => (modal.style.display = "none"));
+      window.addEventListener("click", (e) => {
+        if (e.target === modal) modal.style.display = "none";
+      });
+    </script>
+  </body>
+</html>

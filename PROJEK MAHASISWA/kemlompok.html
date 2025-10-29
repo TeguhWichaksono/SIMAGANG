@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kelompok Magang | SI MAGANG</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
+    <link rel="stylesheet" href="styles.css" />
+
+    <style>
+      .form-container {
+        background: #fff;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        max-width: 950px;
+        margin: 40px auto;
+      }
+
+      .form-container h2 {
+        color: #262a39;
+        text-align: center;
+        margin-bottom: 25px;
+      }
+
+      form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+
+      .form-group {
+        flex: 1 1 45%;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .form-group label {
+        font-weight: 600;
+        color: #444;
+        margin-bottom: 5px;
+      }
+
+      .form-group input,
+      .form-group select {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 15px;
+        transition: border-color 0.3s;
+      }
+
+      .form-group input:focus,
+      .form-group select:focus {
+        border-color: #4270f4;
+        outline: none;
+      }
+
+      .form-actions {
+        width: 100%;
+        text-align: center;
+        margin-top: 20px;
+      }
+
+      .form-actions button {
+        background: #4270f4;
+        color: white;
+        border: none;
+        padding: 10px 30px;
+        font-size: 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+
+      .form-actions button:hover {
+        background: #3056c5;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 25px;
+      }
+
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: center;
+        font-size: 14px;
+      }
+
+      th {
+        background: #f2f4fa;
+        color: #333;
+      }
+
+      .btn-delete {
+        background: #e74c3c;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: 0.3s;
+      }
+
+      .btn-delete:hover {
+        background: #c0392b;
+      }
+
+      .preview {
+        flex: 1 1 100%;
+        text-align: center;
+      }
+
+      .preview img {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 10px;
+        border: 2px solid #ddd;
+        margin-top: 8px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="logo">
+        <svg width="100" height="40" viewBox="0 0 100 40">
+          <path d="M12,15 L30,15 L24,27 L12,27 Z" fill="#4270F4" />
+          <text x="38" y="27" fill="#262A39" font-size="20" font-weight="bold">
+            SMG
+          </text>
+        </svg>
+      </div>
+
+      <div class="nav-menu">
+        <a href="coba.html" class="nav-item">
+          <i class="fas fa-home"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i class="fas fa-user-circle"></i>
+          <span>Akun</span>
+        </a>
+        <a href="kemlompok.html" class="nav-item active">
+          <i class="fas fa-users"></i>
+          <span>Kelompok</span>
+        </a>
+        <a href="pengajuanMitra.html" class="nav-item">
+          <i class="fas fa-building"></i>
+          <span>Pengajuan Mitra</span>
+        </a>
+        <a href="pengajuanMagang.html" class="nav-item">
+          <i class="fas fa-file-alt"></i>
+          <span>Pengajuan Magang</span>
+        </a>
+        <a href="AbsensiKegiatan.html" class="nav-item">
+          <i class="fas fa-tasks"></i>
+          <span>Absensi & Kegiatan Harian</span>
+        </a>
+        <a href="LaporanMagang.html" class="nav-item">
+          <i class="fas fa-file-upload"></i>
+          <span>Laporan Magang</span>
+        </a>
+        <a href="notifikasiMahasiswa.html" class="nav-item">
+          <i class="fas fa-bell"></i>
+          <span>Notifikasi</span>
+        </a>
+      </div>
+
+      <div class="premium-box">
+        <h3>Buku Panduan</h3>
+        <button class="premium-btn">Selengkapnya</button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <div class="header">
+        <div class="welcome-section">
+          <p class="greeting">Selamat Datang, E31241242 Septiya Qorrata Ayun</p>
+          <h1 class="welcome-title">Manajemen Kelompok Magang</h1>
+        </div>
+
+        <div class="header-right">
+          <div class="notification-bell">
+            <i class="fas fa-bell"></i>
+            <div class="notification-indicator"></div>
+          </div>
+
+          <div class="user-profile">
+            <img src="images/tyakk.png" alt="Foto Profil" class="profile-pic" />
+          </div>
+
+          <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Mencari" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Tambah Anggota -->
+      <div class="form-container">
+        <h2>Form Tambah Anggota Kelompok</h2>
+        <form id="kelompokForm">
+          <div class="form-group">
+            <label for="nama">Nama Anggota</label>
+            <input type="text" id="nama" placeholder="Masukkan nama lengkap" required />
+          </div>
+
+          <div class="form-group">
+            <label for="nim">NIM</label>
+            <input type="text" id="nim" placeholder="Masukkan NIM anggota" required />
+          </div>
+
+          <div class="form-group">
+            <label for="prodi">Program Studi</label>
+            <input type="text" id="prodi" placeholder="Masukkan program studi" required />
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" placeholder="Masukkan email aktif" required />
+          </div>
+
+          <div class="form-group">
+            <label for="telepon">Nomor Telepon / WA</label>
+            <input type="text" id="telepon" placeholder="Contoh: 081234567890" required />
+          </div>
+
+          <div class="form-group">
+            <label for="mitra">Nama Mitra / Tempat Magang</label>
+            <input type="text" id="mitra" placeholder="Contoh: PT. Maju Jaya" required />
+          </div>
+
+          <div class="form-group">
+            <label for="foto">Upload CV</label>
+            <input type="file" id="foto" accept="image/*" required />
+          </div>
+
+          <div class="preview" id="preview"></div>
+
+          <div class="form-group" style="flex: 1 1 100%;">
+            <label for="tugas">Tugas dalam Kelompok</label>
+            <input type="text" id="tugas" placeholder="Contoh: Ketua / Dokumentasi / Desain" required />
+          </div>
+
+          <div class="form-actions">
+            <button type="submit">
+              <i class="fas fa-user-plus"></i> Tambah Anggota
+            </button>
+          </div>
+        </form>
+
+        <!-- Tabel Anggota -->
+        <h2 style="margin-top: 40px;">Daftar Anggota Kelompok</h2>
+        <table id="tabelKelompok">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Nama</th>
+              <th>NIM</th>
+              <th>Prodi</th>
+              <th>Email</th>
+              <th>No. WA</th>
+              <th>Mitra</th>
+              <th>Foto</th>
+              <th>Tugas</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      const form = document.getElementById("kelompokForm");
+      const tabel = document.querySelector("#tabelKelompok tbody");
+      const fotoInput = document.getElementById("foto");
+      const preview = document.getElementById("preview");
+      let fotoData = "";
+      let no = 1;
+
+      fotoInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            fotoData = event.target.result;
+            preview.innerHTML = `<img src="${fotoData}" alt="Preview Foto" />`;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        const nama = document.getElementById("nama").value;
+        const nim = document.getElementById("nim").value;
+        const prodi = document.getElementById("prodi").value;
+        const email = document.getElementById("email").value;
+        const telepon = document.getElementById("telepon").value;
+        const mitra = document.getElementById("mitra").value;
+        const tugas = document.getElementById("tugas").value;
+
+        if (!nama || !nim || !prodi || !email || !telepon || !mitra || !tugas || !fotoData) return;
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${no++}</td>
+          <td>${nama}</td>
+          <td>${nim}</td>
+          <td>${prodi}</td>
+          <td>${email}</td>
+          <td>${telepon}</td>
+          <td>${mitra}</td>
+          <td><img src="${fotoData}" width="50" height="50" style="border-radius:6px;object-fit:cover;" /></td>
+          <td>${tugas}</td>
+          <td><button class="btn-delete">Hapus</button></td>
+        `;
+
+        tabel.appendChild(row);
+        form.reset();
+        preview.innerHTML = "";
+        fotoData = "";
+
+        row.querySelector(".btn-delete").addEventListener("click", () => row.remove());
+      });
+    </script>
+  </body>
+</html>

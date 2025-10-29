@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Monitoring Bimbingan | SI MAGANG</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
+    <link rel="stylesheet" href="styles.css" />
+
+    <style>
+      .container-monitoring {
+        background: #fff;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        max-width: 1100px;
+        margin: 40px auto;
+      }
+
+      .container-monitoring h2 {
+        color: #262a39;
+        text-align: center;
+        margin-bottom: 25px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+      }
+
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: center;
+        font-size: 14px;
+      }
+
+      th {
+        background: #f2f4fa;
+        color: #333;
+      }
+
+      .progress-bar {
+        width: 100%;
+        background: #eee;
+        border-radius: 6px;
+        overflow: hidden;
+        height: 12px;
+      }
+
+      .progress-fill {
+        height: 12px;
+        background: #4270f4;
+        width: 0%;
+        transition: width 0.6s ease;
+      }
+
+      .status-selesai {
+        color: green;
+        font-weight: bold;
+      }
+      .status-proses {
+        color: #e67e22;
+        font-weight: bold;
+      }
+      .status-belum {
+        color: red;
+        font-weight: bold;
+      }
+
+      .btn-detail {
+        background: #4270f4;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: 0.3s;
+      }
+
+      .btn-detail:hover {
+        background: #3056c5;
+      }
+
+      .note {
+        margin-top: 20px;
+        font-size: 14px;
+        color: #555;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="logo">
+        <svg width="100" height="40" viewBox="0 0 100 40">
+          <path d="M12,15 L30,15 L24,27 L12,27 Z" fill="#4270F4" />
+          <text x="38" y="27" fill="#262A39" font-size="20" font-weight="bold">
+            SMG
+          </text>
+        </svg>
+      </div>
+
+      <div class="nav-menu">
+        <a href="coba.html" class="nav-item">
+          <i class="fas fa-home"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i class="fas fa-user-circle"></i>
+          <span>Akun</span>
+        </a>
+        <a href="daftarBimbingan.html" class="nav-item">
+          <i class="fas fa-user-graduate"></i>
+          <span>Daftar Bimbingan</span>
+        </a>
+        <a href="monitoring.html" class="nav-item active">
+          <i class="fas fa-clipboard-list"></i>
+          <span>Monitoring</span>
+        </a>
+        <a href="validasiabsensidospem.html" class="nav-item">
+          <i class="fas fa-calendar-check"></i>
+          <span>Validasi Absensi</span>
+        </a>
+        <a href="evaluasiNilai.html" class="nav-item">
+          <i class="fas fa-star-half-alt"></i>
+          <span>Evaluasi & Nilai</span>
+        </a>
+        <a href="NotifikasiDosen.html" class="nav-item">
+          <i class="fas fa-bell"></i>
+          <span>Notifikasi</span>
+        </a>
+      </div>
+
+      <div class="premium-box">
+        <h3>Buku Panduan</h3>
+        <button class="premium-btn">Selengkapnya</button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Header -->
+      <div class="header">
+        <div class="welcome-section">
+          <p class="greeting">Selamat Datang, E31241242 Septiya Qorrata Ayun</p>
+          <h1 class="welcome-title">Monitoring Mahasiswa Bimbingan</h1>
+        </div>
+
+        <div class="header-right">
+          <div class="notification-bell">
+            <i class="fas fa-bell"></i>
+            <div class="notification-indicator"></div>
+          </div>
+
+          <div class="user-profile">
+            <img src="images/tyakk.png" alt="Foto Profil" class="profile-pic" />
+          </div>
+
+          <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Mencari" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Monitoring Container -->
+      <div class="container-monitoring">
+        <h2>Data Monitoring Mahasiswa Magang</h2>
+        <table id="tabelMonitoring">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Nama</th>
+              <th>NIM</th>
+              <th>Prodi</th>
+              <th>Tempat Magang</th>
+              <th>Progress</th>
+              <th>Status Laporan</th>
+              <th>Kehadiran</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Data otomatis -->
+          </tbody>
+        </table>
+
+        <p class="note">
+          <i class="fas fa-info-circle"></i> Data ini diperoleh dari sistem
+          koordinasi bidang magang dan diperbarui secara berkala.
+        </p>
+      </div>
+    </div>
+
+    <script>
+      const dataMonitoring = [
+        {
+          nama: "Ahmad Fauzan",
+          nim: "E31241111",
+          prodi: "Manajemen Informatika",
+          mitra: "PT. Sinar Teknologi",
+          progress: 85,
+          laporan: "Selesai",
+          kehadiran: "95%",
+        },
+        {
+          nama: "Siti Rahmawati",
+          nim: "E31241122",
+          prodi: "Manajemen Informatika",
+          mitra: "Dinas Kominfo Probolinggo",
+          progress: 65,
+          laporan: "Dalam Proses",
+          kehadiran: "88%",
+        },
+        {
+          nama: "Bagus Setiawan",
+          nim: "E31241133",
+          prodi: "Teknik Komputer",
+          mitra: "CV. Kreatif Digital",
+          progress: 40,
+          laporan: "Belum Dikirim",
+          kehadiran: "70%",
+        },
+      ];
+
+      const tbody = document.querySelector("#tabelMonitoring tbody");
+
+      dataMonitoring.forEach((mhs, i) => {
+        const row = document.createElement("tr");
+
+        let statusClass =
+          mhs.laporan === "Selesai"
+            ? "status-selesai"
+            : mhs.laporan === "Dalam Proses"
+            ? "status-proses"
+            : "status-belum";
+
+        row.innerHTML = `
+          <td>${i + 1}</td>
+          <td>${mhs.nama}</td>
+          <td>${mhs.nim}</td>
+          <td>${mhs.prodi}</td>
+          <td>${mhs.mitra}</td>
+          <td>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width:${mhs.progress}%"></div>
+            </div>
+            <small>${mhs.progress}%</small>
+          </td>
+          <td class="${statusClass}">${mhs.laporan}</td>
+          <td>${mhs.kehadiran}</td>
+          <td><button class="btn-detail"><i class="fas fa-eye"></i> Detail</button></td>
+        `;
+
+        tbody.appendChild(row);
+      });
+    </script>
+  </body>
+</html>

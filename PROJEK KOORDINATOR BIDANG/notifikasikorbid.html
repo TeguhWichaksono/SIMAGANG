@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Notifikasi | SI MAGANG</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .container-notif {
+        background: #fff;
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        max-width: 1100px;
+        margin: 40px auto;
+      }
+
+      .container-notif h2 {
+        color: #262a39;
+        text-align: center;
+        margin-bottom: 25px;
+      }
+
+      .notif-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 15px;
+        border-bottom: 1px solid #eee;
+        transition: background 0.2s;
+      }
+
+      .notif-item:hover {
+        background: #f4f7ff;
+      }
+
+      .notif-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .notif-icon {
+        font-size: 20px;
+        color: #4270f4;
+      }
+
+      .notif-content {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .notif-title {
+        font-weight: bold;
+        color: #333;
+        font-size: 14px;
+      }
+
+      .notif-time {
+        font-size: 12px;
+        color: #888;
+      }
+
+      .notif-status {
+        font-size: 12px;
+        font-weight: bold;
+        padding: 2px 6px;
+        border-radius: 5px;
+        text-align: center;
+      }
+
+      .status-new {
+        background: #2ecc71;
+        color: white;
+      }
+
+      .status-read {
+        background: #bdc3c7;
+        color: white;
+      }
+
+      .search-bar-notif {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 15px;
+      }
+
+      .search-bar-notif input {
+        padding: 8px;
+        width: 250px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="logo">
+        <svg width="100" height="40" viewBox="0 0 100 40">
+          <path d="M12,15 L30,15 L24,27 L12,27 Z" fill="#4270F4" />
+          <text x="38" y="27" fill="#262A39" font-size="20" font-weight="bold">
+            SMG
+          </text>
+        </svg>
+      </div>
+
+      <div class="nav-menu">
+        <a href="coba.html" class="nav-item">
+          <i class="fas fa-home"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i class="fas fa-user-circle"></i>
+          <span>Akun</span>
+        </a>
+        <a href="DataMaKel.html" class="nav-item">
+          <i class="fas fa-users"></i>
+          <span>Data Mahasiswa & Kelompok</span>
+        </a>
+        <a href="PersetujuanMitra.html" class="nav-item">
+          <i class="fas fa-check-circle"></i>
+          <span>Persetujuan Mitra</span>
+        </a>
+        <a href="DataMitra.html" class="nav-item">
+          <i class="fas fa-building"></i>
+          <span>Data Mitra</span>
+        </a>
+        <a href="dokMag.html" class="nav-item">
+          <i class="fas fa-file-contract"></i>
+          <span>Dokumen Magang</span>
+        </a>
+        <a href="notifikasikorbid.html" class="nav-item active">
+          <i class="fas fa-bell"></i>
+          <span>Notifikasi</span>
+        </a>
+      </div>
+    </div>
+
+    
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Header -->
+      <div class="header">
+        <div class="welcome-section">
+          <p class="greeting">Selamat Datang, E31241242 Septiya Qorrata Ayun</p>
+          <h1 class="welcome-title">Notifikasi</h1>
+        </div>
+
+        <div class="header-right">
+          <div class="notification-bell">
+            <i class="fas fa-bell"></i>
+            <div class="notification-indicator"></div>
+          </div>
+
+          <div class="user-profile">
+            <img src="images/tyakk.png" alt="Foto Profil" class="profile-pic" />
+          </div>
+
+          <div class="search-bar-notif">
+            <input type="text" id="searchNotif" placeholder="Cari notifikasi..." />
+          </div>
+        </div>
+      </div>
+
+      <!-- Notifikasi -->
+      <div class="container-notif">
+        <h2>Notifikasi dari Admin</h2>
+
+        <div class="notif-item">
+          <div class="notif-left">
+            <div class="notif-icon"><i class="fas fa-file-upload"></i></div>
+            <div class="notif-content">
+              <div class="notif-title">Admin mengunggah dokumen Panduan Magang</div>
+              <div class="notif-time"><i class="far fa-clock"></i> 6 Okt 2025, 10:15</div>
+            </div>
+          </div>
+          <div class="notif-status status-new">Baru</div>
+        </div>
+
+        <div class="notif-item">
+          <div class="notif-left">
+            <div class="notif-icon"><i class="fas fa-check-circle"></i></div>
+            <div class="notif-content">
+              <div class="notif-title">Admin menyetujui pengajuan mitra CV Sentosa</div>
+              <div class="notif-time"><i class="far fa-clock"></i> 5 Okt 2025, 14:30</div>
+            </div>
+          </div>
+          <div class="notif-status status-read">Terbaca</div>
+        </div>
+
+        <div class="notif-item">
+          <div class="notif-left">
+            <div class="notif-icon"><i class="fas fa-calendar-check"></i></div>
+            <div class="notif-content">
+              <div class="notif-title">Pengingat: Deadline Laporan Bab II besok</div>
+              <div class="notif-time"><i class="far fa-clock"></i> 6 Okt 2025, 08:00</div>
+            </div>
+          </div>
+          <div class="notif-status status-new">Baru</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Pencarian Notifikasi
+      document.getElementById("searchNotif").addEventListener("keyup", function () {
+        let value = this.value.toLowerCase();
+        document.querySelectorAll(".container-notif .notif-item").forEach((item) => {
+          item.style.display = item.textContent.toLowerCase().includes(value)
+            ? ""
+            : "none";
+        });
+      });
+    </script>
+  </body>
+</html>

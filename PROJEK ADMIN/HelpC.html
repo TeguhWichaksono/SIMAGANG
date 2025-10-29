@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Help Center - SI MAGANG</title>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+  />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .help-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .faq-card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+      margin-bottom: 15px;
+      padding: 15px 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .faq-card:hover {
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+    .faq-question {
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .faq-answer {
+      margin-top: 10px;
+      display: none;
+      color: #555;
+    }
+    .tips-card {
+  background-color: #fdfdfd;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  margin-bottom: 15px;
+}
+
+.tips-list {
+  list-style: none; /* hilangkan bullet default */
+  padding-left: 0;
+  margin-top: 10px;
+}
+
+.tips-list li::before {
+  content: "– "; /* strip sebelum teks */
+  font-weight: bold;
+  margin-right: 5px;
+}
+
+    .support-btn {
+      background-color: #6889ff;
+      color: #fff;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+    .support-btn:hover {
+      background-color: #2b076ed7;
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="logo">
+      <svg width="100" height="40" viewBox="0 0 100 40">
+        <path d="M12,15 L30,15 L24,27 L12,27 Z" fill="#4270F4" />
+        <text x="38" y="27" fill="#262A39" font-size="20" font-weight="bold">
+          SMG
+        </text>
+      </svg>
+    </div>
+
+    <div class="nav-menu">
+      <a href="coba.html" class="nav-item">
+        <i class="fas fa-home"></i>
+        <span>Dashboard</span>
+      </a>
+      <a href="#" class="nav-item">
+        <i class="fas fa-user-circle"></i>
+        <span>Akun</span>
+      </a>
+      <a href="ManajemenUser.html" class="nav-item">
+        <i class="fas fa-users-gear"></i>
+        <span>Manajemen User</span>
+      </a>
+      <a href="#" class="nav-item">
+        <i class="fas fa-building"></i>
+        <span>Manajemen Mitra</span>
+      </a>
+      <a href="Lapsis.html" class="nav-item">
+        <i class="fas fa-chart-line"></i>
+        <span>Laporan Sistem</span>
+      </a>
+      <a href="HelpC.html" class="nav-item active">
+        <i class="fas fa-life-ring"></i>
+        <span>Help Center</span>
+      </a>
+      <a href="notifikasi.html" class="nav-item">
+        <i class="fas fa-bell"></i>
+        <span>Notifikasi</span>
+      </a>
+    </div>
+
+    <div class="premium-box">
+      <h3>Buku Panduan</h3>
+      <button class="premium-btn">Selengkapnya</button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Header -->
+    <div class="header">
+      <div class="welcome-section">
+        <p class="greeting">Selamat Datang, E31241242 Septiya Qorrata Ayun</p>
+        <h1 class="welcome-title">Help Center</h1>
+      </div>
+
+      <div class="header-right">
+        <div class="notification-bell">
+          <i class="fas fa-bell"></i>
+          <div class="notification-indicator"></div>
+        </div>
+
+        <div class="user-profile">
+          <img src="images/tyakk.png" alt="User Profile" class="profile-pic" />
+        </div>
+
+        <div class="search-bar">
+          <i class="fas fa-search"></i>
+          <input type="text" placeholder="Cari Bantuan..." />
+        </div>
+      </div>
+    </div>
+
+    <!-- Content -->
+  <div class="help-header">
+  <div class="tips-card">
+    <h3>Tips Cepat</h3>
+    <ul class="tips-list">
+      <li>Selalu periksa progress mahasiswa secara rutin.</li>
+      <li>Gunakan notifikasi untuk mengingatkan mahasiswa/dosen yang lama tidak update.</li>
+      <li>Periksa log aktivitas secara berkala untuk keamanan sistem.</li>
+    </ul>
+  </div>
+  <button class="support-btn"><i class="fas fa-envelope"></i> Hubungi Support</button>
+</div>
+
+    <h2>FAQ - Pertanyaan Umum</h2>
+
+    <div class="faq-card" onclick="toggleFAQ(this)">
+      <div class="faq-question">
+        Bagaimana cara menambah user baru?
+        <i class="fas fa-chevron-down"></i>
+      </div>
+      <div class="faq-answer">
+        Klik tombol "Tambah User", isi data lengkap, dan pilih role yang sesuai (Admin, Korbid, Dosen Pembimbing, Mahasiswa).
+      </div>
+    </div>
+
+    <div class="faq-card" onclick="toggleFAQ(this)">
+      <div class="faq-question">
+        Bagaimana cara mengirim pengingat ke mahasiswa/dosen?
+        <i class="fas fa-chevron-down"></i>
+      </div>
+      <div class="faq-answer">
+        Gunakan tombol "Ingatkan" pada halaman Notifikasi untuk mengirim reminder otomatis.
+      </div>
+    </div>
+
+    <div class="faq-card" onclick="toggleFAQ(this)">
+      <div class="faq-question">
+        Bagaimana melihat log aktivitas sistem?
+        <i class="fas fa-chevron-down"></i>
+      </div>
+      <div class="faq-answer">
+        Masuk ke menu Laporan Sistem, pilih periode yang ingin dilihat, lalu klik "Tampilkan".
+      </div>
+    </div>
+
+    <div class="faq-card" onclick="toggleFAQ(this)">
+      <div class="faq-question">
+        Bagaimana jika lupa password admin?
+        <i class="fas fa-chevron-down"></i>
+      </div>
+      <div class="faq-answer">
+        Klik tombol "Lupa Password?" di halaman login, lalu ikuti petunjuk reset.
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function toggleFAQ(card) {
+      const answer = card.querySelector('.faq-answer');
+      answer.style.display = answer.style.display === 'block' ? 'none' : 'block';
+      const icon = card.querySelector('.faq-question i');
+      icon.classList.toggle('fa-chevron-down');
+      icon.classList.toggle('fa-chevron-up');
+    }
+  </script>
+</body>
+</html>

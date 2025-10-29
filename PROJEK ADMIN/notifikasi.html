@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Notifikasi Admin - SI MAGANG</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .notification-card {
+        background: #fff;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        margin-top: 20px;
+      }
+      .notification-card h3 {
+        font-size: 16px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #4270F4;
+      }
+      .notification-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 12px;
+        border-left: 4px solid #4270F4;
+        padding: 10px;
+        background-color: #f9f9f9;
+        border-radius: 6px;
+      }
+      .notification-item.inactive {
+        border-left-color: #ff0048;
+        background-color: #ffe6e6;
+      }
+      .notification-content {
+        flex: 1;
+      }
+      .notification-content p {
+        margin: 2px 0 0 0;
+        font-size: 13px;
+        color: #555;
+      }
+      .notification-content .status {
+        font-weight: bold;
+        font-size: 12px;
+        color: #ff0048;
+      }
+      .remind-btn {
+        background-color: #4270F4;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        padding: 5px 10px;
+        cursor: pointer;
+        font-size: 12px;
+      }
+      .remind-btn:hover {
+        background-color: #3251c6;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="logo">
+        <svg width="100" height="40" viewBox="0 0 100 40">
+          <path d="M12,15 L30,15 L24,27 L12,27 Z" fill="#4270F4" />
+          <text x="38" y="27" fill="#262A39" font-size="20" font-weight="bold">
+            SMG
+          </text>
+        </svg>
+      </div>
+
+      <div class="nav-menu">
+        <a href="coba.html" class="nav-item">
+          <i class="fas fa-home"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i class="fas fa-user-circle"></i>
+          <span>Akun</span>
+        </a>
+        <a href="ManajemenUser.html" class="nav-item">
+          <i class="fas fa-users-gear"></i>
+          <span>Manajemen User</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i class="fas fa-building"></i>
+          <span>Manajemen Mitra</span>
+        </a>
+        <a href="Lapsis.html" class="nav-item">
+          <i class="fas fa-chart-line"></i>
+          <span>Laporan Sistem</span>
+        </a>
+        <a href="notifikasi.html" class="nav-item active">
+          <i class="fas fa-bell"></i>
+          <span>Notifikasi</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i class="fas fa-life-ring"></i>
+          <span>Help Center</span>
+        </a>
+      </div>
+
+      <div class="premium-box">
+        <h3>Buku Panduan</h3>
+        <button class="premium-btn">Selengkapnya</button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Header -->
+      <div class="header">
+        <div class="welcome-section">
+          <p class="greeting">Selamat Datang, E31241242 Septiya Qorrata Ayun</p>
+          <h1 class="welcome-title">Notifikasi Admin</h1>
+        </div>
+
+        <div class="header-right">
+          <div class="notification-bell">
+            <i class="fas fa-bell"></i>
+            <div class="notification-indicator"></div>
+          </div>
+
+          <div class="user-profile">
+            <img src="images/tyakk.png" alt="User Profile" class="profile-pic" />
+          </div>
+
+          <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Mencari Notifikasi" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Notifikasi Dinamis -->
+      <div class="notification-card">
+        <h3><i class="fas fa-bell"></i> Pengingat Progres Tidak Aktif</h3>
+
+        <div class="notification-item inactive">
+          <i class="fas fa-user-graduate"></i>
+          <div class="notification-content">
+            <strong>Mahasiswa: Septiya Qorrata Ayun</strong>
+            <p>Sudah 10 hari tidak mengunggah progres magang</p>
+            <span class="status">Perlu Dihubungi</span>
+          </div>
+          <button class="remind-btn"><i class="fas fa-bell"></i> Ingatkan</button>
+        </div>
+
+        <div class="notification-item">
+          <i class="fas fa-chalkboard-teacher"></i>
+          <div class="notification-content">
+            <strong>Dosen Pembimbing: Khoiril Nisrullah</strong>
+            <p>Belum memberikan review laporan selama 7 hari</p>
+          </div>
+          <button class="remind-btn"><i class="fas fa-bell"></i> Ingatkan</button>
+        </div>
+
+        <div class="notification-item inactive">
+          <i class="fas fa-user-tie"></i>
+          <div class="notification-content">
+            <strong>Korbid: Diva Hafizdatul Albin</strong>
+            <p>Tidak melakukan koordinasi penempatan mahasiswa selama 5 hari</p>
+            <span class="status">Perlu Tindakan</span>
+          </div>
+          <button class="remind-btn"><i class="fas fa-bell"></i> Ingatkan</button>
+        </div>
+
+        <div class="notification-item">
+          <i class="fas fa-user-graduate"></i>
+          <div class="notification-content">
+            <strong>Mahasiswa: Teguh Wichaksono</strong>
+            <p>Progress Laporan Bab II sudah diunggah hari ini</p>
+          </div>
+          <button class="remind-btn"><i class="fas fa-bell"></i> Ingatkan</button>
+        </div>
+
+      </div>
+    </div>
+  </body>
+</html>

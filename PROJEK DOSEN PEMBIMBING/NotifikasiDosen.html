@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Notifikasi Dosen Pembimbing | SI MAGANG</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
+    <link rel="stylesheet" href="styles.css" />
+
+    <style>
+      .container-notif {
+        background: #fff;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        max-width: 1100px;
+        margin: 40px auto;
+      }
+
+      .container-notif h2 {
+        color: #262a39;
+        text-align: center;
+        margin-bottom: 25px;
+      }
+
+      .notif-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .notif-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        border-left: 6px solid #4270f4;
+        background: #f9faff;
+        border-radius: 10px;
+        padding: 15px 20px;
+        transition: 0.3s;
+      }
+
+      .notif-card:hover {
+        background: #eef2ff;
+      }
+
+      .notif-icon {
+        font-size: 22px;
+        color: #4270f4;
+        margin-top: 4px;
+      }
+
+      .notif-content h3 {
+        margin: 0;
+        font-size: 17px;
+        color: #262a39;
+      }
+
+      .notif-content p {
+        margin: 5px 0;
+        font-size: 14px;
+        color: #555;
+      }
+
+      .notif-time {
+        font-size: 13px;
+        color: gray;
+      }
+
+      .notif-card.warning {
+        border-left-color: #f39c12;
+      }
+
+      .notif-card.warning .notif-icon {
+        color: #f39c12;
+      }
+
+      .notif-card.info {
+        border-left-color: #1abc9c;
+      }
+
+      .notif-card.info .notif-icon {
+        color: #1abc9c;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="logo">
+        <svg width="100" height="40" viewBox="0 0 100 40">
+          <path d="M12,15 L30,15 L24,27 L12,27 Z" fill="#4270F4" />
+          <text x="38" y="27" fill="#262A39" font-size="20" font-weight="bold">
+            SMG
+          </text>
+        </svg>
+      </div>
+
+      <div class="nav-menu">
+        <a href="coba.html" class="nav-item">
+          <i class="fas fa-home"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i class="fas fa-user-circle"></i>
+          <span>Akun</span>
+        </a>
+        <a href="daftarBimbingan.html" class="nav-item">
+          <i class="fas fa-user-graduate"></i>
+          <span>Daftar Bimbingan</span>
+        </a>
+        <a href="monitoring.html" class="nav-item">
+          <i class="fas fa-clipboard-list"></i>
+          <span>Monitoring</span>
+        </a>
+        <a href="validasiabsensidospem.html" class="nav-item">
+          <i class="fas fa-calendar-check"></i>
+          <span>Validasi Absensi</span>
+        </a>
+        <a href="evaluasiNilai.html" class="nav-item">
+          <i class="fas fa-star-half-alt"></i>
+          <span>Evaluasi & Nilai</span>
+        </a>
+        <a href="NotifikasiDosen.html" class="nav-item active">
+          <i class="fas fa-bell"></i>
+          <span>Notifikasi</span>
+        </a>
+      </div>
+
+      <div class="premium-box">
+        <h3>Buku Panduan</h3>
+        <button class="premium-btn">Selengkapnya</button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Header -->
+      <div class="header">
+        <div class="welcome-section">
+          <p class="greeting">Selamat Datang, Dosen Pembimbing</p>
+          <h1 class="welcome-title">Pemberitahuan</h1>
+        </div>
+
+        <div class="header-right">
+          <div class="notification-bell">
+            <i class="fas fa-bell"></i>
+            <div class="notification-indicator"></div>
+          </div>
+
+          <div class="user-profile">
+            <img src="images/tyakk.png" alt="Foto Profil" class="profile-pic" />
+          </div>
+
+          <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Cari Notifikasi..." />
+          </div>
+        </div>
+      </div>
+
+      <!-- Notifikasi Section -->
+      <div class="container-notif">
+        <h2>Notifikasi untuk Anda</h2>
+        <div class="notif-list" id="notifList"></div>
+      </div>
+    </div>
+
+    <script>
+      const dataNotifikasi = [
+        {
+          judul: "📅 Jadwal Rapat Pembimbing",
+          pesan:
+            "Admin telah menjadwalkan rapat dosen pembimbing pada hari Kamis, 10 Oktober 2025 pukul 09.00 WIB.",
+          waktu: "6 Oktober 2025, 08:00 WIB",
+          tipe: "info",
+        },
+        {
+          judul: "⚠️ Revisi Penilaian Mahasiswa",
+          pesan:
+            "Mohon melakukan pembaruan nilai untuk mahasiswa bimbingan Anda sesuai hasil evaluasi terbaru.",
+          waktu: "5 Oktober 2025, 14:30 WIB",
+          tipe: "warning",
+        },
+        {
+          judul: "ℹ️ Pemeliharaan Sistem",
+          pesan:
+            "Sistem SI Magang akan mengalami perawatan server pada 8 Oktober 2025 pukul 20.00 WIB. Mohon selesaikan pekerjaan sebelum waktu tersebut.",
+          waktu: "4 Oktober 2025, 10:15 WIB",
+          tipe: "info",
+        },
+      ];
+
+      const notifList = document.getElementById("notifList");
+
+      dataNotifikasi.forEach((notif) => {
+        const card = document.createElement("div");
+        card.className = `notif-card ${notif.tipe}`;
+        card.innerHTML = `
+          <div class="notif-icon">
+            <i class="fa-solid ${
+              notif.tipe === "warning"
+                ? "fa-triangle-exclamation"
+                : "fa-circle-info"
+            }"></i>
+          </div>
+          <div class="notif-content">
+            <h3>${notif.judul}</h3>
+            <p>${notif.pesan}</p>
+            <span class="notif-time">Dikirim: ${notif.waktu}</span>
+          </div>
+        `;
+        notifList.appendChild(card);
+      });
+    </script>
+  </body>
+</html>

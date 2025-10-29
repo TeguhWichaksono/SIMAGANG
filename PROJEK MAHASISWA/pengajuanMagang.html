@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pengajuan Magang | SI MAGANG</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
+    <link rel="stylesheet" href="styles.css" />
+
+    <style>
+      .form-container {
+        background: #fff;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        max-width: 900px;
+        margin: 40px auto;
+      }
+
+      .form-container h2 {
+        color: #262a39;
+        text-align: center;
+        margin-bottom: 25px;
+      }
+
+      form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+
+      .form-group {
+        flex: 1 1 45%;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .form-group label {
+        font-weight: 600;
+        color: #444;
+        margin-bottom: 5px;
+      }
+
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 15px;
+        transition: border-color 0.3s;
+      }
+
+      .form-group input:focus,
+      .form-group select:focus,
+      .form-group textarea:focus {
+        border-color: #4270f4;
+        outline: none;
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 80px;
+      }
+
+      .form-actions {
+        width: 100%;
+        text-align: center;
+        margin-top: 20px;
+      }
+
+      .form-actions button {
+        background: #4270f4;
+        color: white;
+        border: none;
+        padding: 10px 30px;
+        font-size: 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+
+      .form-actions button:hover {
+        background: #3056c5;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="logo">
+        <svg width="100" height="40" viewBox="0 0 100 40">
+          <path d="M12,15 L30,15 L24,27 L12,27 Z" fill="#4270F4" />
+          <text x="38" y="27" fill="#262A39" font-size="20" font-weight="bold">
+            SMG
+          </text>
+        </svg>
+      </div>
+
+      <div class="nav-menu">
+        <a href="coba.html" class="nav-item">
+          <i class="fas fa-home"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i class="fas fa-user-circle"></i>
+          <span>Akun</span>
+        </a>
+        <a href="kemlompok.html" class="nav-item">
+          <i class="fas fa-users"></i>
+          <span>Kelompok</span>
+        </a>
+        <a href="pengajuanMitra.html" class="nav-item">
+          <i class="fas fa-building"></i>
+          <span>Pengajuan Mitra</span>
+        </a>
+        <a href="pengajuanMagang.html" class="nav-item active">
+          <i class="fas fa-file-alt"></i>
+          <span>Pengajuan Magang</span>
+        </a>
+        <a href="AbsensiKegiatan.html" class="nav-item">
+          <i class="fas fa-tasks"></i>
+          <span>Absensi & Kegiatan Harian</span>
+        </a>
+        <a href="LaporanMagang.html" class="nav-item">
+          <i class="fas fa-file-upload"></i>
+          <span>Laporan Magang</span>
+        </a>
+        <a href="notifikasiMahasiswa.html" class="nav-item">
+          <i class="fas fa-bell"></i>
+          <span>Notifikasi</span>
+        </a>
+      </div>
+
+      <div class="premium-box">
+        <h3>Buku Panduan</h3>
+        <button class="premium-btn">Selengkapnya</button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Header -->
+      <div class="header">
+        <div class="welcome-section">
+          <p class="greeting">Selamat Datang , E31241242 Septiya Qorrata Ayun</p>
+          <h1 class="welcome-title">Form Pengajuan Magang</h1>
+        </div>
+
+        <div class="header-right">
+          <div class="notification-bell">
+            <i class="fas fa-bell"></i>
+            <div class="notification-indicator"></div>
+          </div>
+
+          <div class="user-profile">
+            <img src="images/tyakk.png" alt="Foto Profil" class="profile-pic" />
+          </div>
+
+          <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Mencari" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Pengajuan Magang -->
+      <div class="form-container">
+        <h2>Formulir Pengajuan Magang</h2>
+        <form>
+          <div class="form-group">
+            <label for="nama">Nama Mahasiswa</label>
+            <input type="text" id="nama" placeholder="Contoh: Septiya Qorrata Ayun" required />
+          </div>
+
+          <div class="form-group">
+            <label for="nim">NIM</label>
+            <input type="text" id="nim" placeholder="E31241242" required />
+          </div>
+
+          <div class="form-group">
+            <label for="prodi">Program Studi</label>
+            <select id="prodi" required>
+              <option value="">Pilih Program Studi</option>
+              <option value="Manajemen Informatika">Manajemen Informatika</option>
+              <option value="Teknik Informatika">Teknik Informatika</option>
+              <option value="Teknik Komputer">Sistem Informasi</option>
+            <option value="Teknik Komputer">Bisnis Digital</option>
+            <option value="Teknik Rekayasa Komputer ">Bisnis Digital</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="semester">Semester</label>
+            <input type="number" id="semester" min="1" max="8" placeholder="Masukkan semester" required />
+          </div>
+
+          <div class="form-group">
+            <label for="mitra">Nama Mitra / Perusahaan Tujuan</label>
+            <input type="text" id="mitra" placeholder="Contoh: PT Jember Abadi" required />
+          </div>
+
+          <div class="form-group">
+            <label for="alamatMitra">Alamat Mitra</label>
+            <input type="text" id="alamatMitra" placeholder="Alamat lengkap mitra" required />
+          </div>
+
+          <div class="form-group">
+            <label for="posisi">Posisi / Bidang Magang</label>
+            <input type="text" id="posisi" placeholder="Contoh: Web Developer" required />
+          </div>
+
+          <div class="form-group">
+            <label for="tanggalMulai">Tanggal Mulai</label>
+            <input type="date" id="tanggalMulai" required />
+          </div>
+
+          <div class="form-group">
+            <label for="tanggalSelesai">Tanggal Selesai</label>
+            <input type="date" id="tanggalSelesai" required />
+          </div>
+
+          <div class="form-group" style="flex: 1 1 100%;">
+            <label for="deskripsi">Deskripsi / Alasan Pengajuan</label>
+            <textarea
+              id="deskripsi"
+              placeholder="Tuliskan alasan memilih mitra tersebut, bidang yang diminati, dan harapan selama magang..."
+            ></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit">
+              <i class="fas fa-paper-plane"></i> Kirim Pengajuan
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
