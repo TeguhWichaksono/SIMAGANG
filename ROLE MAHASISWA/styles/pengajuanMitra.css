@@ -1,0 +1,182 @@
+/* ==== FORM CONTAINER ==== */
+.form-container {
+  background: #fff;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  max-width: 900px;
+  margin: 40px auto;
+}
+
+.form-container h2 {
+  color: #262a39;
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+/* ==== FORM STRUCTURE ==== */
+form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.form-group {
+  flex: 1 1 45%;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group.full-width {
+  flex: 1 1 100% !important;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 5px;
+}
+
+/* ==== INPUT FIELD STYLE ==== */
+.form-group input,
+.form-group textarea {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 15px;
+  transition: border-color 0.3s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: #4270f4;
+  outline: none;
+}
+
+/* ==== ACTION BUTTONS ==== */
+.form-actions {
+  width: 100%;
+  text-align: center;
+  margin-top: 10px;
+}
+
+.form-actions button {
+  background: #4270f4;
+  color: white;
+  border: none;
+  padding: 10px 25px;
+  font-size: 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+  margin: 5px;
+}
+
+.form-actions button:hover {
+  background: #3056c5;
+}
+
+/* ==== POPUP OVERLAY ==== */
+.popup {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.45);
+}
+
+/* ==== POPUP BOX ==== */
+.popup-content {
+  background: #fff;
+  width: 75%;
+  max-height: 80%;
+  overflow-y: auto;
+  margin: 70px auto;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 3px 18px rgba(0,0,0,0.25);
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { transform: scale(0.94); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.close {
+  float: right;
+  font-size: 26px;
+  cursor: pointer;
+  font-weight: bold;
+  color: #444;
+}
+
+.close:hover {
+  color: red;
+}
+
+/* ==== SEARCH & FILTER ==== */
+#searchMitra,
+#filterBidang {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #aaa;
+  margin: 10px 0;
+  font-size: 14px;
+}
+
+/* ==== TABLE MITRA ==== */
+#tabelRekomMitra {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+#tabelRekomMitra th, 
+#tabelRekomMitra td {
+  border: 1px solid #ddd;
+  padding: 10px;
+}
+
+#tabelRekomMitra th {
+  background: #eef1ff;
+  font-weight: 600;
+}
+
+/* ==== BUTTON PILIH ==== */
+.btnPilih {
+  padding: 7px 14px;
+  background: #2196F3;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btnPilih:hover {
+  background: #0b7dda;
+}
+
+/* ==== SEARCH & FILTER IN 1 ROW ==== */
+.filter-search-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.filter-search-row select,
+.filter-search-row input {
+  flex: 1;
+}
+
+
