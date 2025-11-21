@@ -1,0 +1,83 @@
+.container-monitoring {
+  background: #fff;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  max-width: 1100px;
+  margin: 40px auto;
+}
+
+.container-monitoring h2 {
+  color: #262a39;
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+th,
+td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+  font-size: 14px;
+}
+
+th {
+  background: #f2f4fa;
+  color: #333;
+}
+
+.progress-bar {
+  width: 100%;
+  background: #eee;
+  border-radius: 6px;
+  overflow: hidden;
+  height: 12px;
+}
+
+.progress-fill {
+  height: 12px;
+  background: #4270f4;
+  width: 0%;
+  transition: width 0.6s ease;
+}
+
+.status-selesai {
+  color: green;
+  font-weight: bold;
+}
+
+.status-proses {
+  color: #e67e22;
+  font-weight: bold;
+}
+
+.status-belum {
+  color: red;
+  font-weight: bold;
+}
+
+.btn-detail {
+  background: #4270f4;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-detail:hover {
+  background: #3056c5;
+}
+
+.note {
+  margin-top: 20px;
+  font-size: 14px;
+  color: #555;
+}

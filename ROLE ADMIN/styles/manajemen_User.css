@@ -1,0 +1,197 @@
+.user-container {
+  background: #fff;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  max-width: 1100px;
+  margin: 40px auto;
+}
+
+.header-action {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 15px;
+}
+
+/* Tombol Tambah User */
+.add-btn {
+  background-color: #4270f4;
+  color: #fff;
+  padding: 6px 12px;
+  font-size: 13px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.25s ease, box-shadow 0.25s ease;
+}
+
+.add-btn:hover {
+  background-color: #2f57d6;
+  box-shadow: 0 2px 6px rgba(66, 112, 244, 0.4);
+}
+
+/* Tabel user */
+.user-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.user-table th,
+.user-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: left;
+}
+
+.user-table th {
+  background-color: #4270f4;
+  color: #fff;
+  font-weight: 600;
+}
+
+.user-table tr:nth-child(even) {
+  background-color: #f9faff;
+}
+
+.user-table tr:hover {
+  background-color: #eef2ff;
+  transition: background 0.25s ease;
+}
+
+/* Tombol aksi */
+.action-btn {
+  margin-right: 5px;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  color: #fff;
+  font-size: 13px;
+  transition: 0.3s;
+}
+
+.edit-btn {
+  background-color: #4270f4;
+}
+
+.delete-btn {
+  background-color: #ff0048;
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .user-container {
+    padding: 20px;
+  }
+
+  .user-table th,
+  .user-table td {
+    font-size: 12px;
+    padding: 8px;
+  }
+
+  .add-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+.modal-bg {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.45);
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+}
+
+/* Kotak modal */
+.modal-box {
+    background: #ffffff;
+    width: 420px;
+    padding: 25px 30px;
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    animation: pop 0.25s ease;
+}
+
+/* Animasi pop */
+@keyframes pop {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Judul modal */
+.modal-box h3 {
+    margin-bottom: 18px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #3b4b78;
+}
+
+/* Input pada modal */
+.modal-box input,
+.modal-box select {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    border: 1px solid #dcdce6;
+    border-radius: 7px;
+    font-size: 14px;
+    outline: none;
+    transition: border 0.2s ease;
+}
+
+.modal-box input:focus,
+.modal-box select:focus {
+    border-color: #4270f4;
+}
+
+/* Tombol simpan */
+.save-btn {
+    width: 100%;
+    background: #4270f4;
+    border: none;
+    color: white;
+    padding: 9px;
+    font-size: 14px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+.save-btn:hover {
+    background: #2f57d6;
+}
+
+/* Tombol tutup */
+.close-btn {
+    margin-top: 10px;
+    width: 100%;
+    background: #e36d6d;
+    border: none;
+    color: white;
+    padding: 9px;
+    font-size: 14px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+.close-btn:hover {
+    background: #c95656;
+}
+

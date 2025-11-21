@@ -1,0 +1,230 @@
+/* ==== DASHBOARD CARD SECTION ==== */
+
+.transfer-cards {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-bottom: 30px;
+}
+
+.transfer-card {
+  flex: 1;
+  min-width: 250px;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px 25px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+.transfer-card:hover {
+  transform: translateY(-5px);
+}
+
+.transfer-card .card-icon {
+  font-size: 26px;
+  color: #4270f4;
+  margin-bottom: 10px;
+}
+
+.transfer-card .card-title {
+  font-size: 15px;
+  color: #555;
+  margin: 5px 0;
+  font-weight: 500;
+}
+
+.transfer-card .card-amount {
+  font-size: 22px;
+  color: #262a39;
+  font-weight: 700;
+}
+
+
+/* ==== SIDEBAR KANAN (Mahasiswa Aktif) ==== */
+
+.dashboard-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.savings-card {
+  background: #ffffff;
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.07);
+}
+
+.savings-title {
+  color: #262a39;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.savings-amount {
+  font-size: 28px;
+  font-weight: 700;
+  color: #4270f4;
+  margin-bottom: 15px;
+}
+
+.time-filter {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.time-option {
+  border: 1px solid #d8ddf8;
+  background: #f5f7ff;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.time-option:hover {
+  background: #e9edff;
+}
+
+.time-option.active {
+  background: #4270f4;
+  color: #fff;
+  border-color: #4270f4;
+}
+
+/* chart section */
+.chart-container {
+  width: 100%;
+  height: 100px;
+  margin-bottom: 15px;
+}
+
+.chart-line-path {
+  fill: none;
+  stroke: #4270f4;
+  stroke-width: 2;
+}
+
+.chart-area {
+  fill: url(#gradientFill);
+}
+
+.timeline {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #999;
+  margin-top: 8px;
+}
+
+.timeline .month.active {
+  color: #4270f4;
+  font-weight: 600;
+}
+
+
+/* ==== CARD: MAHASISWA ==== */
+
+.plan-card {
+  background: #ffffff;
+  border-radius: 15px;
+  padding: 18px 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+.plan-card:hover {
+  transform: translateY(-4px);
+}
+
+.plan-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.plan-title {
+  color: #262a39;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.plan-status {
+  color: #888;
+  font-size: 13px;
+}
+
+.plan-progress {
+  background: #edf0fb;
+  border-radius: 20px;
+  padding: 5px 14px;
+}
+
+.plan-percentage {
+  color: #4270f4;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+
+/* ==== UMUM (layout kontainer dashboard) ==== */
+
+.dashboard-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 25px;
+}
+
+.dashboard-main {
+  flex: 2;
+}
+
+.dashboard-sidebar {
+  flex: 1;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #262a39;
+  margin-bottom: 15px;
+}
+
+.transaction-card {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+}
+
+/* ==== FIX UNTUK MAP HILANG ==== */
+.transaction-section {
+  width: 100%;
+}
+
+.transaction-card {
+  display: block;
+  position: relative;
+}
+
+#map {
+  width: 100%;
+  height: 300px;
+  border-radius: 10px;
+  margin-top: 10px;
+  z-index: 1;
+}
+
+/* Tambahan agar Leaflet menghitung tinggi peta dengan benar */
+.leaflet-container {
+  width: 100% !important;
+  height: 300px !important;
+}

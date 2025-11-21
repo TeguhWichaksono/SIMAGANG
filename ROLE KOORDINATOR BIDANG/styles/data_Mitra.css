@@ -1,0 +1,109 @@
+.content-section {
+  background: #fff;
+  border-radius: 15px;
+  padding: 20px;
+  margin-top: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.content-section h3 {
+  color: #333;
+  margin-bottom: 15px;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.content-section h3 i {
+  color: #4270f4;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+table th,
+table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+table th {
+  background: #4270f4;
+  color: #fff;
+}
+
+table tr:nth-child(even) {
+  background: #f9f9f9;
+}
+
+.search-bar-data {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.search-bar-data input {
+  padding: 8px;
+  width: 250px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.btn-view {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 8px;
+  background-color: #4270f4;
+  color: white;
+  cursor: pointer;
+  font-size: 13px;
+  transition: 0.3s;
+}
+
+.btn-view:hover {
+  background-color: #3056c5;
+}
+
+.delete-btn  {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 8px;
+  background-color: #ff0048;
+  color: white;
+  cursor: pointer;
+  font-size: 13px;
+  transition: 0.3s;
+}
+
+.edit-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 8px;
+  background-color: #ffc107; /* warna kuning biar beda */
+  color: white;
+  cursor: pointer;
+  font-size: 13px;
+  transition: 0.3s;
+}
+
+.edit-btn:hover {
+  background-color: #e0a800; /* efek hover sedikit gelap */
+}
+
+
+.add-btn {
+        background-color: #4270F4;
+        color: #fff;
+        padding: 4px 8px;
+        font-size: 12px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-bottom: 10px;
+      }
