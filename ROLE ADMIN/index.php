@@ -1,9 +1,18 @@
 <?php
 session_start();
+include '../Koneksi/koneksi.php'; 
+require_once '../config.php';
 
 $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 $pagePath = "pages/$page.php";
+
+cekRole('Admin');
+
+if($_SESSION['role'] !== 'Admin'){
+  echo "Anda bukan Admin";
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -79,7 +88,7 @@ $pagePath = "pages/$page.php";
           </div>
 
           <div class="user-profile">
-            <img src="images/tyakk.png" alt="Foto Profil" class="profile-pic" />
+            <img src="" alt="Foto Profil" class="profile-pic" />
           </div>
           
         </div>

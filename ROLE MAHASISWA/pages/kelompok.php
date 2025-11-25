@@ -3,6 +3,10 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 include '../Koneksi/koneksi.php';
+$activeTab = $_SESSION['active_tab'] ?? 'profil';
+unset($_SESSION['active_tab']);
+
+cekRole(role:'Mahasiswa');
 
 // 1. Cek Login
 if (!isset($_SESSION['id'])) {
@@ -47,7 +51,6 @@ if ($id_kelompok) {
         WHERE ak.id_kelompok = ?
         ORDER BY ak.peran DESC, u.nama ASC 
     "); 
-    // Order by peran DESC asumsi 'ketua' > 'anggota' secara alphabet, atau sesuaikan enum
     $stmt_ang->bind_param("i", $id_kelompok);
     $stmt_ang->execute();
     $anggota = $stmt_ang->get_result();
@@ -84,7 +87,7 @@ if ($id_kelompok) {
         <div class="content-box">
             <h3>Profil Kelompok</h3>
             
-            <form action="pages/crud_kelompok/handler_kelompok.php" method="POST">
+            <form action="crud_kelompok/handler_kelompok.php" method="POST">
                 <input type="hidden" name="action" value="simpan_profil">
                 <input type="hidden" name="id_kelompok" value="<?= $id_kelompok ?>">
                 <input type="hidden" name="id_mahasiswa" value="<?= $id_mahasiswa_login ?>">
@@ -112,7 +115,7 @@ if ($id_kelompok) {
             <div class="box-header">
                 <h3>Daftar Anggota</h3>
                 <?php if ($id_kelompok): ?>
-                    <button class="btn-add" onclick="showModal('modalAdd')">
+                    <button class="btn-add" onclick="showModal('modalTambah')">
                         <i class="fa fa-plus"></i> Tambah Anggota
                     </button>
                 <?php else: ?>
@@ -121,6 +124,10 @@ if ($id_kelompok) {
             </div>
 
             <?php if ($id_kelompok): ?>
+
+            <!-- hidden id kelompok untuk AJAX -->
+            <input type="hidden" id="id_kelompok" value="<?= $id_kelompok ?>">
+
             <table class="custom-table">
                 <thead>
                     <tr>
@@ -132,12 +139,12 @@ if ($id_kelompok) {
                         <th width="15%">Aksi</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="tabelAnggota">
                     <?php 
                     $no = 1; 
                     while($row = $anggota->fetch_assoc()): 
                     ?>
-                    <tr>\
+                    <tr>
                         <td><?= $no++ ?></td>
                         <td><?= htmlspecialchars($row['nama']) ?></td>
                         <td><?= htmlspecialchars($row['nim']) ?></td>
@@ -151,15 +158,13 @@ if ($id_kelompok) {
                         </td>
                         <td>
                             <button class="btn-icon btn-edit" 
-                                    onclick="openEditModal('<?= $row['id_anggota'] ?>', '<?= $row['nama'] ?>', '<?= $row['peran'] ?>')">
+                                    onclick="openEditModal('<?= $row['id_anggota'] ?>', '<?= addslashes($row['nama']) ?>', '<?= $row['peran'] ?>')">
                                 <i class="fa fa-pencil"></i>
                             </button>
                             
-                            <form action="pages/crud_kelompok/handler_kelompok.php" method="POST" style="display:inline;" onsubmit="return confirm('Yakin ingin menghapus anggota ini?');">
-                                <input type="hidden" name="action" value="hapus_anggota">
-                                <input type="hidden" name="id_anggota" value="<?= $row['id_anggota'] ?>">
-                                <button type="submit" class="btn-icon btn-delete"><i class="fa fa-trash"></i></button>
-                            </form>
+                            <button class="btn-icon btn-delete" onclick="hapusAnggota(<?= $row['id_anggota'] ?>)">
+                                <i class="fa fa-trash"></i>
+                            </button>
                         </td>
                     </tr>
                     <?php endwhile; ?>
@@ -170,17 +175,19 @@ if ($id_kelompok) {
     </div>
 </div>
 
-<div id="modalAdd" class="modal">
+<!-- Modal Tambah (AJAX) -->
+<div id="modalTambah" class="modal">
     <div class="modal-content">
-        <span class="close" onclick="closeModal('modalAdd')">&times;</span>
+        <span class="close" onclick="closeModal('modalTambah')">&times;</span>
         <h3>Tambah Anggota</h3>
-        <form action="pages/crud_kelompok/handler_kelompok.php-" method="POST">
+        <form id="formTambahAnggota">
             <input type="hidden" name="action" value="tambah_anggota">
             <input type="hidden" name="id_kelompok" value="<?= $id_kelompok ?>">
             
             <div class="form-group">
                 <label>Masukkan NIM Mahasiswa</label>
-                <input type="text" name="nim_anggota" class="form-control" placeholder="Contoh: E41231..." required>
+                <!-- name 'nim' sesuai handler_anggota.php -->
+                <input type="text" name="nim" class="form-control" placeholder="Contoh: E41231..." required>
                 <small>Pastikan mahasiswa tersebut terdaftar dan belum memiliki kelompok.</small>
             </div>
             
@@ -191,13 +198,15 @@ if ($id_kelompok) {
     </div>
 </div>
 
+<!-- Modal Edit (kirim normal atau bisa diubah jadi AJAX) -->
 <div id="modalEdit" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeModal('modalEdit')">&times;</span>
         <h3>Edit Anggota</h3>
-        <form action="pages/crud_kelompok/handler_kelompok.php" method="POST">
+        <form id="formEditPeran" method="POST" action="crud_kelompok/handler_anggota.php">
             <input type="hidden" name="action" value="edit_peran">
             <input type="hidden" name="id_anggota" id="edit_id_anggota">
+            <input type="hidden" name="id_kelompok" id="edit_id_kelompok" value="<?= $id_kelompok ?>">
             
             <div class="form-group">
                 <label>Nama Anggota</label>
@@ -236,7 +245,16 @@ function openTab(evt, tabName) {
   if(evt) evt.currentTarget.className += " active";
 }
 // Default Open
-document.getElementById("defaultOpen").click();
+document.addEventListener("DOMContentLoaded", () => {
+    let active = "<?= $activeTab ?>";
+    if (active === "anggota") {
+        openTab(null, 'tab-anggota');
+        document.querySelectorAll(".tab-btn")[1].classList.add("active");
+    } else {
+        openTab(null, 'tab-profil');
+        document.querySelectorAll(".tab-btn")[0].classList.add("active");
+    }
+});
 
 // Modal Logic
 function showModal(modalId) {
@@ -260,4 +278,98 @@ function openEditModal(id, nama, peran) {
     document.getElementById('edit_peran_select').value = peran;
     showModal('modalEdit');
 }
-</script> 
+
+// --- AJAX dan fungsi dynamic ---
+// Pastikan jQuery sudah dimuat di halaman (project biasanya sudah include)
+document.addEventListener('DOMContentLoaded', function() {
+
+    // safe check: jika jQuery tidak tersedia, abort (kamu kemungkinan sudah include jQuery)
+    if (typeof $ === 'undefined') {
+        console.warn('jQuery tidak ditemukan — AJAX tidak akan berjalan. Pastikan jQuery ada di layout.');
+        return;
+    }
+
+    // Load anggota awal (AJAX) — akan menimpa isi tabel jika API merespon
+    function loadAnggota() {
+        let id_kelompok = $("#id_kelompok").val();
+        if (!id_kelompok) return;
+
+        $.get("crud_kelompok/anggota_api.php?id_kelompok=" + id_kelompok, function(res){
+            try {
+                let data = JSON.parse(res);
+                let html = "";
+                let no = 1;
+                data.forEach(a => {
+                    let kontak = a.kontak ? a.kontak : '';
+                    html += `
+                        <tr>
+                            <td>${no++}</td>
+                            <td>${a.nama}</td>
+                            <td>${a.nim}</td>
+                            <td>${kontak}</td>
+                            <td>${a.peran == 'ketua' ? '<span class="role-ketua">Ketua</span>' : 'Anggota'}</td>
+                            <td>
+                                <button class="btn-icon btn-edit" onclick="openEditModal('${a.id_anggota}', '${a.nama.replace(/'/g, "\\'")}', '${a.peran}')">
+                                    <i class="fa fa-pencil"></i>
+                                </button>
+                                <button class="btn-icon btn-delete" onclick="hapusAnggota(${a.id_anggota})">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                $("#tabelAnggota").html(html);
+            } catch(e) {
+                console.error('Response anggota_api tidak valid JSON:', e, res);
+            }
+        });
+    }
+
+    // initial load (hanya jika ada kelompok)
+    if ($("#id_kelompok").length && $("#id_kelompok").val()) {
+        loadAnggota();
+    }
+
+    // Submit tambah anggota (AJAX)
+    $("#formTambahAnggota").on('submit', function(e){
+        e.preventDefault();
+
+        $.post("crud_kelompok/handler_anggota.php", $(this).serialize(), function(res){
+            try {
+                let data = (typeof res === 'object') ? res : JSON.parse(res);
+                if (data.status == "success") {
+                    loadAnggota();
+                    closeModal('modalTambah');
+                } else {
+                    alert(data.message || 'Gagal menambahkan anggota.');
+                }
+            } catch(err) {
+                console.error('Response handler_anggota tidak valid JSON', err, res);
+                alert('Terjadi error pada server. Cek console.');
+            }
+        });
+    });
+
+    // Hapus anggota (AJAX)
+    window.hapusAnggota = function(id) {
+        if (!confirm("Yakin ingin menghapus anggota ini?")) return;
+        $.post("crud_kelompok/handler_anggota.php", { action: "hapus_anggota", id_anggota: id }, function(res){
+            try {
+                let data = (typeof res === 'object') ? res : JSON.parse(res);
+                if (data.status == "success") {
+                    loadAnggota();
+                } else {
+                    alert(data.message || 'Gagal menghapus anggota.');
+                }
+            } catch(err) {
+                console.error('Response hapus tidak valid JSON', err, res);
+                loadAnggota();
+            }
+        });
+    };
+
+    // Jika form edit dikirim (normal post ke handler_anggota), kita biarkan submit form biasa supaya handler meng-redirect sesuai yg kamu rancang.
+    // Kalau mau juga AJAX, nanti aku ubah handler untuk edit_peran.
+});
+</script>

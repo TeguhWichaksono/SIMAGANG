@@ -1,58 +1,52 @@
 <?php
 session_start();
-include '../../../Koneksi/koneksi.php';
+require '../../../Koneksi/koneksi.php';
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['action'] == 'simpan_profil') {
-    
+$action = $_POST['action'] ?? '';
+
+if ($action == "simpan_profil") {
+
     $nama_kelompok = trim($_POST['nama_kelompok']);
-    $id_kelompok = $_POST['id_kelompok']; // Kosong jika belum punya
-    $id_mahasiswa = $_POST['id_mahasiswa'];
-    $tahun = date('Y'); // Default tahun sekarang
+    $id_mahasiswa = $_SESSION['id_user'];
 
-    if (empty($nama_kelompok)) {
-        $_SESSION['error'] = "Nama kelompok tidak boleh kosong.";
-        header("Location: ../../index.php?page=kelompok");
+    if ($nama_kelompok == '') {
+        header("Location: ../kelompok.php?error=Nama tidak boleh kosong");
         exit;
     }
 
-    if (empty($id_kelompok)) {
-        // === CASE 1: BUAT KELOMPOK BARU ===
-        
-        // Start Transaction biar aman
-        $conn->begin_transaction();
-        try {
-            // 1. Insert ke tabel kelompok
-            $stmt = $conn->prepare("INSERT INTO kelompok (nama_kelompok, tahun) VALUES (?, ?)");
-            $stmt->bind_param("si", $nama_kelompok, $tahun);
-            $stmt->execute();
-            $new_id_kelompok = $conn->insert_id;
+    try {
+        $pdo->beginTransaction();
 
-            // 2. Masukkan user pembuat sebagai KETUA
-            $peran = 'ketua';
-            $stmt2 = $conn->prepare("INSERT INTO anggota_kelompok (id_kelompok, id_mahasiswa, peran) VALUES (?, ?, ?)");
-            $stmt2->bind_param("iis", $new_id_kelompok, $id_mahasiswa, $peran);
-            $stmt2->execute();
+        $stmt = $pdo->prepare("INSERT INTO tb_kelompok (nama_kelompok, ketua_id) VALUES (?,?)");
+        $stmt->execute([$nama_kelompok, $id_mahasiswa]);
 
-            $conn->commit();
-            $_SESSION['success'] = "Kelompok berhasil dibuat!";
-        } catch (Exception $e) {
-            $conn->rollback();
-            $_SESSION['error'] = "Gagal membuat kelompok: " . $e->getMessage();
-        }
+        $id_kelompok = $pdo->lastInsertId();
 
-    } else {
-        // === CASE 2: UPDATE NAMA KELOMPOK ===
-        $stmt = $conn->prepare("UPDATE kelompok SET nama_kelompok = ? WHERE id_kelompok = ?");
-        $stmt->bind_param("si", $nama_kelompok, $id_kelompok);
-        
-        if ($stmt->execute()) {
-            $_SESSION['success'] = "Nama kelompok berhasil diperbarui!";
-        } else {
-            $_SESSION['error'] = "Gagal memperbarui nama kelompok.";
-        }
+        $stmt = $pdo->prepare("INSERT INTO tb_anggota_kelompok(id_kelompok, id_mahasiswa, peran) VALUES (?,?, 'ketua')");
+        $stmt->execute([$id_kelompok, $id_mahasiswa]);
+
+        $pdo->commit();
+
+        header("Location: ../kelompok.php?sukses=kelompok_dibuat");
+        exit;
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        header("Location: ../kelompok.php?error=Gagal membuat kelompok");
+        exit;
     }
-    
-    header("Location: ../../index.php?page=kelompok");
+}
+
+if ($action == "update_nama") {
+
+    $id_kelompok = $_POST['id_kelompok'];
+    $nama_kelompok = trim($_POST['nama_kelompok']);
+
+    $stmt = $pdo->prepare("UPDATE tb_kelompok SET nama_kelompok=? WHERE id_kelompok=?");
+    $stmt->execute([$nama_kelompok, $id_kelompok]);
+
+    header("Location: ../kelompok.php?sukses=nama_diubah");
     exit;
 }
-?>
+
+header("Location: ../kelompok.php?error=aksi_tidak_dikenal");
+exit;

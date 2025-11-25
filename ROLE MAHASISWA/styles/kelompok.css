@@ -11,12 +11,11 @@
 /* CARD HEADER WRAPPER (Menyatukan Judul & Tab) */
 .card-header-wrapper {
   background-color: #fff;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-  overflow: hidden; /* Supaya sudut rounded tidak tertutup child */
-  margin-bottom: 0; /* Nempel dengan konten tab di bawahnya */
-  padding-top: 20px; /* Jarak atas untuk judul */
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  padding-top: 20px;
 }
 
 /* JUDUL HALAMAN */

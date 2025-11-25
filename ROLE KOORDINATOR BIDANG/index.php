@@ -1,9 +1,18 @@
 <?php
 session_start();
+include '../Koneksi/koneksi.php'; 
+require_once '../config.php';
 
 $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 $pagePath = "pages/$page.php";
+
+cekRole('Koordinator Bidang Magang');
+
+if($_SESSION['role'] !== 'Koordinator Bidang Magang'){
+  echo "Anda bukan Koordinator Bidang Magang";
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
   <head>

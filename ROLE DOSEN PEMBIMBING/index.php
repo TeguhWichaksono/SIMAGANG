@@ -1,8 +1,18 @@
 <?php
 session_start();
+include '../Koneksi/koneksi.php';
+require_once '../config.php';
 
 $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 $pagePath = "pages/$page.php";
+
+
+cekRole('Dosen Pembimbing');
+
+if($_SESSION['role'] !== 'Dosen Pembimbing'){
+  echo "Anda bukan Dosen Pembimbing";
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -96,5 +106,112 @@ $pagePath = "pages/$page.php";
         ?>
       </div>
     </div>
+
+    <script>
+      // Close dropdown when clicking outside
+      document.addEventListener('click', function(event) {
+        const dropdown = document.getElementById('profileDropdown');
+        const userProfile = document.querySelector('.user-profile');
+        
+        if (!userProfile.contains(event.target)) {
+          dropdown.classList.remove('show');
+        }
+      });
+
+      // Open change password modal
+      function openChangePasswordModal() {
+        document.getElementById('changePasswordModal').classList.add('show');
+        document.getElementById('profileDropdown').classList.remove('show');
+        document.body.style.overflow = 'hidden';
+      }
+
+      // Close password modal with check
+      function closePasswordModal() {
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        
+        // Check if any field is filled
+        if (newPassword || confirmPassword) {
+          document.getElementById('confirmCloseModal').classList.add('show');
+        } else {
+          forceClose();
+        }
+      }
+
+      // Cancel close (back to form)
+      function cancelClose() {
+        document.getElementById('confirmCloseModal').classList.remove('show');
+      }
+
+      // Force close all modals
+      function forceClose() {
+        document.getElementById('changePasswordModal').classList.remove('show');
+        document.getElementById('confirmCloseModal').classList.remove('show');
+        document.getElementById('changePasswordForm').reset();
+        document.body.style.overflow = 'auto';
+      }
+
+      // Toggle password visibility
+      function togglePasswordVisibility(inputId, icon) {
+        const input = document.getElementById(inputId);
+        if (input.type === 'password') {
+          input.type = 'text';
+          icon.classList.remove('fa-eye');
+          icon.classList.add('fa-eye-slash');
+        } else {
+          input.type = 'password';
+          icon.classList.remove('fa-eye-slash');
+          icon.classList.add('fa-eye');
+        }
+      }
+
+      // Handle form submission
+      document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        
+        if (newPassword !== confirmPassword) {
+          alert('Kata sandi dan konfirmasi kata sandi tidak sama!');
+          return;
+        }
+        
+        if (newPassword.length < 6) {
+          alert('Kata sandi harus minimal 6 karakter!');
+          return;
+        }
+        
+        // AJAX request to update password
+        fetch('update_password.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: 'new_password=' + encodeURIComponent(newPassword)
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert('Kata sandi berhasil diubah!');
+            forceClose();
+          } else {
+            alert('Gagal mengubah kata sandi: ' + data.message);
+          }
+        })
+        .catch(error => {
+          alert('Terjadi kesalahan. Silakan coba lagi.');
+          console.error('Error:', error);
+        });
+      });
+
+      // Confirm logout
+      function confirmLogout() {
+        if (confirm('Apakah Anda yakin ingin keluar?')) {
+          window.location.href = '/WSI/SIMAGANGG/';
+        }
+      }
+    </script>
+
   </body>
 </html>

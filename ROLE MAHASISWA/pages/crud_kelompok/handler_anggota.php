@@ -1,105 +1,90 @@
 <?php
 session_start();
-include '../../../Koneksi/koneksi.php';
-
-// Validasi akses
-if (!isset($_SESSION['id'])) { exit; }
+require '../../../Koneksi/koneksi.php';
 
 $action = $_POST['action'] ?? '';
 
-// --- 1. TAMBAH ANGGOTA (BY NIM) ---
-if ($action == 'tambah_anggota') {
+// Fungsi redirect kembali ke halaman kelompok + set tab aktif
+function goBackToAnggota() {
+    $_SESSION['active_tab'] = 'anggota';
+    header("Location: ../../pages/kelompok.php");
+    exit;
+}
+
+/* -------------------------------
+   TAMBAH ANGGOTA
+--------------------------------*/
+if ($action == "tambah_anggota") {
+
     $id_kelompok = $_POST['id_kelompok'];
-    $nim_target = trim($_POST['nim_anggota']);
+    $nim = trim($_POST['nim_anggota']);
 
-    // Cari mahasiswa berdasarkan NIM
-    $stmt = $conn->prepare("
-        SELECT m.id_mahasiswa, u.nama 
-        FROM mahasiswa m 
-        JOIN users u ON m.id_user = u.id 
-        WHERE u.nim = ?
+    // Ambil user berdasarkan NIM
+    $stmt = $pdo->prepare("SELECT id_user FROM users WHERE nim=?");
+    $stmt->execute([$nim]);
+    $user = $stmt->fetch();
+
+    if (!$user) {
+        $_SESSION['error'] = "NIM tidak ditemukan.";
+        goBackToAnggota();
+    }
+
+    $id_mahasiswa = $user['id_user'];
+
+    // Cek apakah sudah punya kelompok
+    $stmt = $pdo->prepare("SELECT 1 FROM tb_anggota_kelompok WHERE id_mahasiswa=?");
+    $stmt->execute([$id_mahasiswa]);
+
+    if ($stmt->fetch()) {
+        $_SESSION['error'] = "Mahasiswa ini sudah memiliki kelompok.";
+        goBackToAnggota();
+    }
+
+    // Tambah anggota
+    $stmt = $pdo->prepare("
+        INSERT INTO tb_anggota_kelompok(id_kelompok, id_mahasiswa, peran)
+        VALUES (?, ?, 'anggota')
     ");
-    $stmt->bind_param("s", $nim_target);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $target = $result->fetch_assoc();
+    $stmt->execute([$id_kelompok, $id_mahasiswa]);
 
-    if (!$target) {
-        $_SESSION['error'] = "NIM $nim_target tidak ditemukan dalam sistem.";
-        header("Location: ../../index.php?page=kelompok");
-        exit;
-    }
-
-    // Cek apakah mahasiswa itu sudah punya kelompok
-    $stmt_cek = $conn->prepare("SELECT id_anggota FROM anggota_kelompok WHERE id_mahasiswa = ?");
-    $stmt_cek->bind_param("i", $target['id_mahasiswa']);
-    $stmt_cek->execute();
-    if ($stmt_cek->get_result()->num_rows > 0) {
-        $_SESSION['error'] = "Mahasiswa tersebut sudah tergabung dalam kelompok lain.";
-        header("Location: ../../index.php?page=kelompok");
-        exit;
-    }
-
-    // Insert sebagai anggota
-    $stmt_ins = $conn->prepare("INSERT INTO anggota_kelompok (id_kelompok, id_mahasiswa, peran) VALUES (?, ?, 'anggota')");
-    $stmt_ins->bind_param("ii", $id_kelompok, $target['id_mahasiswa']);
-    
-    if ($stmt_ins->execute()) {
-        $_SESSION['success'] = "Berhasil menambahkan " . $target['nama'];
-    } else {
-        $_SESSION['error'] = "Gagal menambahkan anggota.";
-    }
-    header("Location: ../../index.php?page=kelompok");
-    exit;
+    $_SESSION['success'] = "Anggota berhasil ditambahkan!";
+    goBackToAnggota();
 }
 
-// --- 2. HAPUS ANGGOTA ---
-if ($action == 'hapus_anggota') {
+/* -------------------------------
+   HAPUS ANGGOTA
+--------------------------------*/
+if ($action == "hapus_anggota") {
+
     $id_anggota = $_POST['id_anggota'];
-    
-    // Mencegah ketua menghapus dirinya sendiri jika dia satu-satunya ketua (opsional logic)
-    // Disini kita hapus saja langsung
-    $stmt = $conn->prepare("DELETE FROM anggota_kelompok WHERE id_anggota = ?");
-    $stmt->bind_param("i", $id_anggota);
-    
-    if ($stmt->execute()) {
-        $_SESSION['success'] = "Anggota berhasil dihapus.";
-    } else {
-        $_SESSION['error'] = "Gagal menghapus anggota.";
-    }
-    header("Location: ../../index.php?page=kelompok");
-    exit;
+
+    $stmt = $pdo->prepare("DELETE FROM tb_anggota_kelompok WHERE id_anggota=?");
+    $stmt->execute([$id_anggota]);
+
+    $_SESSION['success'] = "Anggota berhasil dihapus.";
+    goBackToAnggota();
 }
 
-// --- 3. EDIT PERAN ---
-if ($action == 'edit_peran') {
+/* -------------------------------
+   EDIT PERAN
+--------------------------------*/
+if ($action == "edit_peran") {
+
+    $id_kelompok = $_POST['id_kelompok'];
     $id_anggota = $_POST['id_anggota'];
-    $peran_baru = $_POST['peran']; // 'ketua' atau 'anggota'
+    $peran_baru = $_POST['peran'];
 
-    // Logic: Jika set 'ketua', harus cek apakah sudah ada ketua lain?
-    // Jika user ingin mengganti ketua, biasanya sistem akan mengubah ketua lama jadi anggota
-    // Namun untuk simplifikasi sesuai tabel Anda:
-    
-    // 1. Dapatkan id_kelompok dari id_anggota ini
-    $q = $conn->query("SELECT id_kelompok FROM anggota_kelompok WHERE id_anggota = $id_anggota");
-    $row = $q->fetch_assoc();
-    $id_kelompok = $row['id_kelompok'];
-
-    // Jika peran baru adalah KETUA, ubah dulu semua ketua di kelompok ini menjadi anggota
-    if ($peran_baru == 'ketua') {
-        $conn->query("UPDATE anggota_kelompok SET peran = 'anggota' WHERE id_kelompok = $id_kelompok AND peran = 'ketua'");
+    if ($peran_baru == "ketua") {
+        $pdo->prepare("UPDATE tb_anggota_kelompok SET peran='anggota' WHERE id_kelompok=?")
+            ->execute([$id_kelompok]);
     }
 
-    // Update target
-    $stmt = $conn->prepare("UPDATE anggota_kelompok SET peran = ? WHERE id_anggota = ?");
-    $stmt->bind_param("si", $peran_baru, $id_anggota);
-    
-    if ($stmt->execute()) {
-        $_SESSION['success'] = "Peran anggota berhasil diubah.";
-    } else {
-        $_SESSION['error'] = "Gagal mengubah peran.";
-    }
-    header("Location: ../../index.php?page=kelompok");
-    exit;
+    $pdo->prepare("UPDATE tb_anggota_kelompok SET peran=? WHERE id_anggota=?")
+        ->execute([$peran_baru, $id_anggota]);
+
+    $_SESSION['success'] = "Peran berhasil diperbarui.";
+    goBackToAnggota();
 }
-?>
+
+$_SESSION['error'] = "Aksi tidak dikenal.";
+goBackToAnggota();
