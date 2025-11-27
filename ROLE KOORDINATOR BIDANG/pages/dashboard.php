@@ -1,7 +1,7 @@
 <link rel="stylesheet" href="styles/dashboard.css" />
 <!-- Dashboard Container -->
 <div class="dashboard-container">
-  <!-- Main Dashboard Content -->
+  <!-- Main Dashboard Content  -->
   <div class="dashboard-main">
     <!-- Transfer Cards -->
     <div class="transfer-cards">
@@ -94,12 +94,10 @@
           </defs>
           <path
             class="chart-line-path"
-            d="M0,80 C20,70 40,30 60,60 C80,90 100,40 120,30 C140,20 160,50 180,20 C200,30 220,60 240,80 C260,60 280,40 300,60"
-          ></path>
+            d="M0,80 C20,70 40,30 60,60 C80,90 100,40 120,30 C140,20 160,50 180,20 C200,30 220,60 240,80 C260,60 280,40 300,60"></path>
           <path
             class="chart-area"
-            d="M0,80 C20,70 40,30 60,60 C80,90 100,40 120,30 C140,20 160,50 180,20 C200,30 220,60 240,80 C260,60 280,40 300,60 L300,100 L0,100 Z"
-          ></path>
+            d="M0,80 C20,70 40,30 60,60 C80,90 100,40 120,30 C140,20 160,50 180,20 C200,30 220,60 240,80 C260,60 280,40 300,60 L300,100 L0,100 Z"></path>
           <circle cx="180" cy="20" r="6" fill="#4270F4" stroke="#ffffff" stroke-width="3" />
         </svg>
       </div>
@@ -141,12 +139,31 @@
 
   var markersGroup = L.markerClusterGroup();
 
-  var mitra = [
-    { name: "PT Jember Abadi", coords: [-8.1681, 113.7040], address: "Jl. Letjen Panjaitan No.1" },
-    { name: "CV Jember Maju", coords: [-8.1800, 113.6950], address: "Jl. Gajah Mada No.12" },
-    { name: "Koperasi Sejahtera", coords: [-8.1750, 113.7100], address: "Jl. Sudirman No.5" },
-    { name: "PT Nusantara Jember", coords: [-8.1700, 113.7200], address: "Jl. Ahmad Yani No.25" },
-    { name: "CV Sentosa", coords: [-8.1650, 113.6900], address: "Jl. Raya Jember No.8" }
+  var mitra = [{
+      name: "PT Jember Abadi",
+      coords: [-8.1681, 113.7040],
+      address: "Jl. Letjen Panjaitan No.1"
+    },
+    {
+      name: "CV Jember Maju",
+      coords: [-8.1800, 113.6950],
+      address: "Jl. Gajah Mada No.12"
+    },
+    {
+      name: "Koperasi Sejahtera",
+      coords: [-8.1750, 113.7100],
+      address: "Jl. Sudirman No.5"
+    },
+    {
+      name: "PT Nusantara Jember",
+      coords: [-8.1700, 113.7200],
+      address: "Jl. Ahmad Yani No.25"
+    },
+    {
+      name: "CV Sentosa",
+      coords: [-8.1650, 113.6900],
+      address: "Jl. Raya Jember No.8"
+    }
   ];
 
   mitra.forEach(m => {
@@ -157,6 +174,8 @@
   map.addLayer(markersGroup);
 
   if (markersGroup.getLayers().length > 0) {
-    map.fitBounds(markersGroup.getBounds(), { padding:[40,40] });
+    map.fitBounds(markersGroup.getBounds(), {
+      padding: [40, 40]
+    });
   }
 </script>
