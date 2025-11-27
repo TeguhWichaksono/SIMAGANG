@@ -1,5 +1,5 @@
 <link rel="stylesheet" href="styles/absensiKegiatan.css" />
-
+<!-- kakaka -->
 
 <div class="form-container">
   <h2>Form Absensi dan Kegiatan Harian</h2>
@@ -31,8 +31,7 @@
       <textarea
         id="kegiatan"
         placeholder="Tuliskan kegiatan yang kamu lakukan hari ini..."
-        required
-      ></textarea>
+        required></textarea>
     </div>
 
     <div class="form-actions">
@@ -91,11 +90,11 @@
 
     const row = document.createElement("tr");
     const statusClass =
-      status === "Hadir"
-        ? "status-hadir"
-        : status === "Izin"
-        ? "status-izin"
-        : "status-alpha";
+      status === "Hadir" ?
+      "status-hadir" :
+      status === "Izin" ?
+      "status-izin" :
+      "status-alpha";
 
     row.innerHTML = `
       <td>${no++}</td>
