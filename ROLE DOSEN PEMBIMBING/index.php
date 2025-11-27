@@ -1,18 +1,34 @@
 <?php
 session_start();
-include '../Koneksi/koneksi.php';
-require_once '../config.php';
+// Sertakan koneksi database
+include '../Koneksi/koneksi.php'; 
 
 $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 $pagePath = "pages/$page.php";
 
+$foto_profil_path = ''; 
 
-cekRole('Dosen Pembimbing');
+if (isset($_SESSION['id'])) {
+    $id = $_SESSION['id'];
+    
+    // Ambil foto_profil dari database
+    $stmt = mysqli_prepare($conn, "SELECT foto_profil FROM users WHERE id = ?");
+    
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, 'i', $id);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
 
-if($_SESSION['role'] !== 'Dosen Pembimbing'){
-  echo "Anda bukan Dosen Pembimbing";
+        if ($result && $row = mysqli_fetch_assoc($result)) {
+            $db_foto = $row['foto_profil'];
+            
+            if (!empty($db_foto) && file_exists("uploads/" . $db_foto)) {
+                $foto_profil_path = "uploads/" . $db_foto;
+            } 
+        }
+        mysqli_stmt_close($stmt);
+    }
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -42,9 +58,6 @@ if($_SESSION['role'] !== 'Dosen Pembimbing'){
       <div class="nav-menu">
         <a href="index.php?page=dashboard" class="nav-item <?= $page=='dashboard'?'active':'' ?>">
             <i class="fas fa-home"></i> <span>Dashboard</span>
-        </a>
-        <a href="index.php?page=akun" class="nav-item <?= $page=='akun'?'active':'' ?>">
-            <i class="fas fa-user-circle"></i> <span>Akun</span>
         </a>
         <a href="index.php?page=daftar_Bimbingan" class="nav-item <?= $page=='daftar_Bimbingan'?'active':'' ?>">
             <i class="fas fa-user-graduate"></i> <span>Daftar Bimbingan</span>
@@ -89,9 +102,15 @@ if($_SESSION['role'] !== 'Dosen Pembimbing'){
           </div>
 
           <div class="user-profile">
-            <img src="images/tyakk.png" alt="Foto Profil" class="profile-pic" />
+            <a href="Akun.php">
+              <img src="<?= $foto_profil_path ?>" alt="Foto Profil" class="profile-pic" style="cursor:pointer;" />
+            </a>
           </div>
-        
+
+          <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Mencari" />
+          </div>
         </div>
       </div>
 
@@ -106,112 +125,5 @@ if($_SESSION['role'] !== 'Dosen Pembimbing'){
         ?>
       </div>
     </div>
-
-    <script>
-      // Close dropdown when clicking outside
-      document.addEventListener('click', function(event) {
-        const dropdown = document.getElementById('profileDropdown');
-        const userProfile = document.querySelector('.user-profile');
-        
-        if (!userProfile.contains(event.target)) {
-          dropdown.classList.remove('show');
-        }
-      });
-
-      // Open change password modal
-      function openChangePasswordModal() {
-        document.getElementById('changePasswordModal').classList.add('show');
-        document.getElementById('profileDropdown').classList.remove('show');
-        document.body.style.overflow = 'hidden';
-      }
-
-      // Close password modal with check
-      function closePasswordModal() {
-        const newPassword = document.getElementById('newPassword').value;
-        const confirmPassword = document.getElementById('confirmPassword').value;
-        
-        // Check if any field is filled
-        if (newPassword || confirmPassword) {
-          document.getElementById('confirmCloseModal').classList.add('show');
-        } else {
-          forceClose();
-        }
-      }
-
-      // Cancel close (back to form)
-      function cancelClose() {
-        document.getElementById('confirmCloseModal').classList.remove('show');
-      }
-
-      // Force close all modals
-      function forceClose() {
-        document.getElementById('changePasswordModal').classList.remove('show');
-        document.getElementById('confirmCloseModal').classList.remove('show');
-        document.getElementById('changePasswordForm').reset();
-        document.body.style.overflow = 'auto';
-      }
-
-      // Toggle password visibility
-      function togglePasswordVisibility(inputId, icon) {
-        const input = document.getElementById(inputId);
-        if (input.type === 'password') {
-          input.type = 'text';
-          icon.classList.remove('fa-eye');
-          icon.classList.add('fa-eye-slash');
-        } else {
-          input.type = 'password';
-          icon.classList.remove('fa-eye-slash');
-          icon.classList.add('fa-eye');
-        }
-      }
-
-      // Handle form submission
-      document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const newPassword = document.getElementById('newPassword').value;
-        const confirmPassword = document.getElementById('confirmPassword').value;
-        
-        if (newPassword !== confirmPassword) {
-          alert('Kata sandi dan konfirmasi kata sandi tidak sama!');
-          return;
-        }
-        
-        if (newPassword.length < 6) {
-          alert('Kata sandi harus minimal 6 karakter!');
-          return;
-        }
-        
-        // AJAX request to update password
-        fetch('update_password.php', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: 'new_password=' + encodeURIComponent(newPassword)
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            alert('Kata sandi berhasil diubah!');
-            forceClose();
-          } else {
-            alert('Gagal mengubah kata sandi: ' + data.message);
-          }
-        })
-        .catch(error => {
-          alert('Terjadi kesalahan. Silakan coba lagi.');
-          console.error('Error:', error);
-        });
-      });
-
-      // Confirm logout
-      function confirmLogout() {
-        if (confirm('Apakah Anda yakin ingin keluar?')) {
-          window.location.href = '/WSI/SIMAGANGG/';
-        }
-      }
-    </script>
-
   </body>
 </html>

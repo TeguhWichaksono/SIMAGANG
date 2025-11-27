@@ -63,6 +63,8 @@
     </div>
   </form>
 </div>
+<<<<<<< HEAD
+=======
 
 <!-- ================= POP-UP REKOMENDASI ================= -->
 <div class="popup" id="popupRekom">
@@ -342,3 +344,4 @@ document.getElementById("formMitra").addEventListener("submit", function(e) {
   window.location.href = "index.php?page=berkas_Magang";
 });
 </script>
+>>>>>>> da8ac0270e58e01401749368d131f5922e6f440e

@@ -139,6 +139,14 @@
 
   var markersGroup = L.markerClusterGroup();
 
+<<<<<<< HEAD
+  var mitra = [
+    { name: "PT Jember Abadi", coords: [-8.1681, 113.7040], address: "Jl. Letjen Panjaitan No.1" },
+    { name: "CV Jember Maju", coords: [-8.1800, 113.6950], address: "Jl. Gajah Mada No.12" },
+    { name: "Koperasi Sejahtera", coords: [-8.1750, 113.7100], address: "Jl. Sudirman No.5" },
+    { name: "PT Nusantara Jember", coords: [-8.1700, 113.7200], address: "Jl. Ahmad Yani No.25" },
+    { name: "CV Sentosa", coords: [-8.1650, 113.6900], address: "Jl. Raya Jember No.8" }
+=======
   var mitra = [{
       name: "PT Jember Abadi",
       coords: [-8.1681, 113.7040],
@@ -164,6 +172,7 @@
       coords: [-8.1650, 113.6900],
       address: "Jl. Raya Jember No.8"
     }
+>>>>>>> da8ac0270e58e01401749368d131f5922e6f440e
   ];
 
   mitra.forEach(m => {
@@ -174,8 +183,14 @@
   map.addLayer(markersGroup);
 
   if (markersGroup.getLayers().length > 0) {
+<<<<<<< HEAD
+    map.fitBounds(markersGroup.getBounds(), { padding:[40,40] });
+  }
+</script>
+=======
     map.fitBounds(markersGroup.getBounds(), {
       padding: [40, 40]
     });
   }
 </script>
+>>>>>>> da8ac0270e58e01401749368d131f5922e6f440e

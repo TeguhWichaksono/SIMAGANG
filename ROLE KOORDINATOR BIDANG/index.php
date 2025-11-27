@@ -1,18 +1,35 @@
 <?php
 session_start();
+// Sertakan koneksi database
 include '../Koneksi/koneksi.php'; 
-require_once '../config.php';
 
 $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 $pagePath = "pages/$page.php";
 
-cekRole('Koordinator Bidang Magang');
+$foto_profil_path = 'images/tyakk.png'; 
 
-if($_SESSION['role'] !== 'Koordinator Bidang Magang'){
-  echo "Anda bukan Koordinator Bidang Magang";
+if (isset($_SESSION['id'])) {
+    $id = $_SESSION['id'];
+    
+    // Ambil foto_profil dari database
+    $stmt = mysqli_prepare($conn, "SELECT foto_profil FROM users WHERE id = ?");
+    
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, 'i', $id);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+
+        if ($result && $row = mysqli_fetch_assoc($result)) {
+            $db_foto = $row['foto_profil'];
+            
+            if (!empty($db_foto) && file_exists("uploads/" . $db_foto)) {
+                $foto_profil_path = "uploads/" . $db_foto;
+            } 
+        }
+        mysqli_stmt_close($stmt);
+    }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -42,14 +59,14 @@ if($_SESSION['role'] !== 'Koordinator Bidang Magang'){
         <a href="index.php?page=dashboard" class="nav-item <?= $page=='dashboard'?'active':'' ?>">
             <i class="fas fa-home"></i> <span>Dashboard</span>
         </a>
-        <a href="index.php?page=akun" class="nav-item <?= $page=='akun'?'active':'' ?>">
-            <i class="fas fa-user-circle"></i> <span>Akun</span>
-        </a>
         <a href="index.php?page=data_Mahasiswa_Kelompok" class="nav-item <?= $page=='data_Mahasiswa_Kelompok'?'active':'' ?>">
             <i class="fas fa-users"></i> <span>Data Mahasiswa & Kelompok</span>
         </a>
-        <a href="index.php?page=persetujuan_Magang" class="nav-item <?= $page=='persetujuan_Magang'?'active':'' ?>">
-            <i class="fas fa-check-circle"></i> <span>Persetujuan Magang</span>
+         <a href="index.php?page=data_dospem" class="nav-item <?= $page=='data_dospem'?'active':'' ?>">
+            <i class="fas fa-users"></i> <span>Data Dosen Pembimbing</span>
+        </a>
+        <a href="index.php?page=persetujuan_Mitra" class="nav-item <?= $page=='persetujuan_Mitra'?'active':'' ?>">
+            <i class="fas fa-check-circle"></i> <span>Persetujuan Mitra</span>
         </a>
         <a href="index.php?page=data_Mitra" class="nav-item <?= $page=='data_Mitra'?'active':'' ?>">
             <i class="fas fa-building"></i> <span>Data Mitra</span>
@@ -88,9 +105,15 @@ if($_SESSION['role'] !== 'Koordinator Bidang Magang'){
           </div>
 
           <div class="user-profile">
-            <img src="images/tyakk.png" alt="Foto Profil" class="profile-pic" />
+            <a href="Akun.php">
+              <img src="<?= $foto_profil_path ?>" alt="Foto Profil" class="profile-pic" style="cursor:pointer;" />
+            </a>
           </div>
 
+          <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Mencari" />
+          </div>
         </div>
       </div>
 
