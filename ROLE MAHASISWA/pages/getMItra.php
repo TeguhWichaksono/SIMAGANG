@@ -1,17 +1,23 @@
 <?php
 /**
- * File: getMitra.php
- * Fungsi: Mengambil data mitra dari database
- * Lokasi: ROLE MAHASISWA/pages/getMitra.php
+ * Bulletproof Get Mitra
+ * Handles any unexpected output
  */
 
-header('Content-Type: application/json');
+// Start output buffering FIRST
+ob_start();
 
-// Include koneksi database
+// Include koneksi
 include_once '../../Koneksi/koneksi.php';
 
+// Clean any unexpected output
+ob_clean();
+
+// NOW set JSON header
+header('Content-Type: application/json; charset=utf-8');
+
 try {
-    // Query untuk mengambil data mitra yang statusnya aktif
+    // Query mitra aktif
     $query = "SELECT id_mitra, nama_mitra, alamat, bidang, kontak 
               FROM mitra_perusahaan 
               WHERE status = 'aktif' 
@@ -19,34 +25,39 @@ try {
     
     $result = mysqli_query($conn, $query);
     
-    // Cek apakah query berhasil
     if (!$result) {
-        throw new Exception(mysqli_error($conn));
+        throw new Exception('Query error: ' . mysqli_error($conn));
     }
     
     $data = array();
     
-    // Ambil semua data
     while ($row = mysqli_fetch_assoc($result)) {
         $data[] = array(
-            'id' => $row['id_mitra'],
+            'id' => intval($row['id_mitra']),
             'nama' => $row['nama_mitra'],
-            'alamat' => $row['alamat'],
-            'bidang' => $row['bidang'],
-            'kontak' => $row['kontak']
+            'alamat' => $row['alamat'] ?? '',
+            'bidang' => $row['bidang'] ?? '',
+            'kontak' => $row['kontak'] ?? ''
         );
     }
     
-    // Kirim response sukses
+    mysqli_close($conn);
+    
+    // Clean buffer before output
+    ob_clean();
+    
+    // Send JSON
     echo json_encode(array(
         'success' => true,
         'data' => $data,
         'total' => count($data),
-        'message' => 'Data berhasil diambil'
+        'message' => count($data) > 0 ? 'Data berhasil diambil' : 'Tidak ada mitra aktif'
     ));
     
 } catch (Exception $e) {
-    // Kirim response error
+    // Clean buffer
+    ob_clean();
+    
     echo json_encode(array(
         'success' => false,
         'message' => $e->getMessage(),
@@ -55,8 +66,7 @@ try {
     ));
 }
 
-// Tutup koneksi
-if (isset($conn)) {
-    mysqli_close($conn);
-}
+// End output buffering
+ob_end_flush();
+exit;
 ?>

@@ -48,8 +48,11 @@ if($_SESSION['role'] !== 'Koordinator Bidang Magang'){
         <a href="index.php?page=data_Mahasiswa_Kelompok" class="nav-item <?= $page=='data_Mahasiswa_Kelompok'?'active':'' ?>">
             <i class="fas fa-users"></i> <span>Data Mahasiswa & Kelompok</span>
         </a>
-        <a href="index.php?page=persetujuan_Magang" class="nav-item <?= $page=='persetujuan_Magang'?'active':'' ?>">
+        <a href="index.php?page=persetujuan_magang_korbid" class="nav-item <?= $page=='persetujuan_magang_korbid'?'active':'' ?>">
             <i class="fas fa-check-circle"></i> <span>Persetujuan Magang</span>
+        </a>
+        <a href="index.php?page=persetujuan_mitra_korbid" class="nav-item <?= $page=='persetujuan_mitra_korbid'?'active':'' ?>">
+            <i class="fas fa-handshake"></i> <span>Persetujuan Mitra</span>
         </a>
         <a href="index.php?page=data_Mitra" class="nav-item <?= $page=='data_Mitra'?'active':'' ?>">
             <i class="fas fa-building"></i> <span>Data Mitra</span>

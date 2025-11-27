@@ -1,18 +1,31 @@
 <?php
-
 /**
  * File: simpanMitra.php
- * Fungsi: Menyimpan mitra baru ke database
+ * Fungsi: Menyimpan pengajuan mitra baru (TIDAK langsung ke mitra_perusahaan)
  * Lokasi: ROLE MAHASISWA/pages/simpanMitra.php
  */
 
 header('Content-Type: application/json');
 
-// Include koneksi database
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 include_once '../../Koneksi/koneksi.php';
 
+// Cek login
+if (!isset($_SESSION['id'])) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Anda harus login terlebih dahulu'
+    ]);
+    exit;
+}
+
+$id_user = $_SESSION['id'];
+
 try {
-    // Ambil data JSON dari request
+    // Ambil data JSON
     $json = file_get_contents('php://input');
     $data = json_decode($json, true);
 
@@ -21,54 +34,101 @@ try {
         throw new Exception("Semua field harus diisi!");
     }
 
-    // Sanitasi input untuk mencegah SQL Injection
+    // Ambil id_mahasiswa dari user yang login
+    $query_mhs = "SELECT id_mahasiswa FROM mahasiswa WHERE id_user = ?";
+    $stmt = mysqli_prepare($conn, $query_mhs);
+    mysqli_stmt_bind_param($stmt, 'i', $id_user);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $mhs = mysqli_fetch_assoc($result);
+
+    if (!$mhs) {
+        throw new Exception("Data mahasiswa tidak ditemukan");
+    }
+
+    $id_mahasiswa = $mhs['id_mahasiswa'];
+
+    // Sanitasi input
     $nama = mysqli_real_escape_string($conn, trim($data['nama']));
     $alamat = mysqli_real_escape_string($conn, trim($data['alamat']));
     $bidang = mysqli_real_escape_string($conn, trim($data['bidang']));
     $kontak = mysqli_real_escape_string($conn, trim($data['kontak']));
 
-    // Cek apakah mitra sudah ada (berdasarkan nama)
-    $checkQuery = "SELECT id_mitra FROM mitra_perusahaan WHERE nama_mitra = '$nama'";
-    $checkResult = mysqli_query($conn, $checkQuery);
+    // Cek apakah mitra sudah ada di tabel mitra_perusahaan
+    $checkQuery = "SELECT id_mitra FROM mitra_perusahaan WHERE nama_mitra = ?";
+    $stmt_check = mysqli_prepare($conn, $checkQuery);
+    mysqli_stmt_bind_param($stmt_check, 's', $nama);
+    mysqli_stmt_execute($stmt_check);
+    $checkResult = mysqli_stmt_get_result($stmt_check);
 
     if (mysqli_num_rows($checkResult) > 0) {
-        throw new Exception("Mitra dengan nama tersebut sudah terdaftar!");
+        throw new Exception("Mitra dengan nama tersebut sudah terdaftar di sistem!");
     }
 
-    // Insert data ke database
-    $query = "INSERT INTO mitra_perusahaan (nama_mitra, alamat, bidang, kontak, status) 
-              VALUES ('$nama', '$alamat', '$bidang', '$kontak', 'aktif')";
+    // Cek apakah mahasiswa ini sudah pernah mengajukan mitra yang sama dan masih pending
+    $checkPengajuan = "SELECT id_pengajuan FROM pengajuan_mitra 
+                       WHERE id_mahasiswa = ? 
+                       AND nama_perusahaan = ? 
+                       AND status_pengajuan = 'menunggu'";
+    $stmt_check2 = mysqli_prepare($conn, $checkPengajuan);
+    mysqli_stmt_bind_param($stmt_check2, 'is', $id_mahasiswa, $nama);
+    mysqli_stmt_execute($stmt_check2);
+    $checkResult2 = mysqli_stmt_get_result($stmt_check2);
 
-    $result = mysqli_query($conn, $query);
+    if (mysqli_num_rows($checkResult2) > 0) {
+        throw new Exception("Anda sudah mengajukan mitra ini sebelumnya. Mohon tunggu persetujuan dari Koordinator Bidang Magang.");
+    }
 
-    if (!$result) {
+    // Insert ke tabel pengajuan_mitra
+    $query = "INSERT INTO pengajuan_mitra 
+              (id_mahasiswa, nama_perusahaan, bidang, alamat, kontak, tanggal_pengajuan, status_pengajuan) 
+              VALUES (?, ?, ?, ?, ?, NOW(), 'menunggu')";
+    
+    $stmt_insert = mysqli_prepare($conn, $query);
+    mysqli_stmt_bind_param($stmt_insert, 'issss', $id_mahasiswa, $nama, $bidang, $alamat, $kontak);
+    
+    if (!mysqli_stmt_execute($stmt_insert)) {
         throw new Exception(mysqli_error($conn));
     }
 
-    // Get ID yang baru di-insert
-    $newId = mysqli_insert_id($conn);
+    // Get ID pengajuan yang baru dibuat
+    $id_pengajuan = mysqli_insert_id($conn);
 
-    // Kirim response sukses
-    echo json_encode(array(
+    // Kirim notifikasi ke semua Korbid
+    $query_korbid = "SELECT id, nama FROM users WHERE role = 'Koordinator Bidang Magang'";
+    $result_korbid = mysqli_query($conn, $query_korbid);
+
+    while ($korbid = mysqli_fetch_assoc($result_korbid)) {
+        $pesan = "Pengajuan mitra baru '$nama' dari mahasiswa memerlukan persetujuan Anda.";
+        $query_notif = "INSERT INTO notifikasi (id_user, pesan, status_baca, tanggal)
+                        VALUES (?, ?, 'baru', NOW())";
+        $stmt_notif = mysqli_prepare($conn, $query_notif);
+        mysqli_stmt_bind_param($stmt_notif, 'is', $korbid['id'], $pesan);
+        mysqli_stmt_execute($stmt_notif);
+    }
+
+    // Response sukses
+    echo json_encode([
         'success' => true,
-        'message' => 'Mitra berhasil ditambahkan',
-        'data' => array(
-            'id' => $newId,
+        'message' => 'Pengajuan mitra baru berhasil dikirim! Menunggu persetujuan Koordinator Bidang Magang.',
+        'id_pengajuan' => $id_pengajuan,
+        'status' => 'menunggu',
+        'data' => [
             'nama' => $nama,
             'alamat' => $alamat,
             'bidang' => $bidang,
             'kontak' => $kontak
-        )
-    ));
+        ]
+    ]);
+
 } catch (Exception $e) {
-    // Kirim response error
-    echo json_encode(array(
+    echo json_encode([
         'success' => false,
         'message' => $e->getMessage()
-    ));
+    ]);
 }
 
-// Tutup koneksi
 if (isset($conn)) {
     mysqli_close($conn);
 }
+?>
