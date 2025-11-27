@@ -1,0 +1,179 @@
+
+.content-section {
+    background: #fff;
+    border-radius: 15px;
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.mb-4 {
+    margin-bottom: 25px;
+}
+
+.content-section h3 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.content-section h3 i {
+    color: #4270f4; 
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    font-size: 14px; 
+}
+
+table th,
+table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+    vertical-align: top;
+}
+
+table th {
+    background: #4270f4;
+    color: #fff;
+}
+
+table tr:nth-child(even) {
+    background: #f9f9f9;
+}
+
+.search-bar-data {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+}
+
+.search-bar-data input {
+    padding: 8px;
+    width: 250px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-sizing: border-box; 
+}
+
+
+.header-mitra-aktif {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.add-btn {
+    background-color: #4270F4;
+    color: #fff;
+    padding: 8px 15px; 
+    font-size: 13px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.add-btn:hover {
+    background-color: #3056c5;
+}
+
+.btn-view {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 8px;
+    background-color: #4270f4; 
+    color: white;
+    cursor: pointer;
+    font-size: 13px;
+    margin-right: 5px; 
+    transition: 0.3s;
+}
+
+.btn-view:hover {
+    background-color: #3056c5;
+}
+
+.action-btn { 
+    padding: 6px 12px;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    font-size: 13px;
+    margin-right: 5px;
+    transition: 0.3s;
+}
+
+.delete-btn {
+    background-color: #ff0048;
+}
+.delete-btn:hover {
+    background-color: #c50038;
+}
+
+.edit-btn {
+    background-color: #ffc107; 
+}
+.edit-btn:hover {
+    background-color: #e0a800;
+}
+
+
+.btn-action {
+    padding: 5px 12px;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    font-size: 13px;
+    margin-right: 5px;
+    transition: 0.3s;
+}
+
+.btn-acc {
+    background-color: #28a745; 
+}
+
+.btn-acc:hover {
+    background-color: #218838;
+}
+
+.btn-tolak {
+    background-color: #dc3545; 
+}
+
+.btn-tolak:hover {
+    background-color: #c82333;
+}
+
+.status-pending {
+    color: orange;
+    font-weight: bold;
+}
+
+.status-disetujui {
+    color: green;
+    font-weight: bold;
+}
+
+.status-ditolak {
+    color: red;
+    font-weight: bold;
+}
+
+ul.anggota-list {
+    list-style-type: disc;
+    margin: 5px 0 5px 20px;
+    padding: 0;
+}
+
+ul.anggota-list li {
+    margin-bottom: 5px;
+    font-size: 13px;
+}

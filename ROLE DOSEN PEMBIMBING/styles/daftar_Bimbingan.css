@@ -1,0 +1,47 @@
+.form-container {
+  background: #fff;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  max-width: 950px;
+  margin: 40px auto;
+}
+
+.form-container h2 {
+  color: #262a39;
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 25px;
+}
+
+th,
+td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+  font-size: 14px;
+}
+
+th {
+  background: #f2f4fa;
+  color: #333;
+}
+
+.btn-detail {
+  background: #4270f4;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-detail:hover {
+  background: #3056c5;
+}

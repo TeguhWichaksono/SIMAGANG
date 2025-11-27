@@ -1,0 +1,109 @@
+/* manajemen_User.css */
+/* Styling untuk halaman Manajemen User */
+
+.user-container {
+  background: #fff;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  max-width: 1100px;
+  margin: 40px auto;
+}
+
+.header-action {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 15px;
+}
+
+/* Tombol Tambah User */
+.add-btn {
+  background-color: #4270f4;
+  color: #fff;
+  padding: 6px 12px;
+  font-size: 13px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.25s ease, box-shadow 0.25s ease;
+}
+
+.add-btn:hover {
+  background-color: #2f57d6;
+  box-shadow: 0 2px 6px rgba(66, 112, 244, 0.4);
+}
+
+/* Tabel user */
+.user-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.user-table th,
+.user-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: left;
+}
+
+.user-table th {
+  background-color: #4270f4;
+  color: #fff;
+  font-weight: 600;
+}
+
+.user-table tr:nth-child(even) {
+  background-color: #f9faff;
+}
+
+.user-table tr:hover {
+  background-color: #eef2ff;
+  transition: background 0.25s ease;
+}
+
+/* Tombol aksi */
+.action-btn {
+  margin-right: 5px;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  color: #fff;
+  font-size: 13px;
+  transition: 0.3s;
+}
+
+.edit-btn {
+  background-color: #4270f4;
+}
+
+.delete-btn {
+  background-color: #ff0048;
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .user-container {
+    padding: 20px;
+  }
+
+  .user-table th,
+  .user-table td {
+    font-size: 12px;
+    padding: 8px;
+  }
+
+  .add-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

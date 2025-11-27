@@ -1,0 +1,87 @@
+/* laporan_Sistem.css */
+/* Gunakan untuk styling halaman laporan sistem */
+
+.laporan-container {
+  background: #fff;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  max-width: 1100px;
+  margin: 40px auto;
+}
+
+.header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* Tombol filter dan export */
+.filter-btn,
+.export-btn {
+  background: #4270f4;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.25s ease, box-shadow 0.25s ease;
+}
+
+.filter-btn:hover,
+.export-btn:hover {
+  background: #2f57d6;
+  box-shadow: 0 2px 6px rgba(66, 112, 244, 0.4);
+}
+
+/* Tabel log aktivitas */
+.log-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.log-table th,
+.log-table td {
+  border: 1px solid #ddd;
+  padding: 10px 12px;
+  text-align: left;
+}
+
+.log-table th {
+  background-color: #4270f4;
+  color: white;
+  font-weight: 600;
+}
+
+.log-table tr:nth-child(even) {
+  background-color: #f8f9fd;
+}
+
+.log-table tr:hover {
+  background-color: #eef2ff;
+  transition: background 0.25s ease;
+}
+
+/* Responsive layout */
+@media (max-width: 768px) {
+  .laporan-container {
+    padding: 20px;
+  }
+
+  .header-actions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .filter-btn,
+  .export-btn {
+    width: 100%;
+    margin-bottom: 5px;
+  }
+}

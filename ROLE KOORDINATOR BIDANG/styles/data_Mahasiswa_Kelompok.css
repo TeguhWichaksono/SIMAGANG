@@ -1,0 +1,66 @@
+.content-section {
+  background: #fff;
+  border-radius: 15px;
+  padding: 20px;
+  margin-top: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.content-section h3 {
+  color: #333;
+  margin-bottom: 15px;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.content-section h3 i {
+  color: #4270f4;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+table th,
+table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+table th {
+  background: #4270f4;
+  color: #fff;
+}
+
+table tr:nth-child(even) {
+  background: #f9f9f9;
+}
+
+.search-bar-data {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.search-bar-data input {
+  padding: 8px;
+  width: 250px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+ul.anggota-list {
+  list-style-type: disc;
+  margin: 5px 0 5px 20px;
+  padding: 0;
+}
+
+ul.anggota-list li {
+  margin-bottom: 5px;
+}
