@@ -1,0 +1,159 @@
+.form-container {
+  background: #fff;
+  padding: 30px;              /* Sedikit diperbesar lagi biar lega */
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  max-width: 850px;           /* DILEBARKAN dari 650px ke 850px */
+  margin: 40px auto;          
+}
+
+.form-container h2 {
+  color: #262a39;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.form-container p {
+  font-size: 0.9rem;      
+  color: #666;          
+  line-height: 1.5;    
+  margin-top: -5px;    
+  margin-bottom: 25px;  
+  text-align: center;     /* Center text agar rapi */
+}
+
+form {
+  display: grid;                  /* Menggunakan Grid Layout */
+  grid-template-columns: 1fr 1fr; /* Membagi 2 kolom sama rata */
+  column-gap: 30px;               /* Jarak antar kolom kiri dan kanan */
+  row-gap: 20px;                  /* Jarak antar baris atas dan bawah */
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  /* Tidak perlu margin-bottom karena sudah dihandle row-gap */
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 6px;
+  font-size: 0.95rem;
+}
+
+.form-group input {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px 12px;         
+  font-size: 14px;            
+  height: 42px;               /* Tinggi input sedikit ditambah agar proporsional */
+  transition: border-color 0.3s;
+  width: 100%;                /* Memastikan input memenuhi kolom grid */
+  box-sizing: border-box;     /* Agar padding tidak melebarkan input */
+}
+
+.form-group input:focus {
+  border-color: #4270f4;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(66, 112, 244, 0.1); /* Efek focus halus */
+}
+
+input[readonly] {
+  background: #f4f4f4;
+  cursor: not-allowed;
+  color: #777;
+}
+
+/* Tombol */
+.form-actions {
+  grid-column: 1 / -1;    /* Memerintahkan tombol membentang dari kolom 1 sampai akhir */
+  width: 100%;
+  text-align: center;
+  margin-top: 15px;       
+}
+
+.form-actions button {
+  background: #4270f4;
+  color: white;
+  border: none;
+  padding: 12px 40px;         /* Padding tombol diperbesar sedikit */
+  font-size: 16px;            
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.1s;
+  font-weight: 500;
+}
+
+.form-actions button:hover {
+  background: #3056c5;
+}
+
+.form-actions button:active {
+  transform: scale(0.98);
+}
+
+/* Alert */
+.alert-sukses {
+  background: #dfffe0;
+  border-left: 5px solid #2dbb2d;
+  padding: 12px;              
+  color: #246b24;
+  border-radius: 6px;
+  margin-bottom: 20px;        
+  text-align: center;
+  font-weight: 600;
+}
+
+/* Responsif untuk layar kecil (HP) */
+@media (max-width: 768px) {
+  .form-container {
+    max-width: 100%;
+    margin: 20px;
+    padding: 20px;
+  }
+
+  form {
+    grid-template-columns: 1fr; /* Kembali ke 1 kolom saat di HP */
+    gap: 15px;
+  }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  align-self: start; /* 👈 TAMBAHKAN INI - Memastikan semua form-group mulai dari atas */
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 6px;
+  font-size: 0.95rem;
+  min-height: 20px; /* 👈 TAMBAHKAN INI - Memastikan semua label punya tinggi minimal sama */
+}
+
+.form-group input {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px 12px;         
+  font-size: 14px;            
+  height: 42px;
+  transition: border-color 0.3s;
+  width: 100%;
+  box-sizing: border-box;
+  align-self: stretch; /* 👈 TAMBAHKAN INI - Memastikan input mengikuti lebar kolom */
+}
+
+/* form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 30px;
+  row-gap: 20px;
+  border: 2px solid red; /* DEBUG: Lihat batas form */
+/* } */
+
+/* .form-group {
+  border: 1px dashed blue; /* DEBUG: Lihat batas setiap form-group */
+/* } */
+

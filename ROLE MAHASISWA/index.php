@@ -1,34 +1,18 @@
 <?php
 session_start();
-// Sertakan koneksi database
 include '../Koneksi/koneksi.php'; 
+require_once '../config.php';
 
 $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 $pagePath = "pages/$page.php";
 
-$foto_profil_path = 'images/tyakk.png'; 
+cekRole('Mahasiswa');
 
-if (isset($_SESSION['id'])) {
-    $id = $_SESSION['id'];
-    
-    // Ambil foto_profil dari database
-    $stmt = mysqli_prepare($conn, "SELECT foto_profil FROM users WHERE id = ?");
-    
-    if ($stmt) {
-        mysqli_stmt_bind_param($stmt, 'i', $id);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-
-        if ($result && $row = mysqli_fetch_assoc($result)) {
-            $db_foto = $row['foto_profil'];
-            
-            if (!empty($db_foto) && file_exists("uploads/" . $db_foto)) {
-                $foto_profil_path = "uploads/" . $db_foto;
-            } 
-        }
-        mysqli_stmt_close($stmt);
-    }
+if($_SESSION['role'] !== 'Mahasiswa'){
+  echo "Anda bukan Mahasiswa";
 }
+
+$foto_profil_path = ''; 
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -42,12 +26,62 @@ if (isset($_SESSION['id'])) {
     />
     <link rel="stylesheet" href="styles/styles.css" />
 
-    <!-- Tambahan CSS dropdown -->
-   
+    <style>
+      .dropdown-btn {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        font-weight: 600;
+        border-left: 3px solid transparent;
+      }
+      .dropdown-btn:hover {
+        background-color: rgba(66, 112, 244, 0.1);
+        border-left-color: #4270F4;
+      }
+      .dropdown-btn.active {
+        background-color: rgba(66, 112, 244, 0.15);
+        border-left-color: #4270F4;
+      }
+      .dropdown-btn .arrow {
+        transition: transform 0.3s ease;
+        font-size: 12px;
+      }
+      .dropdown-btn.active .arrow {
+        transform: rotate(180deg);
+      }
+      .submenu {
+        display: none;
+        background-color: rgba(0, 0, 0, 0.02);
+        border-left: 2px solid rgba(66, 112, 244, 0.2);
+        margin-left: 10px;
+      }
+      .submenu .nav-item {
+        padding-left: 45px !important;
+        font-weight: 400;
+        font-size: 14px;
+        border-left: none;
+        background-color: transparent;
+      }
+      .submenu .nav-item:hover {
+        background-color: rgba(66, 112, 244, 0.08);
+        padding-left: 48px !important;
+      }
+      .submenu .nav-item.active {
+        background-color: rgba(66, 112, 244, 0.12);
+        border-left: 3px solid #4270F4;
+        color: #4270F4;
+        font-weight: 500;
+      }
+      .submenu .nav-item i {
+        font-size: 13px;
+        opacity: 0.8;
+      }
+    </style>
   </head>
 
   <body>
-    <!-- Sidebar -->
     <div class="sidebar">
       <div class="logo">
         <svg width="100" height="40" viewBox="0 0 100 40">
@@ -64,30 +98,49 @@ if (isset($_SESSION['id'])) {
           <i class="fas fa-home"></i> <span>Dashboard</span>
         </a>
 
-        <!-- DROPDOWN MAGANG -->
-        <div class="nav-item dropdown-btn 
-            <?= ($page=='pengajuan_Magang' || $page=='pengajuan_Kelompok' || $page=='pengajuan_Mitra' || $page=='berkas_Magang') ? 'active':'' ?>"
-            id="dropdownMagang">
-          <i class="fas fa-file-alt"></i> <span>Pengajuan Magang</span>
-          <i class="fas fa-chevron-down arrow" id="arrowIcon"></i>
+        <!-- DROPDOWN PROFIL -->
+        <div class="nav-item dropdown-btn <?= ($page=='pribadi' || $page=='kelompok') ? 'active':'' ?>" 
+             onclick="toggleDropdown('submenuProfil', this)">
+          <div style="display: flex; align-items: center;">
+            <i class="fas fa-user-circle"></i> <span style="margin-left: 10px;">Profil</span>
+          </div>
+          <i class="fas fa-chevron-down arrow"></i>
         </div>
 
-        <!-- Submenu -->
-       <div class="submenu" id="submenuPanel">
-    <a href="index.php?page=pengajuan_Magang" class="nav-item <?= $page=='pengajuan_Magang'?'active':'' ?>">
-        <i class="fas fa-user"></i> Pengajuan Ketua
-    </a>
-    <a href="index.php?page=pengajuan_Kelompok" class="nav-item <?= $page=='pengajuan_Kelompok'?'active':'' ?>">
-        <i class="fas fa-users"></i> Pengajuan Kelompok
-    </a>
-    <a href="index.php?page=pengajuan_Mitra" class="nav-item <?= $page=='pengajuan_Mitra'?'active':'' ?>">
-        <i class="fas fa-building"></i> Pengajuan Mitra
-    </a>
-    <a href="index.php?page=berkas_Magang" class="nav-item <?= $page=='berkas_Magang'?'active':'' ?>">
-        <i class="fas fa-file-upload"></i> Berkas Magang
-    </a>
-</div>
+        <!-- Submenu Profil -->
+        <div class="submenu" id="submenuProfil">
+          <a href="index.php?page=pribadi" class="nav-item <?= $page=='pribadi'?'active':'' ?>">
+            <i class="fas fa-user"></i> Pribadi
+          </a>
+          <a href="index.php?page=kelompok" class="nav-item <?= $page=='kelompok'?'active':'' ?>">
+            <i class="fas fa-users"></i> Kelompok
+          </a>
+        </div>
 
+        <!-- DROPDOWN PENGAJUAN -->
+        <div class="nav-item dropdown-btn <?= ($page=='pengajuan_Mitra' || $page=='berkas_Magang' || $page=='status_pengajuan' || $page=='status_pengajuan_mitra') ? 'active':'' ?>" 
+             onclick="toggleDropdown('submenuMagang', this)">
+          <div style="display: flex; align-items: center;">
+            <i class="fas fa-file-alt"></i> <span style="margin-left: 10px;">Pengajuan</span>
+          </div>
+          <i class="fas fa-chevron-down arrow"></i>
+        </div>
+
+        <!-- Submenu Pengajuan Magang -->
+        <div class="submenu" id="submenuMagang">
+          <a href="index.php?page=pengajuan_Mitra" class="nav-item <?= $page=='pengajuan_Mitra'?'active':'' ?>">
+            <i class="fas fa-building"></i> Mitra
+          </a>
+          <a href="index.php?page=berkas_Magang" class="nav-item <?= $page=='berkas_Magang'?'active':'' ?>">
+            <i class="fas fa-file-upload"></i> Berkas
+          </a>
+          <a href="index.php?page=status_pengajuan" class="nav-item <?= $page=='status_pengajuan'?'active':'' ?>">
+            <i class="fas fa-clipboard-list"></i> Status Pengajuan
+          </a>
+          <a href="index.php?page=status_pengajuan_mitra" class="nav-item <?= $page=='status_pengajuan_mitra'?'active':'' ?>">
+            <i class="fas fa-building-circle-check"></i> Status Mitra
+          </a>
+        </div>
 
         <a href="index.php?page=absensi_Kegiatan" class="nav-item <?= $page=='absensi_Kegiatan'?'active':'' ?>">
           <i class="fas fa-tasks"></i> <span>Absensi & Kegiatan</span>
@@ -122,16 +175,26 @@ if (isset($_SESSION['id'])) {
             <div class="notification-indicator"></div>
           </div>
 
-          <div class="user-profile">
-            <a href="Akun.php">
-              <img src="<?= $foto_profil_path ?>" alt="Foto Profil" class="profile-pic" style="cursor:pointer;" />
-            </a>
+          <div class="user-profile" onclick="toggleProfileMenu(event)">
+            <img src="<?= $foto_profil_path ?>" alt="Foto Profil" class="profile-pic" />
+            
+            <!-- Dropdown Menu -->
+            <div class="profile-dropdown" id="profileDropdown">
+              <a href="index.php?page=pribadi" class="profile-menu-item" onclick="event.stopPropagation();">
+                <i class="fas fa-user"></i>
+                <span>Profil</span>
+              </a>
+              <div class="profile-menu-item" onclick="event.stopPropagation(); openChangePasswordModal()">
+                <i class="fas fa-key"></i>
+                <span>Ganti Kata Sandi</span>
+              </div>
+              <div class="profile-menu-item logout" onclick="event.stopPropagation(); confirmLogout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+              </div>
+            </div>
           </div>
 
-          <div class="search-bar">
-            <i class="fas fa-search"></i>
-            <input type="text" placeholder="Mencari" />
-          </div>
         </div>
       </div>
 
@@ -147,23 +210,202 @@ if (isset($_SESSION['id'])) {
       </div>
     </div>
 
+    <!-- Modal Ganti Kata Sandi -->
+    <div class="modal-overlay" id="changePasswordModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Ganti Kata Sandi</h3>
+          <button class="close-modal" onclick="closePasswordModal()">&times;</button>
+        </div>
+        <form id="changePasswordForm">
+          <div class="form-group">
+            <label for="newPassword">Kata Sandi Baru</label>
+            <div class="password-input-wrapper">
+              <input type="password" id="newPassword" name="newPassword" placeholder="Masukkan kata sandi baru" required>
+              <i class="fas fa-eye toggle-password" onclick="togglePasswordVisibility('newPassword', this)"></i>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="confirmPassword">Konfirmasi Kata Sandi</label>
+            <div class="password-input-wrapper">
+              <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Konfirmasi kata sandi baru" required>
+              <i class="fas fa-eye toggle-password" onclick="togglePasswordVisibility('confirmPassword', this)"></i>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closePasswordModal()">Tutup</button>
+            <button type="submit" class="btn-primary">Simpan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal Konfirmasi Penutupan -->
+    <div class="modal-overlay" id="confirmCloseModal">
+      <div class="modal-content modal-small">
+        <div class="modal-header">
+          <h3>Peringatan</h3>
+        </div>
+        <div class="modal-body">
+          <p>Kata sandi belum tersimpan. Yakin ingin menutup formulir ini?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="cancelClose()">Batal</button>
+          <button type="button" class="btn-danger" onclick="forceClose()">Ya, Tutup</button>
+        </div>
+      </div>
+    </div>
+
     <!-- JS Toggle -->
-<script>
-  const dropdown = document.getElementById("dropdownMagang");
-  const submenu = document.getElementById("submenuPanel");
-  const arrow = document.getElementById("arrowIcon");
+    <script>
+      // Fungsi toggle dropdown sidebar
+      function toggleDropdown(submenuId, parentElement) {
+        const submenu = document.getElementById(submenuId);
+        const isOpen = submenu.style.display === "block";
+        
+        // Tutup semua dropdown terlebih dahulu
+        const allSubmenus = document.querySelectorAll('.submenu');
+        const allDropdownBtns = document.querySelectorAll('.dropdown-btn');
+        
+        allSubmenus.forEach(function(menu) {
+          menu.style.display = "none";
+        });
+        
+        allDropdownBtns.forEach(function(btn) {
+          btn.classList.remove("active");
+        });
+        
+        // Jika dropdown yang diklik sebelumnya tertutup, buka dropdown tersebut
+        if (!isOpen) {
+          submenu.style.display = "block";
+          parentElement.classList.add("active");
+        }
+      }
 
-  dropdown.addEventListener("click", () => {
-      submenu.style.display = submenu.style.display === "block" ? "none" : "block";
-      arrow.classList.toggle("rotate");
-  });
+      // Auto open dropdown jika halaman child aktif
+      window.addEventListener('DOMContentLoaded', function() {
+        <?php if ($page=='pribadi' || $page=='kelompok'): ?>
+          document.getElementById('submenuProfil').style.display = 'block';
+          document.querySelector('[onclick*="submenuProfil"]').classList.add('active');
+        <?php endif; ?>
 
-  // Auto open if child page active
-  <?php if ($page=='pengajuan_Magang' || $page=='pengajuan_Kelompok' || $page=='pengajuan_Mitra' || $page=='berkas_Magang'): ?>
-      submenu.style.display = "block";
-      arrow.classList.add("rotate");
-  <?php endif; ?>
-</script>
+        <?php if ($page=='pengajuan_Mitra' || $page=='berkas_Magang' || $page=='status_pengajuan' || $page=='status_pengajuan_mitra'): ?>
+          document.getElementById('submenuMagang').style.display = 'block';
+          document.querySelector('[onclick*="submenuMagang"]').classList.add('active');
+        <?php endif; ?>
+      });
+
+      // Toggle profile dropdown
+      function toggleProfileMenu(event) {
+        event.stopPropagation();
+        const dropdown = document.getElementById('profileDropdown');
+        dropdown.classList.toggle('show');
+      }
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', function(event) {
+        const dropdown = document.getElementById('profileDropdown');
+        const userProfile = document.querySelector('.user-profile');
+        
+        if (!userProfile.contains(event.target)) {
+          dropdown.classList.remove('show');
+        }
+      });
+
+      // Open change password modal
+      function openChangePasswordModal() {
+        document.getElementById('changePasswordModal').classList.add('show');
+        document.getElementById('profileDropdown').classList.remove('show');
+        document.body.style.overflow = 'hidden';
+      }
+
+      // Close password modal with check
+      function closePasswordModal() {
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        
+        // Check if any field is filled
+        if (newPassword || confirmPassword) {
+          document.getElementById('confirmCloseModal').classList.add('show');
+        } else {
+          forceClose();
+        }
+      }
+
+      // Cancel close (back to form)
+      function cancelClose() {
+        document.getElementById('confirmCloseModal').classList.remove('show');
+      }
+
+      // Force close all modals
+      function forceClose() {
+        document.getElementById('changePasswordModal').classList.remove('show');
+        document.getElementById('confirmCloseModal').classList.remove('show');
+        document.getElementById('changePasswordForm').reset();
+        document.body.style.overflow = 'auto';
+      }
+
+      // Toggle password visibility
+      function togglePasswordVisibility(inputId, icon) {
+        const input = document.getElementById(inputId);
+        if (input.type === 'password') {
+          input.type = 'text';
+          icon.classList.remove('fa-eye');
+          icon.classList.add('fa-eye-slash');
+        } else {
+          input.type = 'password';
+          icon.classList.remove('fa-eye-slash');
+          icon.classList.add('fa-eye');
+        }
+      }
+
+      // Handle form submission
+      document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        
+        if (newPassword !== confirmPassword) {
+          alert('Kata sandi dan konfirmasi kata sandi tidak sama!');
+          return;
+        }
+        
+        if (newPassword.length < 6) {
+          alert('Kata sandi harus minimal 6 karakter!');
+          return;
+        }
+        
+        // AJAX request to update password
+        fetch('update_password.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: 'new_password=' + encodeURIComponent(newPassword)
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert('Kata sandi berhasil diubah!');
+            forceClose();
+          } else {
+            alert('Gagal mengubah kata sandi: ' + data.message);
+          }
+        })
+        .catch(error => {
+          alert('Terjadi kesalahan. Silakan coba lagi.');
+          console.error('Error:', error);
+        });
+      });
+
+      // Confirm logout
+      function confirmLogout() {
+        if (confirm('Apakah Anda yakin ingin keluar?')) {
+          window.location.href = '/WSI/SIMAGANGG/';
+        }
+      }
+    </script>
 
   </body>
 </html>

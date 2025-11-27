@@ -1,9 +1,18 @@
 <?php
 session_start();
+include '../Koneksi/koneksi.php'; 
+require_once '../config.php';
 
 $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 $pagePath = "pages/$page.php";
+
+cekRole('Koordinator Bidang Magang');
+
+if($_SESSION['role'] !== 'Koordinator Bidang Magang'){
+  echo "Anda bukan Koordinator Bidang Magang";
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -39,8 +48,11 @@ $pagePath = "pages/$page.php";
         <a href="index.php?page=data_Mahasiswa_Kelompok" class="nav-item <?= $page=='data_Mahasiswa_Kelompok'?'active':'' ?>">
             <i class="fas fa-users"></i> <span>Data Mahasiswa & Kelompok</span>
         </a>
-        <a href="index.php?page=persetujuan_Magang" class="nav-item <?= $page=='persetujuan_Magang'?'active':'' ?>">
+        <a href="index.php?page=persetujuan_magang_korbid" class="nav-item <?= $page=='persetujuan_magang_korbid'?'active':'' ?>">
             <i class="fas fa-check-circle"></i> <span>Persetujuan Magang</span>
+        </a>
+        <a href="index.php?page=persetujuan_mitra_korbid" class="nav-item <?= $page=='persetujuan_mitra_korbid'?'active':'' ?>">
+            <i class="fas fa-handshake"></i> <span>Persetujuan Mitra</span>
         </a>
         <a href="index.php?page=data_Mitra" class="nav-item <?= $page=='data_Mitra'?'active':'' ?>">
             <i class="fas fa-building"></i> <span>Data Mitra</span>
@@ -82,10 +94,6 @@ $pagePath = "pages/$page.php";
             <img src="images/tyakk.png" alt="Foto Profil" class="profile-pic" />
           </div>
 
-          <div class="search-bar">
-            <i class="fas fa-search"></i>
-            <input type="text" placeholder="Mencari" />
-          </div>
         </div>
       </div>
 

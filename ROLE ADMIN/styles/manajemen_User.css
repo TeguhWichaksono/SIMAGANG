@@ -1,6 +1,3 @@
-/* manajemen_User.css */
-/* Styling untuk halaman Manajemen User */
-
 .user-container {
   background: #fff;
   padding: 30px;
@@ -107,3 +104,94 @@
     justify-content: center;
   }
 }
+
+.modal-bg {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.45);
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+}
+
+/* Kotak modal */
+.modal-box {
+    background: #ffffff;
+    width: 420px;
+    padding: 25px 30px;
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    animation: pop 0.25s ease;
+}
+
+/* Animasi pop */
+@keyframes pop {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Judul modal */
+.modal-box h3 {
+    margin-bottom: 18px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #3b4b78;
+}
+
+/* Input pada modal */
+.modal-box input,
+.modal-box select {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    border: 1px solid #dcdce6;
+    border-radius: 7px;
+    font-size: 14px;
+    outline: none;
+    transition: border 0.2s ease;
+}
+
+.modal-box input:focus,
+.modal-box select:focus {
+    border-color: #4270f4;
+}
+
+/* Tombol simpan */
+.save-btn {
+    width: 100%;
+    background: #4270f4;
+    border: none;
+    color: white;
+    padding: 9px;
+    font-size: 14px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+.save-btn:hover {
+    background: #2f57d6;
+}
+
+/* Tombol tutup */
+.close-btn {
+    margin-top: 10px;
+    width: 100%;
+    background: #e36d6d;
+    border: none;
+    color: white;
+    padding: 9px;
+    font-size: 14px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+.close-btn:hover {
+    background: #c95656;
+}
+

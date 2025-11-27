@@ -1,7 +1,7 @@
 <link rel="stylesheet" href="styles/dashboard.css" />
 <!-- Dashboard Container -->
 <div class="dashboard-container">
-  <!-- Main Dashboard Content  -->
+  <!-- Main Dashboard Content -->
   <div class="dashboard-main">
     <!-- Transfer Cards -->
     <div class="transfer-cards">

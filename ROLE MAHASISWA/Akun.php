@@ -16,6 +16,9 @@ if (!empty($id)) {
         $user = mysqli_fetch_assoc($result);
     }
     mysqli_stmt_close($stmt);
+} else {
+    header('Location: '. '../Login/login.php');
+    exit;
 }
 
 if (!$user) {
