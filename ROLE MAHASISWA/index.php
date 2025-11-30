@@ -12,29 +12,7 @@ if($_SESSION['role'] !== 'Mahasiswa'){
   echo "Anda bukan Mahasiswa";
 }
 
-
 $foto_profil_path = ''; 
-
-// if (isset($_SESSION['id'])) {
-//     $id = $_SESSION['id'];
-    
-//     $stmt = mysqli_prepare($conn, "SELECT foto_profil FROM users WHERE id = ?");
-    
-//     if ($stmt) {
-//         mysqli_stmt_bind_param($stmt, 'i', $id);
-//         mysqli_stmt_execute($stmt);
-//         $result = mysqli_stmt_get_result($stmt);
-
-//         if ($result && $row = mysqli_fetch_assoc($result)) {
-//             $db_foto = $row['foto_profil'];
-            
-//             if (!empty($db_foto) && file_exists("uploads/" . $db_foto)) {
-//                 $foto_profil_path = "uploads/" . $db_foto;
-//             } 
-//         }
-//         mysqli_stmt_close($stmt);
-//     }
-// }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -140,7 +118,7 @@ $foto_profil_path = '';
         </div>
 
         <!-- DROPDOWN PENGAJUAN -->
-        <div class="nav-item dropdown-btn <?= ($page=='pengajuan_Mitra' || $page=='berkas_Magang') ? 'active':'' ?>" 
+        <div class="nav-item dropdown-btn <?= ($page=='pengajuan_Mitra' || $page=='berkas_Magang' || $page=='status_pengajuan' || $page=='status_pengajuan_mitra') ? 'active':'' ?>" 
              onclick="toggleDropdown('submenuMagang', this)">
           <div style="display: flex; align-items: center;">
             <i class="fas fa-file-alt"></i> <span style="margin-left: 10px;">Pengajuan</span>
@@ -155,6 +133,12 @@ $foto_profil_path = '';
           </a>
           <a href="index.php?page=berkas_Magang" class="nav-item <?= $page=='berkas_Magang'?'active':'' ?>">
             <i class="fas fa-file-upload"></i> Berkas
+          </a>
+          <a href="index.php?page=status_pengajuan" class="nav-item <?= $page=='status_pengajuan'?'active':'' ?>">
+            <i class="fas fa-clipboard-list"></i> Status Pengajuan
+          </a>
+          <a href="index.php?page=status_pengajuan_mitra" class="nav-item <?= $page=='status_pengajuan_mitra'?'active':'' ?>">
+            <i class="fas fa-building-circle-check"></i> Status Mitra
           </a>
         </div>
 
@@ -305,7 +289,7 @@ $foto_profil_path = '';
           document.querySelector('[onclick*="submenuProfil"]').classList.add('active');
         <?php endif; ?>
 
-        <?php if ($page=='pengajuan_Mitra' || $page=='berkas_Magang'): ?>
+        <?php if ($page=='pengajuan_Mitra' || $page=='berkas_Magang' || $page=='status_pengajuan' || $page=='status_pengajuan_mitra'): ?>
           document.getElementById('submenuMagang').style.display = 'block';
           document.querySelector('[onclick*="submenuMagang"]').classList.add('active');
         <?php endif; ?>
