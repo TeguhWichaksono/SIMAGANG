@@ -23,10 +23,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        // Ambil Data Kelompok untuk Penamaan File
-        $qInfo = "SELECT k.nama_kelompok, k.id_kelompok 
+        // -------------------------------------------------------------------
+        // START REVISI LOGIKA PENAMAAN FILE (Mengambil Prodi dan Membuat Alias)
+        // -------------------------------------------------------------------
+        
+        // Ambil Data Kelompok & Prodi Ketua untuk Penamaan File
+        $qInfo = "SELECT k.nama_kelompok, k.id_kelompok, m.prodi 
                   FROM pengajuan_magang pm 
                   JOIN kelompok k ON pm.id_kelompok = k.id_kelompok 
+                  JOIN mahasiswa m ON pm.id_mahasiswa_ketua = m.id_mahasiswa -- JOIN ke tabel mahasiswa untuk ambil Prodi
                   WHERE pm.id_pengajuan = ?";
         $stmt = mysqli_prepare($conn, $qInfo);
         mysqli_stmt_bind_param($stmt, 'i', $id_pengajuan);
@@ -34,13 +39,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $res = mysqli_stmt_get_result($stmt);
         $data = mysqli_fetch_assoc($res);
 
-        // FORMAT NAMA FILE: SuratPelaksanaan_Kel[ID]_[NamaKel]_[Timestamp].pdf
+        // Logic Alias Prodi
+        $prodi_raw = strtolower(trim($data['prodi'] ?? '')); 
+        $alias_prodi = 'UMUM'; // Default jika tidak terdeteksi
+
+        if (strpos($prodi_raw, 'manajemen informatika') !== false) {
+            $alias_prodi = 'MIF';
+        } elseif (strpos($prodi_raw, 'teknik komputer') !== false) {
+            $alias_prodi = 'TKK';
+        } elseif (strpos($prodi_raw, 'teknik informatika') !== false) {
+            $alias_prodi = 'TIF';
+        }
+
+        // FORMAT BARU: SuratPelaksanaan_ALIAS_NamaKelompok_Timestamp.pdf
         $clean_nama = preg_replace('/[^A-Za-z0-9]/', '', $data['nama_kelompok']);
         $timestamp = date('YmdHis');
-        $new_name = "SuratPelaksanaan_Kel{$data['id_kelompok']}_{$clean_nama}_{$timestamp}.pdf";
         
-        // Simpan ke folder uploads/dokumen_magang
+        $new_name = "SuratPelaksanaan_{$alias_prodi}_{$clean_nama}_{$timestamp}.pdf";
+        
+        // Simpan ke folder uploads/dokumen_magang (PATH FIX: ../../ untuk mengatasi 404)
         $target_dir = "../../uploads/dokumen_magang/";
+        // -------------------------------------------------------------------
+        // END REVISI LOGIKA PENAMAAN FILE 
+        // -------------------------------------------------------------------
+        
         if (!file_exists($target_dir)) mkdir($target_dir, 0777, true);
         
         $target_file = $target_dir . $new_name;

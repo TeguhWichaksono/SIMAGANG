@@ -231,19 +231,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         mkdir($upload_dir, 0777, true);
     }
 
-    // PENTING: Ambil nama kelompok untuk penamaan file
-    $query_kelompok = "SELECT nama_kelompok FROM kelompok WHERE id_kelompok = ?";
+    // PENTING: Ambil nama kelompok DAN prodi ketua untuk penamaan file
+    $query_kelompok = "SELECT k.nama_kelompok, m.prodi 
+                    FROM kelompok k
+                    JOIN mahasiswa m ON m.id_mahasiswa = ?
+                    WHERE k.id_kelompok = ?";
     $stmt_k = mysqli_prepare($conn, $query_kelompok);
-    mysqli_stmt_bind_param($stmt_k, 'i', $id_kelompok);
+    mysqli_stmt_bind_param($stmt_k, 'ii', $id_mahasiswa, $id_kelompok);
     mysqli_stmt_execute($stmt_k);
     $res_k = mysqli_stmt_get_result($stmt_k);
     $data_k = mysqli_fetch_assoc($res_k);
 
-    // Format nama file
+    // Logic Alias Prodi (sama seperti di surat penerimaan/pelaksanaan)
+    $prodi_raw = strtolower(trim($data_k['prodi'] ?? '')); 
+    $alias_prodi = 'UMUM'; 
+
+    if (strpos($prodi_raw, 'manajemen informatika') !== false) {
+        $alias_prodi = 'MIF';
+    } elseif (strpos($prodi_raw, 'teknik komputer') !== false) {
+        $alias_prodi = 'TKK';
+    } elseif (strpos($prodi_raw, 'teknik informatika') !== false) {
+        $alias_prodi = 'TIF';
+    }
+
+    // FORMAT BARU: ProposalCV_ALIAS_NamaKelompok_Timestamp.pdf
     $kelompok_clean = preg_replace('/[^A-Za-z0-9]/', '', $data_k['nama_kelompok']);
-    $id_kelompok_pad = str_pad($id_kelompok, 3, '0', STR_PAD_LEFT);
     $timestamp = date('YmdHis');
-    $proposal_cv_filename = "ProposalCV_Kel{$id_kelompok_pad}_{$kelompok_clean}_{$timestamp}.pdf";
+    $proposal_cv_filename = "ProposalCV_{$alias_prodi}_{$kelompok_clean}_{$timestamp}.pdf";
     $proposal_cv_path = $upload_dir . $proposal_cv_filename;
     
     // Upload
@@ -252,7 +266,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         header("Location: ../index.php?page=berkas_Magang");
         exit;
     }
-
     // Simpan ke database
     mysqli_begin_transaction($conn);
 

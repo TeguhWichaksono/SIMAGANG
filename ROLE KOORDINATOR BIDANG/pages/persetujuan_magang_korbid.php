@@ -76,348 +76,93 @@ $result_dosen = mysqli_query($conn, $query_dosen);
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
   
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background: #f5f6fa; padding: 20px; }
 
-    body {
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background: #f5f6fa;
-      padding: 20px;
-    }
+    /* Container & Layout */
+    .container { max-width: 1400px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+    h2 { margin-bottom: 25px; color: #2c3e50; display: flex; align-items: center; gap: 12px; }
 
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-      background: white;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-    }
+    /* Filter Tabs */
+    .filter-tabs { display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; }
+    .tab-btn { padding: 10px 20px; border: none; background: transparent; cursor: pointer; font-size: 15px; font-weight: 500; color: #666; border-radius: 6px 6px 0 0; transition: all 0.3s; }
+    .tab-btn.active { background: #007bff; color: white; }
+    .tab-btn:hover:not(.active) { background: #f0f0f0; }
 
-    h2 {
-      margin-bottom: 25px;
-      color: #2c3e50;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+    /* Search & Table */
+    .search-box { margin-bottom: 20px; }
+    .search-box input { width: 100%; padding: 12px 20px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 15px; text-align: left; border-bottom: 1px solid #e0e0e0; }
+    th { background: #f8f9fa; font-weight: 600; color: #495057; position: sticky; top: 0; }
+    tr:hover { background: #f8f9fa; }
 
-    .filter-tabs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 25px;
-      border-bottom: 2px solid #e0e0e0;
-      padding-bottom: 10px;
-    }
+    /* Buttons General */
+    .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.3s; margin-right: 5px; }
+    .btn-view { background: #007bff; color: white; }
+    .btn-view:hover { background: #0056b3; }
+    .btn-approve { background: #28a745; color: white; }
+    .btn-approve:hover { background: #218838; }
+    .btn-reject { background: #dc3545; color: white; }
+    .btn-reject:hover { background: #c82333; }
 
-    .tab-btn {
-      padding: 10px 20px;
-      border: none;
-      background: transparent;
-      cursor: pointer;
-      font-size: 15px;
-      font-weight: 500;
-      color: #666;
-      border-radius: 6px 6px 0 0;
-      transition: all 0.3s;
-    }
+    /* Status Badges */
+    .status-badge { padding: 5px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; display: inline-block; }
+    .status-menunggu { background: #fff3cd; color: #856404; }
+    .status-diterima { background: #d4edda; color: #155724; }
+    .status-ditolak { background: #f8d7da; color: #721c24; }
 
-    .tab-btn.active {
-      background: #007bff;
-      color: white;
-    }
+    /* Modal & Animations */
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); animation: fadeIn 0.3s; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .modal-content { background: white; margin: 3% auto; padding: 30px; width: 90%; max-width: 800px; max-height: 85vh; overflow-y: auto; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); animation: slideDown 0.3s; }
+    @keyframes slideDown { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .close-btn { float: right; font-size: 28px; font-weight: bold; color: #aaa; cursor: pointer; line-height: 20px; }
+    .close-btn:hover { color: #000; }
+    .modal h3 { margin-bottom: 20px; color: #2c3e50; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
 
-    .tab-btn:hover:not(.active) {
-      background: #f0f0f0;
-    }
+    /* Info Grid & Links */
+    .info-section { margin-bottom: 25px; }
+    .info-section h4 { margin-bottom: 12px; color: #495057; font-size: 16px; }
+    .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; background: #f8f9fa; padding: 15px; border-radius: 8px; }
+    .info-item { display: flex; flex-direction: column; gap: 5px; }
+    .info-label { font-size: 13px; color: #6c757d; font-weight: 600; }
+    .info-value { font-size: 14px; color: #212529; }
+    .doc-links { display: flex; gap: 15px; margin-top: 15px; }
+    .doc-link { flex: 1; padding: 12px; background: #007bff; color: white; text-decoration: none; border-radius: 8px; text-align: center; transition: all 0.3s; }
+    .doc-link:hover { background: #0056b3; transform: translateY(-2px); }
 
-    .search-box {
-      margin-bottom: 20px;
-    }
+    /* Forms & Inputs */
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #495057; }
+    .form-group textarea, .form-group input[type="file"] { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px; }
+    .form-group textarea { resize: vertical; min-height: 100px; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 25px; padding-top: 20px; border-top: 1px solid #e0e0e0; }
+    .btn-submit { padding: 12px 30px; font-size: 15px; }
 
-    .search-box input {
-      width: 100%;
-      padding: 12px 20px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-size: 14px;
-    }
+    /* Misc Components */
+    .empty-state { text-align: center; padding: 60px 20px; color: #999; }
+    .empty-state i { font-size: 64px; margin-bottom: 20px; opacity: 0.3; }
+    .anggota-list { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 10px; }
+    .anggota-item { padding: 10px; border-bottom: 1px solid #e0e0e0; }
+    .anggota-item:last-child { border-bottom: none; }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
+    /* Tombol Surat (Korbid) */
+    .btn-surat { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; text-decoration: none; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .btn-surat:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
 
-    th, td {
-      padding: 15px;
-      text-align: left;
-      border-bottom: 1px solid #e0e0e0;
-    }
+    /* Varian Tombol Surat */
+    .btn-surat-penerimaan { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; }
+    .btn-surat-penerimaan:hover { background: linear-gradient(135deg, #218838 0%, #1aa179 100%); }
 
-    th {
-      background: #f8f9fa;
-      font-weight: 600;
-      color: #495057;
-      position: sticky;
-      top: 0;
-    }
+    .btn-surat-upload { background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); color: #000; }
+    .btn-surat-upload:hover { background: linear-gradient(135deg, #e0a800 0%, #fb8c00 100%); }
 
-    tr:hover {
-      background: #f8f9fa;
-    }
+    .btn-surat-pelaksanaan { background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); color: white; }
+    .btn-surat-pelaksanaan:hover { background: linear-gradient(135deg, #0056b3 0%, #004085 100%); }
 
-    .btn {
-      padding: 8px 16px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 500;
-      transition: all 0.3s;
-      margin-right: 5px;
-    }
-
-    .btn-view {
-      background: #007bff;
-      color: white;
-    }
-
-    .btn-view:hover {
-      background: #0056b3;
-    }
-
-    .btn-approve {
-      background: #28a745;
-      color: white;
-    }
-
-    .btn-approve:hover {
-      background: #218838;
-    }
-
-    .btn-reject {
-      background: #dc3545;
-      color: white;
-    }
-
-    .btn-reject:hover {
-      background: #c82333;
-    }
-
-    .status-badge {
-      padding: 5px 12px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 600;
-      display: inline-block;
-    }
-
-    .status-menunggu {
-      background: #fff3cd;
-      color: #856404;
-    }
-
-    .status-diterima {
-      background: #d4edda;
-      color: #155724;
-    }
-
-    .status-ditolak {
-      background: #f8d7da;
-      color: #721c24;
-    }
-
-    /* Modal Styles */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      animation: fadeIn 0.3s;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    .modal-content {
-      background: white;
-      margin: 3% auto;
-      padding: 30px;
-      width: 90%;
-      max-width: 800px;
-      max-height: 85vh;
-      overflow-y: auto;
-      border-radius: 12px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-      animation: slideDown 0.3s;
-    }
-
-    @keyframes slideDown {
-      from {
-        transform: translateY(-50px);
-        opacity: 0;
-      }
-      to {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
-
-    .close-btn {
-      float: right;
-      font-size: 28px;
-      font-weight: bold;
-      color: #aaa;
-      cursor: pointer;
-      line-height: 20px;
-    }
-
-    .close-btn:hover {
-      color: #000;
-    }
-
-    .modal h3 {
-      margin-bottom: 20px;
-      color: #2c3e50;
-      border-bottom: 2px solid #007bff;
-      padding-bottom: 10px;
-    }
-
-    .info-section {
-      margin-bottom: 25px;
-    }
-
-    .info-section h4 {
-      margin-bottom: 12px;
-      color: #495057;
-      font-size: 16px;
-    }
-
-    .info-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 15px;
-      background: #f8f9fa;
-      padding: 15px;
-      border-radius: 8px;
-    }
-
-    .info-item {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-
-    .info-label {
-      font-size: 13px;
-      color: #6c757d;
-      font-weight: 600;
-    }
-
-    .info-value {
-      font-size: 14px;
-      color: #212529;
-    }
-
-    .doc-links {
-      display: flex;
-      gap: 15px;
-      margin-top: 15px;
-    }
-
-    .doc-link {
-      flex: 1;
-      padding: 12px;
-      background: #007bff;
-      color: white;
-      text-decoration: none;
-      border-radius: 8px;
-      text-align: center;
-      transition: all 0.3s;
-    }
-
-    .doc-link:hover {
-      background: #0056b3;
-      transform: translateY(-2px);
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    .form-group label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 600;
-      color: #495057;
-    }
-
-    .form-group textarea,
-    .form-group input[type="file"] {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-family: inherit;
-      font-size: 14px;
-    }
-
-    .form-group textarea {
-      resize: vertical;
-      min-height: 100px;
-    }
-
-    .modal-actions {
-      display: flex;
-      gap: 10px;
-      justify-content: flex-end;
-      margin-top: 25px;
-      padding-top: 20px;
-      border-top: 1px solid #e0e0e0;
-    }
-
-    .btn-submit {
-      padding: 12px 30px;
-      font-size: 15px;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      color: #999;
-    }
-
-    .empty-state i {
-      font-size: 64px;
-      margin-bottom: 20px;
-      opacity: 0.3;
-    }
-
-    .anggota-list {
-      background: #f8f9fa;
-      padding: 15px;
-      border-radius: 8px;
-      margin-top: 10px;
-    }
-
-    .anggota-item {
-      padding: 10px;
-      border-bottom: 1px solid #e0e0e0;
-    }
-
-    .anggota-item:last-child {
-      border-bottom: none;
-    }
+    .link-file-small { color: #007bff; text-decoration: none; font-weight: 600; font-size: 13px; transition: color 0.3s; }
+    .link-file-small:hover { color: #0056b3; text-decoration: underline; }
   </style>
 </head>
 <body>
@@ -452,7 +197,10 @@ $result_dosen = mysqli_query($conn, $query_dosen);
       Disetujui (<span id="count-diterima">0</span>)
     </button>
     <button class="tab-btn" onclick="filterStatus('ditolak')">
-      Ditolak (<span id="count-ditolak">0</span>)
+      Ditolak Korbid (<span id="count-ditolak">0</span>)
+    </button>
+    <button class="tab-btn" onclick="filterStatus('ditolak_mitra')">
+      Ditolak Mitra (<span id="count-ditolak_mitra">0</span>)
     </button>
   </div>
 
@@ -490,12 +238,14 @@ $result_dosen = mysqli_query($conn, $query_dosen);
       $count_menunggu = 0;
       $count_diterima = 0;
       $count_ditolak = 0;
+      $count_ditolak_mitra = 0;
       
       while ($row = mysqli_fetch_assoc($result)): 
         $count_all++;
         if ($row['status_pengajuan'] === 'menunggu') $count_menunggu++;
         if ($row['status_pengajuan'] === 'diterima') $count_diterima++;
         if ($row['status_pengajuan'] === 'ditolak') $count_ditolak++;
+        if ($row['status_pengajuan'] === 'ditolak_mitra') $count_ditolak_mitra++;
         
         $status_class = 'status-menunggu';
         $status_text = 'Menunggu';
@@ -504,7 +254,10 @@ $result_dosen = mysqli_query($conn, $query_dosen);
           $status_text = 'Disetujui';
         } elseif ($row['status_pengajuan'] === 'ditolak') {
           $status_class = 'status-ditolak';
-          $status_text = 'Ditolak';
+          $status_text = 'Ditolak Korbid';
+        } elseif ($row['status_pengajuan'] === 'ditolak_mitra') {
+          $status_class = 'status-ditolak';
+          $status_text = 'Ditolak Mitra';
         }
       ?>
       <tr class="pengajuan-row" data-status="<?= $row['status_pengajuan'] ?>">
@@ -655,6 +408,7 @@ document.getElementById('count-all').textContent = <?= $count_all ?>;
 document.getElementById('count-menunggu').textContent = <?= $count_menunggu ?>;
 document.getElementById('count-diterima').textContent = <?= $count_diterima ?>;
 document.getElementById('count-ditolak').textContent = <?= $count_ditolak ?>;
+document.getElementById('count-ditolak_mitra').textContent = <?= $count_ditolak_mitra ?>;
 
 // Filter by status
 function filterStatus(status) {
@@ -759,11 +513,11 @@ function viewDetail(id) {
       <div class="info-section" style="border-top: 2px dashed #ddd; margin-top: 20px; padding-top: 15px;">
         <h4><i class="fas fa-exchange-alt"></i> Tindak Lanjut Surat</h4>
         
-        <div style="background: #e8f5e9; padding: 12px; border-radius: 6px; margin-bottom: 15px;">
-           <div style="font-weight:bold; color: #2e7d32; margin-bottom:5px;">
+        <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+           <div style="font-weight:bold; color: #2e7d32; margin-bottom:10px; font-size:15px;">
              <i class="fas fa-check-circle"></i> Surat Penerimaan (Dari Mitra)
            </div>
-           <a href="../uploads/dokumen_magang/${data.file_penerimaan}" target="_blank" class="btn btn-view btn-sm" style="background:#28a745; border:none;">
+           <a href="../uploads/dokumen_magang/${data.file_penerimaan}" target="_blank" class="btn-surat btn-surat-penerimaan">
              <i class="fas fa-download"></i> Download Surat Penerimaan
            </a>
         </div>
@@ -774,11 +528,11 @@ function viewDetail(id) {
       if (!data.file_pelaksanaan) {
         // Jika belum ada file pelaksanaan -> TAMPILKAN TOMBOL UPLOAD
         html += `
-          <div style="background: #fff3cd; padding: 15px; border-radius: 6px; border-left: 5px solid #ffc107;">
-            <p style="margin: 0 0 10px 0; color: #856404; font-size: 14px;">
-               <strong>Tugas Korbid:</strong> Silakan terbitkan Surat Pelaksanaan Magang untuk kelompok ini.
+          <div style="background: #fff8e1; padding: 15px; border-radius: 8px; border-left: 5px solid #ffc107;">
+            <p style="margin: 0 0 12px 0; color: #856404; font-size: 14px; font-weight:500;">
+               <i class="fas fa-exclamation-circle"></i> <strong>Tugas Korbid:</strong> Silakan terbitkan Surat Pelaksanaan Magang untuk kelompok ini.
             </p>
-            <button class="btn btn-primary" onclick="closeModal('modalDetail'); openUploadPelaksanaanModal(${data.id_pengajuan});">
+            <button class="btn-surat btn-surat-upload" onclick="closeModal('modalDetail'); openUploadPelaksanaanModal(${data.id_pengajuan});">
               <i class="fas fa-upload"></i> Upload Surat Pelaksanaan
             </button>
           </div>
@@ -786,12 +540,12 @@ function viewDetail(id) {
       } else {
         // Jika sudah ada file pelaksanaan -> TAMPILKAN LINK FILE
         html += `
-          <div style="background: #d1ecf1; padding: 12px; border-radius: 6px; border-left: 5px solid #17a2b8;">
-            <div style="font-weight:bold; color: #0c5460; margin-bottom:5px;">
+          <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; border-left: 5px solid #2196f3;">
+            <div style="font-weight:bold; color: #1565c0; margin-bottom:10px; font-size:15px;">
               <i class="fas fa-check-double"></i> Surat Pelaksanaan Terkirim
             </div>
-            <a href="../uploads/dokumen_magang/${data.file_pelaksanaan}" target="_blank" style="color:#007bff; text-decoration:underline; font-size:14px;">
-               Lihat File Surat Pelaksanaan
+            <a href="../uploads/dokumen_magang/${data.file_pelaksanaan}" target="_blank" class="btn-surat btn-surat-pelaksanaan">
+               <i class="fas fa-eye"></i> Lihat Surat Pelaksanaan
             </a>
           </div>
         `;

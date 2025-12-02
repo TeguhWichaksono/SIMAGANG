@@ -23,6 +23,63 @@ $message_error = '';
 // -------------------------------------------------
 // A. HANDLE UPLOAD SURAT PENERIMAAN (Action)
 // -------------------------------------------------
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'ditolak_mitra') {
+    $id_pengajuan_post = intval($_POST['id_pengajuan']);
+    
+    mysqli_begin_transaction($conn);
+    
+    try {
+        // Update status pengajuan menjadi 'ditolak_mitra'
+        $qUpdate = "UPDATE pengajuan_magang 
+                    SET status_pengajuan = 'ditolak_mitra',
+                        catatan_korbid = CONCAT(IFNULL(catatan_korbid, ''), '\n[DITOLAK MITRA] Kelompok ditolak oleh mitra perusahaan.')
+                    WHERE id_pengajuan = ?";
+        $stmtUpdate = mysqli_prepare($conn, $qUpdate);
+        mysqli_stmt_bind_param($stmtUpdate, 'i', $id_pengajuan_post);
+        mysqli_stmt_execute($stmtUpdate);
+        
+        // Ambil ID Kelompok untuk update status mahasiswa
+        $qKelompok = "SELECT id_kelompok FROM pengajuan_magang WHERE id_pengajuan = ?";
+        $stmtKel = mysqli_prepare($conn, $qKelompok);
+        mysqli_stmt_bind_param($stmtKel, 'i', $id_pengajuan_post);
+        mysqli_stmt_execute($stmtKel);
+        $resKel = mysqli_stmt_get_result($stmtKel);
+        $dataKel = mysqli_fetch_assoc($resKel);
+        
+        if ($dataKel) {
+            // Kembalikan status mahasiswa ke 'pra-magang'
+            $qUpdateMhs = "UPDATE mahasiswa m
+                          JOIN anggota_kelompok ak ON m.id_mahasiswa = ak.id_mahasiswa
+                          SET m.status = 'pra-magang'
+                          WHERE ak.id_kelompok = ?";
+            $stmtMhs = mysqli_prepare($conn, $qUpdateMhs);
+            mysqli_stmt_bind_param($stmtMhs, 'i', $dataKel['id_kelompok']);
+            mysqli_stmt_execute($stmtMhs);
+        }
+        
+        // Kirim notifikasi ke Korbid
+        $qKorbid = "SELECT id FROM users WHERE role = 'Koordinator Bidang Magang'";
+        $resKorbid = mysqli_query($conn, $qKorbid);
+        
+        while ($korbid = mysqli_fetch_assoc($resKorbid)) {
+            $pesan = "Pengajuan ID:$id_pengajuan_post DITOLAK oleh Mitra. Kelompok akan mengajukan ulang.";
+            $qNotif = "INSERT INTO notifikasi (id_user, pesan, status_baca, tanggal)
+                       VALUES (?, ?, 'baru', NOW())";
+            $stmtNotif = mysqli_prepare($conn, $qNotif);
+            mysqli_stmt_bind_param($stmtNotif, 'is', $korbid['id'], $pesan);
+            mysqli_stmt_execute($stmtNotif);
+        }
+        
+        mysqli_commit($conn);
+        $message_success = "Status pengajuan diperbarui: Ditolak oleh Mitra. Silakan ajukan ulang dengan mitra lain.";
+        
+    } catch (Exception $e) {
+        mysqli_rollback($conn);
+        $message_error = "Gagal memproses: " . $e->getMessage();
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'upload_penerimaan') {
     $id_pengajuan_post = intval($_POST['id_pengajuan']);
     
@@ -42,24 +99,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $target_dir = "../uploads/dokumen_magang/"; 
             if (!file_exists($target_dir)) mkdir($target_dir, 0777, true);
             
-            $qInfo = "SELECT k.nama_kelompok, u.nama as ketua 
-                    FROM pengajuan_magang pm
-                    JOIN kelompok k ON pm.id_kelompok = k.id_kelompok
-                    JOIN mahasiswa m ON pm.id_mahasiswa_ketua = m.id_mahasiswa
-                    JOIN users u ON m.id_user = u.id
-                    WHERE pm.id_pengajuan = ?";
-            $stInfo = mysqli_prepare($conn, $qInfo);
-            mysqli_stmt_bind_param($stInfo, 'i', $id_pengajuan_post);
-            mysqli_stmt_execute($stInfo);
-            $resInfo = mysqli_stmt_get_result($stInfo);
-            $dataInfo = mysqli_fetch_assoc($resInfo);
+            $qInfo = "SELECT k.nama_kelompok, m.prodi 
+                      FROM pengajuan_magang pm 
+                      JOIN kelompok k ON pm.id_kelompok = k.id_kelompok 
+                      JOIN mahasiswa m ON pm.id_mahasiswa_ketua = m.id_mahasiswa
+                      WHERE pm.id_pengajuan = ?";
+            
+            $stmt_info = mysqli_prepare($conn, $qInfo);
+            mysqli_stmt_bind_param($stmt_info, 'i', $id_pengajuan_post);
+            mysqli_stmt_execute($stmt_info);
+            $res_info = mysqli_stmt_get_result($stmt_info);
+            $data_info = mysqli_fetch_assoc($res_info);
 
-            // Format: SuratPenerimaan_NamaKelompok_NamaKetua_Timestamp.pdf
-            $kelompok_clean = preg_replace('/[^A-Za-z0-9]/', '', $dataInfo['nama_kelompok']);
-            $ketua_clean = preg_replace('/[^A-Za-z0-9]/', '', $dataInfo['ketua']);
+            // Logic Alias Prodi
+            $prodi_raw = strtolower(trim($data_info['prodi'] ?? '')); 
+            $alias_prodi = 'UMUM'; 
+
+            if (strpos($prodi_raw, 'manajemen informatika') !== false) {
+                $alias_prodi = 'MIF';
+            } elseif (strpos($prodi_raw, 'teknik komputer') !== false) {
+                $alias_prodi = 'TKK';
+            } elseif (strpos($prodi_raw, 'teknik informatika') !== false) {
+                $alias_prodi = 'TIF';
+            }
+            
+            // FORMAT BARU: SuratPenerimaan_ALIAS_NamaKelompok_Timestamp.pdf
+            $clean_nama = preg_replace('/[^A-Za-z0-9]/', '', $data_info['nama_kelompok']);
             $timestamp = date('YmdHis');
-            $new_name = "SuratPenerimaan_{$kelompok_clean}_{$ketua_clean}_{$timestamp}.pdf";
-            $target_file = $target_dir . $new_name;
+            
+            $new_name = "SuratPenerimaan_{$alias_prodi}_{$clean_nama}_{$timestamp}.pdf";
+            
+            $upload_dir = "../uploads/dokumen_magang/"; 
+            if (!file_exists($upload_dir)) mkdir($upload_dir, 0777, true);
+            $target_file = $upload_dir . $new_name;
 
             if (move_uploaded_file($_FILES['file_penerimaan']['tmp_name'], $target_file)) {
                 // Simpan ke tabel dokumen_magang
@@ -154,8 +226,8 @@ $query = "
     LEFT JOIN users u_dosen ON d.id_user = u_dosen.id
     
     WHERE pm.id_kelompok = ?
-    ORDER BY pm.tanggal_pengajuan DESC
-";
+    ORDER BY pm.tanggal_pengajuan DESC, pm.id_pengajuan DESC
+    ";
 
 $stmt = mysqli_prepare($conn, $query);
 mysqli_stmt_bind_param($stmt, 'i', $id_kelompok);
@@ -200,6 +272,18 @@ while ($r = mysqli_fetch_assoc($result)) {
   .btn-danger { background: #dc3545; color: white; }
   .btn-secondary { background: #6c757d; color: white; }
   .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-surat { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; text-decoration: none; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+  .btn-surat:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+  .btn-surat-penerimaan { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; }
+  .btn-surat-penerimaan:hover { background: linear-gradient(135deg, #218838 0%, #1aa179 100%); }
+  .btn-surat-upload { background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); color: #000; }
+  .btn-surat-upload:hover { background: linear-gradient(135deg, #e0a800 0%, #fb8c00 100%); }
+  .btn-surat-pelaksanaan { background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); color: white; }
+  .btn-surat-pelaksanaan:hover { background: linear-gradient(135deg, #0056b3 0%, #004085 100%); }
+  .link-file { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; background: #17a2b8; color: white; text-decoration: none; border-radius: 5px; font-size: 13px; font-weight: 600; transition: all 0.3s; }
+  .link-file:hover { background: #138496; transform: translateY(-1px); }
+  .link-file i { font-size: 12px; }
+
 
   .alert-box { padding: 15px; border-radius: 8px; margin-top: 15px; }
   .alert-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
@@ -235,22 +319,26 @@ while ($r = mysqli_fetch_assoc($result)) {
     </div>
   <?php else: ?>
 
-    <?php foreach ($rows as $index => $row): 
-        // Logic Status Badge
-        $status_class = "status-menunggu";
-        $status_text  = "Menunggu Persetujuan Korbid";
-        $icon = "fa-clock";
-        
-        if ($row['status_pengajuan'] === 'diterima') {
-            $status_class = "status-diterima";
-            $status_text  = "Disetujui Korbid";
-            $icon = "fa-check-circle";
-        } elseif ($row['status_pengajuan'] === 'ditolak') {
-            $status_class = "status-ditolak";
-            $status_text  = "Ditolak Korbid";
-            $icon = "fa-times-circle";
-        }
-    ?>
+  <?php foreach ($rows as $index => $row): 
+      // Logic Status Badge
+      $status_class = "status-menunggu";
+      $status_text  = "Menunggu Persetujuan Korbid";
+      $icon = "fa-clock";
+      
+      if ($row['status_pengajuan'] === 'diterima') {
+          $status_class = "status-diterima";
+          $status_text  = "Disetujui Korbid";
+          $icon = "fa-check-circle";
+      } elseif ($row['status_pengajuan'] === 'ditolak') {
+          $status_class = "status-ditolak";
+          $status_text  = "Ditolak Korbid";
+          $icon = "fa-times-circle";
+      } elseif ($row['status_pengajuan'] === 'ditolak_mitra') {
+          $status_class = "status-ditolak";
+          $status_text  = "Ditolak Mitra";
+          $icon = "fa-times-circle";
+      }
+  ?>
       <div class="status-card">
         <div class="status-header">
           <div>
@@ -285,20 +373,23 @@ while ($r = mysqli_fetch_assoc($result)) {
 
         <?php if ($row['status_pengajuan'] === 'ditolak'): ?>
           <div class="alert-box alert-danger" style="margin-top:20px;">
-            <strong><i class="fas fa-exclamation-triangle"></i> Alasan Penolakan:</strong>
-            <p style="margin-top:5px;"><?= nl2br(htmlspecialchars($row['catatan_korbid'] ?? 'Tidak ada catatan')) ?></p>
+            <strong><i class="fas fa-heart-broken"></i> Ditolak oleh Mitra Perusahaan</strong>
+            <p style="margin-top:5px;">Mohon maaf, lamaran magang kelompok Anda tidak diterima oleh <strong><?= htmlspecialchars($row['nama_mitra']) ?></strong>.</p>
           </div>
           
           <div class="alert-box alert-info">
-            <strong><i class="fas fa-info-circle"></i> Panduan Selanjutnya:</strong>
+            <strong><i class="fas fa-info-circle"></i> Langkah Selanjutnya:</strong>
             <ul style="margin-left: 15px; margin-top: 5px;">
-               <li>Silakan perbaiki proposal atau cari mitra lain.</li>
-               <li>Ketua kelompok dapat melakukan pengajuan ulang melalui menu Pengajuan Mitra.</li>
+               <li>Anda dapat mengajukan ulang ke mitra lain.</li>
+               <li>Data kelompok dan dosen pembimbing tetap tersimpan.</li>
+               <li>Silakan pilih mitra baru melalui menu Pengajuan Mitra.</li>
             </ul>
           </div>
           
           <?php if ($index === 0 && $is_ketua): ?>
-             <a href="index.php?page=pengajuan_Mitra" class="btn btn-primary" style="margin-top:15px;"><i class="fas fa-redo"></i> Ajukan Ulang</a>
+             <a href="index.php?page=pengajuan_Mitra" class="btn btn-primary" style="margin-top:15px;">
+               <i class="fas fa-redo"></i> Ajukan Ulang ke Mitra Lain
+             </a>
           <?php endif; ?>
 
         <?php elseif ($row['status_pengajuan'] === 'diterima'): ?>
@@ -331,9 +422,15 @@ while ($r = mysqli_fetch_assoc($result)) {
                   <button type="button" class="btn btn-success" onclick="showUploadForm(<?= $index ?>)">
                     <i class="fas fa-check"></i> Lamaran Diterima Mitra
                   </button>
-                  <button type="button" class="btn btn-danger" onclick="showRejectInfo(<?= $index ?>)">
-                    <i class="fas fa-times"></i> Lamaran Ditolak Mitra
-                  </button>
+                  
+                  <!-- FORM Submit Ditolak Mitra -->
+                  <form method="POST" style="display:inline;">
+                    <input type="hidden" name="action" value="ditolak_mitra">
+                    <input type="hidden" name="id_pengajuan" value="<?= $row['id_pengajuan'] ?>">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Apakah Anda yakin lamaran ditolak oleh mitra? Status akan diubah dan Anda perlu mengajukan ulang.')">
+                      <i class="fas fa-times"></i> Lamaran Ditolak Mitra
+                    </button>
+                  </form>
                 </div>
               </div>
 
@@ -354,32 +451,27 @@ while ($r = mysqli_fetch_assoc($result)) {
                 </form>
               </div>
 
-              <div id="info-reject-<?= $index ?>" class="alert-box alert-danger hidden">
-                <h4><i class="fas fa-heart-broken"></i> Jangan Patah Semangat!</h4>
-                <p>Jika mitra menolak, prosedur yang harus dilakukan adalah:</p>
-                <ol style="margin-left:20px; margin-top:10px; line-height:1.6;">
-                  <li>Masuk ke menu <strong>Kelompok</strong>.</li>
-                  <li>Buka tab <strong>Anggota</strong>, lalu hapus semua anggota (kick).</li>
-                  <li>Kembali ke tab <strong>Detail Kelompok</strong>, lalu klik tombol <strong>Bubarkan Kelompok</strong>.</li>
-                  <li>Setelah kelompok bubar, buat kelompok baru dan ajukan magang ke Mitra yang berbeda.</li>
-                </ol>
-                <button type="button" class="btn btn-secondary" onclick="hideRejectInfo(<?= $index ?>)" style="margin-top:10px;">Kembali</button>
-              </div>
-
             <?php else: ?>
               <div class="alert-box alert-success">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                    <span><i class="fas fa-check-circle"></i> <strong>Surat Penerimaan Mitra telah diupload.</strong></span>
-                   <a href="../uploads/dokumen_magang/<?= $row['file_penerimaan'] ?>" target="_blank" style="color:#155724; text-decoration:underline; font-size:13px;">Lihat File</a>
+                   <a href="../uploads/dokumen_magang/<?= $row['file_penerimaan'] ?>" target="_blank" class="link-file">
+                     <i class="fas fa-eye"></i> Lihat File
+                   </a>
                 </div>
-                <p style="margin-top:5px; font-size:14px;">Status: <em>Menunggu Surat Pelaksanaan dari Koordinator Bidang.</em></p>
+                
+                <?php if (empty($row['file_pelaksanaan'])): ?>
+                  <p style="margin-top:10px; font-size:14px; color:#666;">
+                    <i class="fas fa-clock"></i> <em>Status: Menunggu Surat Pelaksanaan dari Koordinator Bidang.</em>
+                  </p>
+                <?php endif; ?>
               </div>
 
               <?php if (!empty($row['file_pelaksanaan'])): ?>
-                <div class="alert-box alert-info" style="margin-top:15px; border-left: 5px solid #17a2b8;">
+                <div class="alert-box alert-info" style="margin-top:15px; border-left: 5px solid #007bff;">
                   <h4 style="margin-bottom:10px; color:#0c5460;"><i class="fas fa-file-signature"></i> Surat Pelaksanaan Siap!</h4>
-                  <p>Koordinator Bidang telah menerbitkan Surat Pelaksanaan. Silakan download dan serahkan ke Mitra.</p>
-                  <a href="../uploads/dokumen_magang/<?= $row['file_pelaksanaan'] ?>" target="_blank" class="btn btn-primary" style="margin-top:10px;">
+                  <p style="margin-bottom:15px;">Koordinator Bidang telah menerbitkan Surat Pelaksanaan. Silakan download dan serahkan ke Mitra.</p>
+                  <a href="../uploads/dokumen_magang/<?= $row['file_pelaksanaan'] ?>" target="_blank" class="btn-surat btn-surat-pelaksanaan">
                     <i class="fas fa-download"></i> Download Surat Pelaksanaan
                   </a>
                 </div>
@@ -408,14 +500,14 @@ function hideUploadForm(index) {
   document.getElementById('form-upload-' + index).classList.add('hidden');
 }
 
-function showRejectInfo(index) {
+function showUploadForm(index) {
   document.getElementById('konfirmasi-mitra-' + index).classList.add('hidden');
-  document.getElementById('info-reject-' + index).classList.remove('hidden');
+  document.getElementById('form-upload-' + index).classList.remove('hidden');
+}
+
+function hideUploadForm(index) {
+  document.getElementById('konfirmasi-mitra-' + index).classList.remove('hidden');
   document.getElementById('form-upload-' + index).classList.add('hidden');
 }
 
-function hideRejectInfo(index) {
-  document.getElementById('konfirmasi-mitra-' + index).classList.remove('hidden');
-  document.getElementById('info-reject-' + index).classList.add('hidden');
-}
 </script>
