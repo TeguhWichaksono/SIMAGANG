@@ -279,10 +279,10 @@ if (!$mitra_valid) $warnings[] = "Mitra magang belum dipilih atau tidak valid";
 
   <!-- Tombol Download Template -->
   <div class="template-buttons" style="display: flex; gap: 10px; margin-bottom: 20px;">
-    <a href="templates/template_cv.pdf" class="btn-template" download style="flex: 1; text-align: center; padding: 12px; background: #17a2b8; color: white; text-decoration: none; border-radius: 6px;">
+    <a href="templates/Format CV New.docx" class="btn-template" download style="flex: 1; text-align: center; padding: 12px; background: #17a2b8; color: white; text-decoration: none; border-radius: 6px;">
       <i class="fas fa-download"></i> Download Template CV
     </a>
-    <a href="templates/template_proposal.pdf" class="btn-template" download style="flex: 1; text-align: center; padding: 12px; background: #17a2b8; color: white; text-decoration: none; border-radius: 6px;">
+    <a href="templates/Format Proposal PKL.docx" class="btn-template" download style="flex: 1; text-align: center; padding: 12px; background: #17a2b8; color: white; text-decoration: none; border-radius: 6px;">
       <i class="fas fa-download"></i> Download Template Proposal
     </a>
   </div>

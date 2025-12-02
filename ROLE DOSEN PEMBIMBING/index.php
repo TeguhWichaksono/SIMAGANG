@@ -1,10 +1,16 @@
 <?php
 session_start();
-// Sertakan koneksi database
 include '../Koneksi/koneksi.php'; 
+require_once '../config.php';
 
 $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 $pagePath = "pages/$page.php";
+
+// cekRole('Dosen Pembimbing');
+
+// if($_SESSION['role'] !== 'Dosen Pembimbing'){
+//   echo "Anda bukan Dosen Pembimbing";
+// }
 
 $foto_profil_path = ''; 
 

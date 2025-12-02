@@ -16,145 +16,94 @@ $success_message = '';
 $error_message = '';
 
 /* =========================================
-    PROSES UPDATE DATA (jika form disubmit)
+    PROSES UPDATE DATA
 ========================================= */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Ambil data dari form
     $prodi_input = trim($_POST['prodi'] ?? '');
     $kontak_input = trim($_POST['kontak'] ?? '');
     $angkatan_input = trim($_POST['angkatan'] ?? '');
     
-    // Validasi input
     if (empty($prodi_input) || empty($kontak_input) || empty($angkatan_input)) {
         $error_message = "Semua field harus diisi!";
     } else {
-        // --- START PERUBAHAN DI BAGIAN KONTAK ---
-        
-        // Tambahan Validasi Server-Side untuk memastikan kontak hanya angka
-        // dan mencegah angka yang terlalu panjang/pendek
-        $kontak_clean = preg_replace('/[^0-9]/', '', $kontak_input); // Hapus karakter non-digit
+        // Validasi Kontak
+        $kontak_clean = preg_replace('/[^0-9]/', '', $kontak_input);
         
         if (empty($kontak_clean) || strlen($kontak_clean) < 10 || strlen($kontak_clean) > 14) {
-             $error_message = "Kontak harus berupa angka dan memiliki panjang 10 sampai 14 digit!";
+             $error_message = "Kontak harus berupa angka (10-14 digit)!";
         } else {
-             $kontak_input = $kontak_clean; // Gunakan angka yang sudah bersih
+             $kontak_input = $kontak_clean;
              
-        // --- END PERUBAHAN DI BAGIAN KONTAK ---
-        
-            // Cek apakah data mahasiswa sudah ada
-            $query_check = "SELECT id_mahasiswa FROM mahasiswa WHERE id_user = ?";
-            $stmt_check = mysqli_prepare($conn, $query_check);
-            mysqli_stmt_bind_param($stmt_check, 'i', $id_user);
-            mysqli_stmt_execute($stmt_check);
-            $result_check = mysqli_stmt_get_result($stmt_check);
-            $exists = mysqli_fetch_assoc($result_check);
-            mysqli_stmt_close($stmt_check);
+             // Cek data
+             $query_check = "SELECT id_mahasiswa FROM mahasiswa WHERE id_user = ?";
+             $stmt_check = mysqli_prepare($conn, $query_check);
+             mysqli_stmt_bind_param($stmt_check, 'i', $id_user);
+             mysqli_stmt_execute($stmt_check);
+             $result_check = mysqli_stmt_get_result($stmt_check);
+             $exists = mysqli_fetch_assoc($result_check);
+             mysqli_stmt_close($stmt_check);
             
-            if ($exists) {
-                // UPDATE data yang sudah ada
-                $query_update = "UPDATE mahasiswa 
-                                SET prodi = ?, angkatan = ?, kontak = ? 
-                                WHERE id_user = ?";
+             if ($exists) {
+                // UPDATE
+                $query_update = "UPDATE mahasiswa SET prodi = ?, angkatan = ?, kontak = ? WHERE id_user = ?";
                 $stmt_update = mysqli_prepare($conn, $query_update);
+                mysqli_stmt_bind_param($stmt_update, 'sssi', $prodi_input, $angkatan_input, $kontak_input, $id_user);
                 
-                if (!$stmt_update) {
-                    $error_message = "Prepare gagal UPDATE: " . mysqli_error($conn);
+                if (mysqli_stmt_execute($stmt_update)) {
+                    $success_message = "Data berhasil diperbarui!";
                 } else {
-                    mysqli_stmt_bind_param($stmt_update, 'sssi', 
-                        $prodi_input, 
-                        $angkatan_input, 
-                        $kontak_input, 
-                        $id_user
-                    );
-                    
-                    if (mysqli_stmt_execute($stmt_update)) {
-                        $success_message = "Data berhasil diperbarui!";
-                    } else {
-                        $error_message = "Gagal memperbarui data: " . mysqli_stmt_error($stmt_update);
-                    }
-                    mysqli_stmt_close($stmt_update);
+                    $error_message = "Gagal update: " . mysqli_stmt_error($stmt_update);
                 }
-            } else {
-                // INSERT data baru (jika belum ada record di tabel mahasiswa)
-                $query_insert = "INSERT INTO mahasiswa (id_user, prodi, angkatan, kontak, status) 
-                                VALUES (?, ?, ?, ?, 'pra-magang')";
+                mysqli_stmt_close($stmt_update);
+             } else {
+                // INSERT
+                $query_insert = "INSERT INTO mahasiswa (id_user, prodi, angkatan, kontak, status) VALUES (?, ?, ?, ?, 'pra-magang')";
                 $stmt_insert = mysqli_prepare($conn, $query_insert);
+                mysqli_stmt_bind_param($stmt_insert, 'isss', $id_user, $prodi_input, $angkatan_input, $kontak_input);
                 
-                if (!$stmt_insert) {
-                    $error_message = "Prepare gagal INSERT: " . mysqli_error($conn);
+                if (mysqli_stmt_execute($stmt_insert)) {
+                    $success_message = "Data berhasil disimpan!";
                 } else {
-                    mysqli_stmt_bind_param($stmt_insert, 'isss', 
-                        $id_user,
-                        $prodi_input, 
-                        $angkatan_input, 
-                        $kontak_input
-                    );
-                    
-                    if (mysqli_stmt_execute($stmt_insert)) {
-                        $success_message = "Data berhasil disimpan!";
-                    } else {
-                        $error_message = "Gagal menyimpan data: " . mysqli_stmt_error($stmt_insert);
-                    }
-                    mysqli_stmt_close($stmt_insert);
+                    $error_message = "Gagal simpan: " . mysqli_stmt_error($stmt_insert);
                 }
-            }
-        } // Penutup dari else (setelah validasi kontak)
+                mysqli_stmt_close($stmt_insert);
+             }
+        }
     }
 }
 
 /* =========================================
-    1. AMBIL DATA USERS (nama, email)
+    AMBIL DATA (User & Mahasiswa)
 ========================================= */
 $query_user = "SELECT nama, email, nim FROM users WHERE id = ?";
 $stmt1 = mysqli_prepare($conn, $query_user);
-
-if (!$stmt1) {
-    die("Prepare gagal (users): " . mysqli_error($conn));
-}
-
 mysqli_stmt_bind_param($stmt1, 'i', $id_user);
 mysqli_stmt_execute($stmt1);
-$res1 = mysqli_stmt_get_result($stmt1);
-$user = mysqli_fetch_assoc($res1);
-
-$nama   = htmlspecialchars($user['nama'] ?? '');
+$user = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt1));
+$nama = htmlspecialchars($user['nama'] ?? '');
 $email = htmlspecialchars($user['email'] ?? '');
-$nim   = htmlspecialchars($user['nim'] ?? '');
-
+$nim = htmlspecialchars($user['nim'] ?? '');
 mysqli_stmt_close($stmt1);
 
-
-/* =========================================
-    2. AMBIL DATA MAHASISWA (prodi, angkatan, kontak)
-========================================= */
 $query_mhs = "SELECT prodi, angkatan, kontak FROM mahasiswa WHERE id_user = ?";
 $stmt2 = mysqli_prepare($conn, $query_mhs);
-
-if (!$stmt2) {
-    die("Prepare gagal SELECT mahasiswa: " . mysqli_error($conn));
-}
-
 mysqli_stmt_bind_param($stmt2, 'i', $id_user);
 mysqli_stmt_execute($stmt2);
-$res2 = mysqli_stmt_get_result($stmt2);
-$mhs = mysqli_fetch_assoc($res2);
+$mhs = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt2));
 mysqli_stmt_close($stmt2);
 
-// Variabel aman untuk FORM
-$prodi    = htmlspecialchars($mhs['prodi'] ?? '');
+$prodi = htmlspecialchars($mhs['prodi'] ?? '');
 $angkatan = htmlspecialchars($mhs['angkatan'] ?? '');
-$kontak   = htmlspecialchars($mhs['kontak'] ?? '');
-
+$kontak = htmlspecialchars($mhs['kontak'] ?? '');
 ?>
 
-<link rel="stylesheet" href="styles/pribadi.css" />
+<link rel="stylesheet" href="styles/pribadi.css?v=<?= time(); ?>" />
 
 <div class="form-container">
     <h2>Profil Mahasiswa</h2>
     <p>
-        Silakan lengkapi data profil Anda. Nama, email, dan NIM 
-        otomatis diambil dari sistem dan tidak dapat diubah.<br>
-        Jika terdapat kesalahan dalam penulisan nama, silakan hubungi admin untuk perbaikan.
+        Silakan lengkapi data profil Anda. Data Nama, NIM, dan Email 
+        bersifat tetap (read-only).
     </p>
 
     <?php if (!empty($success_message)): ?>
@@ -164,7 +113,7 @@ $kontak   = htmlspecialchars($mhs['kontak'] ?? '');
     <?php endif; ?>
 
     <?php if (!empty($error_message)): ?>
-    <div class="alert-error" style="display: block; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; padding: 12px; border-radius: 4px; margin-bottom: 15px;">
+    <div class="alert-error" style="display: block;">
         <?= htmlspecialchars($error_message) ?>
     </div>
     <?php endif; ?>
@@ -189,21 +138,21 @@ $kontak   = htmlspecialchars($mhs['kontak'] ?? '');
 
         <div class="form-group">
             <label>Program Studi <span style="color: red;">*</span></label>
-            <input type="text" name="prodi" value="<?= $prodi ?>" placeholder="Masukkan Program Studi" required />
+            <input type="text" name="prodi" value="<?= $prodi ?>" placeholder="Contoh: Teknik Informatika" required />
         </div>
 
         <div class="form-group">
-            <label>Kontak <span style="color: red;">*</span></label>
+            <label>Kontak (WA/Telp) <span style="color: red;">*</span></label>
             <input 
                 type="text" 
                 name="kontak" 
                 value="<?= $kontak ?>" 
-                placeholder="Masukkan Nomor Telepon/WhatsApp (Contoh: 081234567890)" 
+                placeholder="08xxxxxxxxxx" 
                 required 
                 pattern="[0-9]{10,14}" 
-                title="Hanya angka, minimal 10 digit, maksimal 14 digit."
+                title="Hanya angka, 10-14 digit"
             />
-            </div>
+        </div>
 
         <div class="form-group">
             <label>Tahun Angkatan <span style="color: red;">*</span></label>
@@ -219,21 +168,15 @@ $kontak   = htmlspecialchars($mhs['kontak'] ?? '');
 </div>
 
 <script>
-// Auto-hide alert setelah 3 detik
+// Auto-hide alert
 document.addEventListener('DOMContentLoaded', function() {
-    const alertSukses = document.querySelector('.alert-sukses');
-    const alertError = document.querySelector('.alert-error');
-    
-    if (alertSukses && alertSukses.style.display === 'block') {
-        setTimeout(() => {
-            alertSukses.style.display = 'none';
-        }, 3000);
-    }
-    
-    if (alertError && alertError.style.display === 'block') {
-        setTimeout(() => {
-            alertError.style.display = 'none';
-        }, 5000);
-    }
+    const alerts = document.querySelectorAll('.alert-sukses, .alert-error');
+    alerts.forEach(alert => {
+        if (alert.style.display === 'block') {
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 4000);
+        }
+    });
 });
 </script>

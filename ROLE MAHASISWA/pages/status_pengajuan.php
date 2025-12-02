@@ -1,4 +1,10 @@
 <?php
+/**
+ * File: status_pengajuan.php
+ * Role: Mahasiswa
+ * Fungsi: Melihat status, info dosen, upload surat penerimaan, download surat pelaksanaan.
+ */
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -11,96 +17,97 @@ if (!isset($_SESSION['id'])) {
 }
 
 $id_user = intval($_SESSION['id']);
+$message_success = '';
+$message_error = '';
 
-// -----------------------------
-// Debug helper (tampilkan error aman)
-// -----------------------------
-function show_error_box($title, $msg) {
-    echo "<div style=\"background:#f8d7da;color:#721c24;padding:12px;border:1px solid #f5c6cb;border-radius:6px;margin:16px 0;\">"
-       . "<strong>{$title}</strong><div style='margin-top:8px;'>".nl2br(htmlspecialchars($msg))."</div></div>";
+// -------------------------------------------------
+// A. HANDLE UPLOAD SURAT PENERIMAAN (Action)
+// -------------------------------------------------
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'upload_penerimaan') {
+    $id_pengajuan_post = intval($_POST['id_pengajuan']);
+    
+    // Cek file
+    if (isset($_FILES['file_penerimaan']) && $_FILES['file_penerimaan']['error'] === 0) {
+        $allowed = ['pdf'];
+        $filename = $_FILES['file_penerimaan']['name'];
+        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        $filesize = $_FILES['file_penerimaan']['size'];
+
+        if (!in_array($ext, $allowed)) {
+            $message_error = "Format file harus PDF.";
+        } elseif ($filesize > 5 * 1024 * 1024) {
+            $message_error = "Ukuran file maksimal 5MB.";
+        } else {
+            // Upload logic
+            $target_dir = "../../uploads/dokumen_magang/"; // Pastikan folder ini ada
+            if (!file_exists($target_dir)) mkdir($target_dir, 0777, true);
+            
+            $new_name = "penerimaan_" . time() . "_" . $id_pengajuan_post . ".pdf";
+            $target_file = $target_dir . $new_name;
+
+            if (move_uploaded_file($_FILES['file_penerimaan']['tmp_name'], $target_file)) {
+                // Simpan ke tabel dokumen_magang
+                $jenis = 'surat_penerimaan';
+                $today = date('Y-m-d');
+                
+                // Cek dulu apakah sudah pernah upload (update) atau belum (insert)
+                $cekDoc = mysqli_query($conn, "SELECT id_dokumen FROM dokumen_magang WHERE id_pengajuan = $id_pengajuan_post AND jenis = '$jenis'");
+                
+                if (mysqli_num_rows($cekDoc) > 0) {
+                    $qUpd = "UPDATE dokumen_magang SET file_path = ?, tanggal_upload = ? WHERE id_pengajuan = ? AND jenis = ?";
+                    $stmtUpd = mysqli_prepare($conn, $qUpd);
+                    mysqli_stmt_bind_param($stmtUpd, 'ssis', $new_name, $today, $id_pengajuan_post, $jenis);
+                    mysqli_stmt_execute($stmtUpd);
+                } else {
+                    $qIns = "INSERT INTO dokumen_magang (id_pengajuan, jenis, file_path, tanggal_upload) VALUES (?, ?, ?, ?)";
+                    $stmtIns = mysqli_prepare($conn, $qIns);
+                    mysqli_stmt_bind_param($stmtIns, 'isss', $id_pengajuan_post, $jenis, $new_name, $today);
+                    mysqli_stmt_execute($stmtIns);
+                }
+                
+                $message_success = "Surat Penerimaan berhasil diupload! Harap tunggu Korbid mengirimkan Surat Pelaksanaan.";
+            } else {
+                $message_error = "Gagal mengupload file.";
+            }
+        }
+    } else {
+        $message_error = "File belum dipilih atau terjadi error upload.";
+    }
 }
 
 // -------------------------------------------------
-// 1) Ambil id_kelompok dari anggota_kelompok
+// B. AMBIL DATA KELOMPOK USER
 // -------------------------------------------------
 $id_kelompok = null;
-$qKel = "SELECT ak.id_kelompok
+$qKel = "SELECT ak.id_kelompok, ak.peran
          FROM anggota_kelompok ak
          JOIN mahasiswa m ON ak.id_mahasiswa = m.id_mahasiswa
          WHERE m.id_user = ? LIMIT 1";
 $stmtKel = mysqli_prepare($conn, $qKel);
-if ($stmtKel) {
-    mysqli_stmt_bind_param($stmtKel, 'i', $id_user);
-    if (!mysqli_stmt_execute($stmtKel)) {
-        show_error_box('Database error (ambil kelompok)', mysqli_error($conn));
-        exit;
-    }
-    $resKel = mysqli_stmt_get_result($stmtKel);
-    $kel = mysqli_fetch_assoc($resKel);
-    if ($kel) $id_kelompok = $kel['id_kelompok'];
-    mysqli_stmt_close($stmtKel);
-} else {
-    show_error_box('Prepare failed (ambil kelompok)', mysqli_error($conn));
-    exit;
-}
+mysqli_stmt_bind_param($stmtKel, 'i', $id_user);
+mysqli_stmt_execute($stmtKel);
+$resKel = mysqli_stmt_get_result($stmtKel);
+$dataKelompok = mysqli_fetch_assoc($resKel);
 
-if (!$id_kelompok) {
-    echo "<p style='padding:20px;'>Anda belum tergabung dalam kelompok!</p>";
+if ($dataKelompok) {
+    $id_kelompok = $dataKelompok['id_kelompok'];
+    $is_ketua = ($dataKelompok['peran'] === 'ketua');
+} else {
+    echo "<div style='padding:20px; text-align:center;'><h3>Anda belum tergabung dalam kelompok!</h3></div>";
     exit;
 }
 
 // -------------------------------------------------
-// 2) DETEKSI KOLOM ID PENGAJUAN YANG ADA DI TABEL
-//    -> prioritas: id_pengajuan, id_pengajuan_magang
-//    -> bila tidak ada, fallback ORDER BY tanggal_pengajuan DESC
+// C. AMBIL DATA PENGAJUAN (+ INFO DOSEN & SURAT)
 // -------------------------------------------------
-$id_col = null;
-$schema = null;
-$tbl = 'pengajuan_magang';
-
-$col_check_q = "
-    SELECT COLUMN_NAME
-    FROM INFORMATION_SCHEMA.COLUMNS
-    WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = ?
-      AND COLUMN_NAME IN ('id_pengajuan', 'id_pengajuan_magang')
-    ORDER BY FIELD(COLUMN_NAME, 'id_pengajuan', 'id_pengajuan_magang')
-    LIMIT 1
-";
-$stmtCol = mysqli_prepare($conn, $col_check_q);
-if ($stmtCol) {
-    mysqli_stmt_bind_param($stmtCol, 's', $tbl);
-    if (!mysqli_stmt_execute($stmtCol)) {
-        // jika gagal (mis. hak akses INFORMATION_SCHEMA), jangan crash — pakai fallback
-        mysqli_stmt_close($stmtCol);
-        $id_col = null;
-    } else {
-        $resCol = mysqli_stmt_get_result($stmtCol);
-        $c = mysqli_fetch_assoc($resCol);
-        if ($c && !empty($c['COLUMN_NAME'])) {
-            $id_col = $c['COLUMN_NAME']; // salah satu dari dua nama
-        }
-        mysqli_stmt_close($stmtCol);
-    }
-} else {
-    // prepare gagal (beberapa environment tidak izinkan INFORMATION_SCHEMA via prepared), fallback
-    $id_col = null;
-}
-
-// -------------------------------------------------
-// 3) Susun query utama, urut berdasarkan id_col kalau ada
-// -------------------------------------------------
-$order_clause = "";
-if ($id_col) {
-    // amankan nama kolom (hanya dua opsi jadi aman)
-    if ($id_col === 'id_pengajuan' || $id_col === 'id_pengajuan_magang') {
-        $order_clause = "ORDER BY pm.`{$id_col}` DESC";
-    } else {
-        $order_clause = "ORDER BY pm.tanggal_pengajuan DESC";
-    }
-} else {
-    $order_clause = "ORDER BY pm.tanggal_pengajuan DESC";
-}
+/* Query ini join ke tabel:
+   1. pengajuan_magang (pm)
+   2. kelompok (k) -> Untuk ambil id_dosen_pembimbing
+   3. dosen (d) -> Data dosen
+   4. users (u_dosen) -> Nama & Email dosen
+   5. mitra_perusahaan (mp) -> Info mitra
+   6. dokumen_magang (doc_terima, doc_laksana) -> Cek ketersediaan dokumen
+*/
 
 $query = "
     SELECT 
@@ -109,112 +116,132 @@ $query = "
       mp.nama_mitra,
       mp.alamat,
       mp.bidang,
-      u.nama AS nama_ketua
+      u_ketua.nama AS nama_ketua,
+      
+      -- Info Dosen Pembimbing (dari tabel kelompok)
+      u_dosen.nama AS nama_dosen,
+      u_dosen.email AS email_dosen,
+      d.kontak AS kontak_dosen,
+      
+      -- Cek Dokumen (Subqueries untuk efisiensi di list view)
+      (SELECT file_path FROM dokumen_magang WHERE id_pengajuan = pm.id_pengajuan AND jenis = 'surat_penerimaan' LIMIT 1) as file_penerimaan,
+      (SELECT file_path FROM dokumen_magang WHERE id_pengajuan = pm.id_pengajuan AND jenis = 'surat_pelaksanaan' LIMIT 1) as file_pelaksanaan
+
     FROM pengajuan_magang pm
     JOIN kelompok k ON pm.id_kelompok = k.id_kelompok
     JOIN mitra_perusahaan mp ON pm.id_mitra = mp.id_mitra
-    JOIN mahasiswa m ON pm.id_mahasiswa_ketua = m.id_mahasiswa
-    JOIN users u ON m.id_user = u.id
+    JOIN mahasiswa m_ketua ON pm.id_mahasiswa_ketua = m_ketua.id_mahasiswa
+    JOIN users u_ketua ON m_ketua.id_user = u_ketua.id
+    
+    -- Join Dosen (Left join karena mungkin belum disetujui/belum ada dosen)
+    LEFT JOIN dosen d ON k.id_dosen_pembimbing = d.id_dosen 
+    LEFT JOIN users u_dosen ON d.id_user = u_dosen.id
+    
     WHERE pm.id_kelompok = ?
-    {$order_clause}
+    ORDER BY pm.tanggal_pengajuan DESC
 ";
 
-// prepare & execute
 $stmt = mysqli_prepare($conn, $query);
-if (!$stmt) {
-    show_error_box('Prepare failed (query pengajuan)', mysqli_error($conn) . "\n\nQuery: " . $query);
-    exit;
-}
 mysqli_stmt_bind_param($stmt, 'i', $id_kelompok);
-if (!mysqli_stmt_execute($stmt)) {
-    show_error_box('Execute failed (query pengajuan)', mysqli_error($conn));
-    mysqli_stmt_close($stmt);
-    exit;
-}
+mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
 $rows = [];
 while ($r = mysqli_fetch_assoc($result)) {
     $rows[] = $r;
 }
-mysqli_stmt_close($stmt);
-
-// -------------------------------------------------
-// 4) Ambil info apakah user adalah ketua (untuk menampilkan tombol ajukan ulang hanya jika ketua)
-// -------------------------------------------------
-$is_ketua = false;
-$qKetua = "SELECT ak.peran
-           FROM anggota_kelompok ak
-           JOIN mahasiswa m ON ak.id_mahasiswa = m.id_mahasiswa
-           WHERE ak.id_kelompok = ? AND m.id_user = ? LIMIT 1";
-$stmtK = mysqli_prepare($conn, $qKetua);
-if ($stmtK) {
-    mysqli_stmt_bind_param($stmtK, 'ii', $id_kelompok, $id_user);
-    if (mysqli_stmt_execute($stmtK)) {
-        $resK = mysqli_stmt_get_result($stmtK);
-        $kk = mysqli_fetch_assoc($resK);
-        if ($kk && isset($kk['peran']) && $kk['peran'] === 'ketua') $is_ketua = true;
-    }
-    mysqli_stmt_close($stmtK);
-}
-
-// -------------------------------------------------
-// 5) Render HTML (tampilan) — tombol Ajukan Ulang hanya muncul di index 0 dan bila status = 'ditolak'
-// -------------------------------------------------
 ?>
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
-
 <style>
-  .status-container { background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width:1100px; margin:20px auto; }
-  .status-card { border:1px solid #e0e0e0; border-radius:10px; padding:20px; margin-bottom:20px; }
-  .status-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; padding-bottom:15px; border-bottom:2px solid #f0f0f0; }
-  .status-badge { padding:6px 16px; border-radius:20px; font-size:13px; font-weight:600; }
-  .status-menunggu { background:#fff3cd; color:#856404; }
-  .status-diterima { background:#d4edda; color:#155724; }
-  .status-ditolak { background:#f8d7da; color:#721c24; }
+  .status-container { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); max-width:1100px; margin:20px auto; font-family: 'Segoe UI', sans-serif; }
+  .status-card { border:1px solid #eef2f7; border-radius:12px; padding:25px; margin-bottom:25px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.02); transition: transform 0.2s; }
+  .status-card:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
+  
+  .status-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; padding-bottom:15px; border-bottom:2px solid #f8f9fa; }
+  .status-badge { padding:8px 16px; border-radius:20px; font-size:13px; font-weight:600; display: inline-flex; align-items: center; gap: 6px; }
+  .status-menunggu { background:#fff8e1; color:#b78900; }
+  .status-diterima { background:#e8f5e9; color:#2e7d32; }
+  .status-ditolak { background:#ffebee; color:#c62828; }
 
-  .info-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:15px; margin-top:10px; }
-  .catatan-box { background:#f8d9da; padding:15px; border-radius:8px; margin-top:15px; border-left:4px solid #dc3545; }
-  .btn-ajukan-ulang { margin-top:15px; display:inline-block; padding:10px 18px; background:#0d6efd; color:#fff; border-radius:6px; text-decoration:none; font-weight:600; }
-  .empty-state { text-align:center; padding:60px 20px; color:#999; }
+  .info-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:20px; margin-top:10px; }
+  .info-item label { display:block; font-size:12px; color:#888; margin-bottom:4px; font-weight:600; text-transform:uppercase; }
+  .info-item span { font-size:15px; color:#333; font-weight:500; }
+
+  /* Dosen Box */
+  .dosen-box { background: #f0f7ff; border: 1px solid #cce5ff; border-radius: 8px; padding: 15px; margin-top: 20px; }
+  .dosen-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; color: #004085; font-weight: 700; }
+  .dosen-detail { display: flex; gap: 20px; flex-wrap: wrap; }
+  .dosen-contact { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #0056b3; background: #fff; padding: 5px 12px; border-radius: 20px; }
+
+  /* Flow Steps */
+  .flow-section { margin-top: 25px; border-top: 2px dashed #e0e0e0; padding-top: 20px; }
+  .flow-title { font-size: 16px; font-weight: 700; color: #444; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+  
+  .action-buttons { display: flex; gap: 10px; margin-top: 10px; }
+  .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; transition: all 0.3s; }
+  .btn-primary { background: #007bff; color: white; }
+  .btn-success { background: #28a745; color: white; }
+  .btn-danger { background: #dc3545; color: white; }
+  .btn-secondary { background: #6c757d; color: white; }
+  .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+  .alert-box { padding: 15px; border-radius: 8px; margin-top: 15px; }
+  .alert-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+  .alert-info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+  .alert-danger { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+  .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+
+  .upload-area { background: #f8f9fa; border: 2px dashed #ced4da; padding: 20px; text-align: center; border-radius: 8px; margin-top: 15px; }
+  
+  .hidden { display: none; }
 </style>
 
 <div class="status-container">
   <h2><i class="fas fa-clipboard-list"></i> Status Pengajuan Magang</h2>
 
+  <?php if ($message_success): ?>
+    <div class="alert-box alert-success"><i class="fas fa-check-circle"></i> <?= $message_success ?></div>
+  <?php endif; ?>
+  <?php if ($message_error): ?>
+    <div class="alert-box alert-danger"><i class="fas fa-exclamation-triangle"></i> <?= $message_error ?></div>
+  <?php endif; ?>
+
   <?php if (count($rows) === 0): ?>
-    <div class="empty-state">
-      <i class="fas fa-inbox" style="font-size:64px; opacity:0.3;"></i>
+    <div style="text-align:center; padding:50px; color:#999;">
+      <i class="fas fa-inbox" style="font-size:64px; opacity:0.3; margin-bottom:20px;"></i>
       <h3>Belum Ada Pengajuan</h3>
       <p>Kelompok Anda belum mengajukan magang.</p>
-      <a href="index.php?page=pengajuan_Mitra" class="btn-ajukan-ulang"><i class="fas fa-plus"></i> Mulai Pengajuan</a>
+      <?php if ($is_ketua): ?>
+        <a href="index.php?page=pengajuan_Mitra" class="btn btn-primary" style="margin-top:10px;">
+          <i class="fas fa-plus"></i> Mulai Pengajuan
+        </a>
+      <?php endif; ?>
     </div>
-
   <?php else: ?>
 
     <?php foreach ($rows as $index => $row): 
+        // Logic Status Badge
         $status_class = "status-menunggu";
-        $status_text  = "Menunggu Persetujuan";
+        $status_text  = "Menunggu Persetujuan Korbid";
         $icon = "fa-clock";
-        if (isset($row['status_pengajuan'])) {
-            if ($row['status_pengajuan'] === 'diterima') {
-                $status_class = "status-diterima";
-                $status_text  = "Disetujui";
-                $icon = "fa-check-circle";
-            } elseif ($row['status_pengajuan'] === 'ditolak') {
-                $status_class = "status-ditolak";
-                $status_text  = "Ditolak";
-                $icon = "fa-times-circle";
-            }
+        
+        if ($row['status_pengajuan'] === 'diterima') {
+            $status_class = "status-diterima";
+            $status_text  = "Disetujui Korbid";
+            $icon = "fa-check-circle";
+        } elseif ($row['status_pengajuan'] === 'ditolak') {
+            $status_class = "status-ditolak";
+            $status_text  = "Ditolak Korbid";
+            $icon = "fa-times-circle";
         }
     ?>
       <div class="status-card">
         <div class="status-header">
           <div>
-            <h3 style="margin:0 0 5px 0;"><?= htmlspecialchars($row['nama_kelompok'] ?? 'Kelompok') ?></h3>
-            <p style="margin:0; color:#666;">
-              <i class="far fa-calendar"></i>
-              Diajukan: <?= isset($row['tanggal_pengajuan']) ? date('d F Y', strtotime($row['tanggal_pengajuan'])) : '-' ?>
-            </p>
+            <h3 style="margin:0 0 5px 0; color:#333;"><?= htmlspecialchars($row['nama_kelompok']) ?></h3>
+            <div style="font-size:13px; color:#666;">
+              <i class="far fa-calendar-alt"></i> Diajukan: <?= date('d F Y', strtotime($row['tanggal_pengajuan'])) ?>
+            </div>
           </div>
           <span class="status-badge <?= $status_class ?>">
             <i class="fas <?= $icon ?>"></i> <?= $status_text ?>
@@ -222,28 +249,157 @@ if ($stmtK) {
         </div>
 
         <div class="info-grid">
-          <div><b>Ketua:</b> <?= htmlspecialchars($row['nama_ketua'] ?? '-') ?></div>
-          <div><b>Mitra:</b> <?= htmlspecialchars($row['nama_mitra'] ?? '-') ?></div>
-          <div><b>Alamat:</b> <?= htmlspecialchars($row['alamat'] ?? '-') ?></div>
-          <div><b>Bidang:</b> <?= htmlspecialchars($row['bidang'] ?? '-') ?></div>
+          <div class="info-item">
+            <label>Mitra Perusahaan</label>
+            <span><?= htmlspecialchars($row['nama_mitra']) ?></span>
+          </div>
+          <div class="info-item">
+            <label>Bidang</label>
+            <span><?= htmlspecialchars($row['bidang']) ?></span>
+          </div>
+          <div class="info-item">
+            <label>Alamat Mitra</label>
+            <span><?= htmlspecialchars($row['alamat']) ?></span>
+          </div>
+          <div class="info-item">
+            <label>Ketua Kelompok</label>
+            <span><?= htmlspecialchars($row['nama_ketua']) ?></span>
+          </div>
         </div>
 
-        <?php if (isset($row['status_pengajuan']) && $row['status_pengajuan'] === 'ditolak'): ?>
-          <div class="catatan-box">
+        <?php if ($row['status_pengajuan'] === 'ditolak'): ?>
+          <div class="alert-box alert-danger" style="margin-top:20px;">
             <strong><i class="fas fa-exclamation-triangle"></i> Alasan Penolakan:</strong>
-            <p><?= nl2br(htmlspecialchars($row['catatan_korbid'] ?? 'Tidak ada catatan')) ?></p>
+            <p style="margin-top:5px;"><?= nl2br(htmlspecialchars($row['catatan_korbid'] ?? 'Tidak ada catatan')) ?></p>
           </div>
-
+          
+          <div class="alert-box alert-info">
+            <strong><i class="fas fa-info-circle"></i> Panduan Selanjutnya:</strong>
+            <ul style="margin-left: 15px; margin-top: 5px;">
+               <li>Silakan perbaiki proposal atau cari mitra lain.</li>
+               <li>Ketua kelompok dapat melakukan pengajuan ulang melalui menu Pengajuan Mitra.</li>
+            </ul>
+          </div>
+          
           <?php if ($index === 0 && $is_ketua): ?>
-            <a href="index.php?page=pengajuan_Mitra" class="btn-ajukan-ulang"><i class="fas fa-redo"></i> Ajukan Ulang Magang</a>
-          <?php elseif ($index === 0): ?>
-            <p style="margin-top:10px; color:#856404;"><i class="fas fa-info-circle"></i> Hanya ketua kelompok yang dapat mengajukan ulang.</p>
+             <a href="index.php?page=pengajuan_Mitra" class="btn btn-primary" style="margin-top:15px;"><i class="fas fa-redo"></i> Ajukan Ulang</a>
           <?php endif; ?>
 
-        <?php endif; ?>
+        <?php elseif ($row['status_pengajuan'] === 'diterima'): ?>
+
+          <div class="dosen-box">
+            <div class="dosen-header"><i class="fas fa-chalkboard-teacher"></i> Dosen Pembimbing Ditugaskan</div>
+            <?php if ($row['nama_dosen']): ?>
+              <div class="dosen-detail">
+                <div class="dosen-contact"><i class="fas fa-user"></i> <?= htmlspecialchars($row['nama_dosen']) ?></div>
+                <?php if($row['kontak_dosen']): ?>
+                  <div class="dosen-contact"><i class="fab fa-whatsapp"></i> <?= htmlspecialchars($row['kontak_dosen']) ?></div>
+                <?php endif; ?>
+                <?php if($row['email_dosen']): ?>
+                  <div class="dosen-contact"><i class="fas fa-envelope"></i> <?= htmlspecialchars($row['email_dosen']) ?></div>
+                <?php endif; ?>
+              </div>
+            <?php else: ?>
+              <small style="color:#666;"><em>Data dosen belum diperbarui.</em></small>
+            <?php endif; ?>
+          </div>
+
+          <div class="flow-section">
+            <div class="flow-title"><i class="fas fa-paper-plane"></i> Status Lamaran ke Mitra</div>
+            
+            <?php if (empty($row['file_penerimaan'])): ?>
+              <div id="konfirmasi-mitra-<?= $index ?>">
+                <p>Silakan kirimkan Proposal Magang ke <strong><?= htmlspecialchars($row['nama_mitra']) ?></strong>. Setelah mendapatkan balasan, konfirmasi hasilnya di bawah ini:</p>
+                
+                <div class="action-buttons">
+                  <button type="button" class="btn btn-success" onclick="showUploadForm(<?= $index ?>)">
+                    <i class="fas fa-check"></i> Lamaran Diterima Mitra
+                  </button>
+                  <button type="button" class="btn btn-danger" onclick="showRejectInfo(<?= $index ?>)">
+                    <i class="fas fa-times"></i> Lamaran Ditolak Mitra
+                  </button>
+                </div>
+              </div>
+
+              <div id="form-upload-<?= $index ?>" class="upload-area hidden">
+                <h4 style="margin-bottom:10px; color:#28a745;">Selamat! Langkah Selanjutnya:</h4>
+                <p style="margin-bottom:15px; font-size:14px; color:#555;">
+                  Upload bukti <strong>Surat Penerimaan</strong> dari Mitra (PDF). File ini akan dikirim ke Koordinator Bidang untuk diproses menjadi Surat Pelaksanaan.
+                </p>
+                
+                <form method="POST" enctype="multipart/form-data">
+                  <input type="hidden" name="action" value="upload_penerimaan">
+                  <input type="hidden" name="id_pengajuan" value="<?= $row['id_pengajuan'] ?>">
+                  
+                  <input type="file" name="file_penerimaan" accept=".pdf" required style="margin-bottom:10px;">
+                  <br>
+                  <button type="button" class="btn btn-secondary" onclick="hideUploadForm(<?= $index ?>)">Batal</button>
+                  <button type="submit" class="btn btn-success">Upload & Kirim ke Korbid</button>
+                </form>
+              </div>
+
+              <div id="info-reject-<?= $index ?>" class="alert-box alert-danger hidden">
+                <h4><i class="fas fa-heart-broken"></i> Jangan Patah Semangat!</h4>
+                <p>Jika mitra menolak, prosedur yang harus dilakukan adalah:</p>
+                <ol style="margin-left:20px; margin-top:10px; line-height:1.6;">
+                  <li>Masuk ke menu <strong>Kelompok</strong>.</li>
+                  <li>Buka tab <strong>Anggota</strong>, lalu hapus semua anggota (kick).</li>
+                  <li>Kembali ke tab <strong>Detail Kelompok</strong>, lalu klik tombol <strong>Bubarkan Kelompok</strong>.</li>
+                  <li>Setelah kelompok bubar, buat kelompok baru dan ajukan magang ke Mitra yang berbeda.</li>
+                </ol>
+                <button type="button" class="btn btn-secondary" onclick="hideRejectInfo(<?= $index ?>)" style="margin-top:10px;">Kembali</button>
+              </div>
+
+            <?php else: ?>
+              <div class="alert-box alert-success">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                   <span><i class="fas fa-check-circle"></i> <strong>Surat Penerimaan Mitra telah diupload.</strong></span>
+                   <a href="../../uploads/dokumen_magang/<?= $row['file_penerimaan'] ?>" target="_blank" style="color:#155724; text-decoration:underline; font-size:13px;">Lihat File</a>
+                </div>
+                <p style="margin-top:5px; font-size:14px;">Status: <em>Menunggu Surat Pelaksanaan dari Koordinator Bidang.</em></p>
+              </div>
+
+              <?php if (!empty($row['file_pelaksanaan'])): ?>
+                <div class="alert-box alert-info" style="margin-top:15px; border-left: 5px solid #17a2b8;">
+                  <h4 style="margin-bottom:10px; color:#0c5460;"><i class="fas fa-file-signature"></i> Surat Pelaksanaan Siap!</h4>
+                  <p>Koordinator Bidang telah menerbitkan Surat Pelaksanaan. Silakan download dan serahkan ke Mitra.</p>
+                  <a href="../../uploads/dokumen_magang/<?= $row['file_pelaksanaan'] ?>" target="_blank" class="btn btn-primary" style="margin-top:10px;">
+                    <i class="fas fa-download"></i> Download Surat Pelaksanaan
+                  </a>
+                </div>
+              <?php endif; ?>
+
+            <?php endif; ?>
+          </div>
+
+        <?php endif; // End if status diterima ?>
 
       </div>
     <?php endforeach; ?>
 
   <?php endif; ?>
 </div>
+
+<script>
+function showUploadForm(index) {
+  document.getElementById('konfirmasi-mitra-' + index).classList.add('hidden');
+  document.getElementById('form-upload-' + index).classList.remove('hidden');
+  document.getElementById('info-reject-' + index).classList.add('hidden');
+}
+
+function hideUploadForm(index) {
+  document.getElementById('konfirmasi-mitra-' + index).classList.remove('hidden');
+  document.getElementById('form-upload-' + index).classList.add('hidden');
+}
+
+function showRejectInfo(index) {
+  document.getElementById('konfirmasi-mitra-' + index).classList.add('hidden');
+  document.getElementById('info-reject-' + index).classList.remove('hidden');
+  document.getElementById('form-upload-' + index).classList.add('hidden');
+}
+
+function hideRejectInfo(index) {
+  document.getElementById('konfirmasi-mitra-' + index).classList.remove('hidden');
+  document.getElementById('info-reject-' + index).classList.add('hidden');
+}
+</script>

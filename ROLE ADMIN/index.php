@@ -6,11 +6,11 @@ require_once '../config.php';
 $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 $pagePath = "pages/$page.php";
 
-cekRole('Admin');
+// cekRole('Admin');
 
-if($_SESSION['role'] !== 'Admin'){
-  echo "Anda bukan Admin";
-}
+// if($_SESSION['role'] !== 'Admin'){
+//   echo "Anda bukan Admin";
+// }
 ?>
 
 <!DOCTYPE html>

@@ -1,10 +1,16 @@
 <?php
 session_start();
-// Sertakan koneksi database
 include '../Koneksi/koneksi.php'; 
+require_once '../config.php';
 
 $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 $pagePath = "pages/$page.php";
+
+// cekRole('Koordinator Bidang Magang');
+
+// if($_SESSION['role'] !== 'Koordinator Bidang Magang'){
+//   echo "Anda bukan Koordinator Bidang Magang";
+// }
 
 $foto_profil_path = 'images/tyakk.png'; 
 

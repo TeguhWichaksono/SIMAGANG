@@ -6,11 +6,11 @@ require_once '../config.php';
 $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 $pagePath = "pages/$page.php";
 
-cekRole('Mahasiswa');
+// cekRole('Mahasiswa');
 
-if($_SESSION['role'] !== 'Mahasiswa'){
-  echo "Anda bukan Mahasiswa";
-}
+// if($_SESSION['role'] !== 'Mahasiswa'){
+//   echo "Anda bukan Mahasiswa";
+// }
 
 $foto_profil_path = ''; 
 ?>

@@ -1,21 +1,15 @@
 <?php
-/**
- * File: persetujuan_magang_korbid.php
- * Role: Koordinator Bidang Magang
- * Fungsi: Menampilkan dan memproses pengajuan magang dari mahasiswa
- */
-
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
 include '../Koneksi/koneksi.php';
 
-// Cek login dan role
 if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'Koordinator Bidang Magang') {
     header("Location: ../Login/login.php");
     exit;
 }
+
 
 $id_korbid = $_SESSION['id'];
 
@@ -26,6 +20,7 @@ $query = "SELECT
             pm.status_pengajuan,
             pm.file_cv,
             pm.file_proposal,
+
             k.nama_kelompok,
             k.tahun,
             mp.nama_mitra,
@@ -55,6 +50,12 @@ $result = mysqli_query($conn, $query);
 if (!$result) {
     die("Query error: " . mysqli_error($conn));
 }
+
+$query_dosen = "SELECT d.id_dosen, u.nama, d.prodi 
+                FROM dosen d 
+                JOIN users u ON d.id_user = u.id 
+                ORDER BY u.nama ASC";
+$result_dosen = mysqli_query($conn, $query_dosen);
 ?>
 
 <!DOCTYPE html>
@@ -539,19 +540,34 @@ if (!$result) {
     <span class="close-btn" onclick="closeModal('modalApprove')">&times;</span>
     <h3><i class="fas fa-check-circle" style="color: #28a745;"></i> Setujui Pengajuan Magang</h3>
     
-    <form id="formApprove" method="POST" action="pages/proses_persetujuan.php" enctype="multipart/form-data">
+    <form id="formApprove" method="POST" action="pages/proses_persetujuan.php">
       <input type="hidden" name="action" value="approve">
       <input type="hidden" name="id_pengajuan" id="approve_id_pengajuan">
       
       <div class="form-group">
-        <label><i class="fas fa-file-pdf"></i> Upload Surat Pelaksanaan Magang (Opsional)</label>
-        <input type="file" name="surat_pelaksanaan" accept=".pdf">
-        <small style="color: #666;">Format: PDF | Maksimal 5MB</small>
+        <label><i class="fas fa-chalkboard-teacher"></i> Pilih Dosen Pembimbing <span style="color: red;">*</span></label>
+        <select name="id_dosen" required>
+          <option value="">-- Pilih Dosen Pembimbing --</option>
+          <?php 
+          if (isset($result_dosen) && $result_dosen) {
+              mysqli_data_seek($result_dosen, 0); 
+              while($dosen = mysqli_fetch_assoc($result_dosen)): 
+          ?>
+            <option value="<?= $dosen['id_dosen'] ?>">
+              <?= htmlspecialchars($dosen['nama']) ?> (<?= $dosen['prodi'] ?>)
+            </option>
+          <?php 
+              endwhile; 
+          }
+          ?>
+        </select>
+        <small style="color: #666;">Wajib memilih satu dosen pembimbing untuk kelompok ini.</small>
       </div>
       
       <div class="form-group">
-        <label><i class="fas fa-comment"></i> Catatan untuk Mahasiswa (Opsional)</label>
-        <textarea name="catatan" placeholder="Tambahkan catatan jika diperlukan..."></textarea>
+        <label><i class="fas fa-sticky-note"></i> Catatan Internal Korbid (Opsional)</label>
+        <textarea name="catatan" placeholder="Catatan ini hanya terlihat oleh Korbid..."></textarea>
+        <small style="color: #666;">Catatan ini tidak akan terlihat oleh mahasiswa, hanya untuk keperluan Korbid.</small>
       </div>
       
       <div class="modal-actions">
@@ -559,7 +575,7 @@ if (!$result) {
           Batal
         </button>
         <button type="submit" class="btn btn-approve btn-submit">
-          <i class="fas fa-check"></i> Setujui Pengajuan
+          <i class="fas fa-check"></i> Setujui & Tetapkan Dosen
         </button>
       </div>
     </form>
@@ -578,7 +594,8 @@ if (!$result) {
       
       <div class="form-group">
         <label><i class="fas fa-exclamation-triangle"></i> Alasan Penolakan <span style="color: red;">*</span></label>
-        <textarea name="alasan" placeholder="Jelaskan alasan penolakan..." required></textarea>
+        <textarea name="alasan" placeholder="Jelaskan alasan penolakan..." required></textarea> 
+        <small style="color: #666;">Alasan <b>wajib diisi</b> agar mahasiswa tahu penyebabnya.</small>
       </div>
       
       <div class="modal-actions">
@@ -762,14 +779,35 @@ window.onclick = function(event) {
   }
 }
 
-// Form validation
+// Konfirmasi Submit
+// Validasi Form Approve (BARU - Hanya cek Dosen)
 document.getElementById('formApprove').addEventListener('submit', function(e) {
-  if (!confirm('Apakah Anda yakin ingin menyetujui pengajuan ini?')) {
+  const dosenSelect = this.querySelector('select[name="id_dosen"]');
+  
+  // Cek Dosen wajib diisi
+  if (!dosenSelect.value) {
+    alert("Mohon lengkapi data wajib: Pilih Dosen Pembimbing!");
+    e.preventDefault();
+    return;
+  }
+  
+  // Konfirmasi akhir
+  if (!confirm('Apakah Anda yakin menyetujui dan menugaskan dosen tersebut? (Surat Pelaksanaan akan diupload Korbid setelah mahasiswa mengirimkan Surat Penerimaan Mitra).')) {
     e.preventDefault();
   }
 });
 
+// Validasi Form Reject (Hanya cek Alasan)
 document.getElementById('formReject').addEventListener('submit', function(e) {
+  const alasan = this.querySelector('textarea[name="alasan"]');
+  
+  // Cek Alasan wajib diisi
+  if (!alasan.value.trim()) {
+    alert("Alasan penolakan wajib diisi!");
+    e.preventDefault();
+    return;
+  }
+
   if (!confirm('Apakah Anda yakin ingin menolak pengajuan ini?')) {
     e.preventDefault();
   }

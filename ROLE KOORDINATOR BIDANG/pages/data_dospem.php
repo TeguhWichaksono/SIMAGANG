@@ -3,8 +3,9 @@ include '../Koneksi/koneksi.php';
 
 $query = "
     SELECT 
-        dosen.nip,
+        dosen.nidn,
         dosen.prodi,
+        dosen.kontak,
         users.nama
     FROM dosen
     JOIN users ON users.id = dosen.id_user
@@ -28,8 +29,9 @@ $result = mysqli_query($conn, $query);
     <thead>
       <tr>
         <th>No</th>
-        <th>NIP</th>
+        <th>NIDN</th>
         <th>Nama Dosen</th>
+        <th>Kontak</th>
         <th>Program Studi</th>
       </tr>
     </thead>
@@ -40,8 +42,9 @@ $result = mysqli_query($conn, $query);
       ?>
       <tr>
         <td><?= $no++; ?></td>
-        <td><?= $row['nip']; ?></td>
+        <td><?= $row['nidn']; ?></td>
         <td><?= $row['nama']; ?></td>
+        <td><?= $row['kontak']; ?></td>
         <td><?= $row['prodi']; ?></td>
       </tr>
       <?php } ?>

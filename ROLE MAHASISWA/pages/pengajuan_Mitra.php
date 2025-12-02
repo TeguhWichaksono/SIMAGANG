@@ -1,9 +1,4 @@
-<?php
-// pengajuan_Mitra.php
-// Letakkan di: ROLE MAHASISWA/pages/pengajuan_Mitra.php
-?>
-
-<link rel="stylesheet" href="styles/pengajuanmitra.css">
+<link rel="stylesheet" href="styles/pengajuanMitra.css">
 <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 
 <div class="form-container">
@@ -49,12 +44,7 @@
       </button>
     </div>
 
-    <!-- Tombol Kembali diletakkan di kiri -->
-    <div class="form-actions" style="margin-top:20px;">
-      <button type="button" id="btnKembali" class="btn btn-secondary" onclick="window.history.back();">
-        <i class="fas fa-arrow-left"></i> Kembali
-      </button>
-    </div>
+
 
     <div class="form-actions">
       <button type="submit" id="lanjutDokumen">
