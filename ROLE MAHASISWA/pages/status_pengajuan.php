@@ -39,10 +39,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $message_error = "Ukuran file maksimal 5MB.";
         } else {
             // Upload logic
-            $target_dir = "../../uploads/dokumen_magang/"; // Pastikan folder ini ada
+            $target_dir = "../uploads/dokumen_magang/"; 
             if (!file_exists($target_dir)) mkdir($target_dir, 0777, true);
             
-            $new_name = "penerimaan_" . time() . "_" . $id_pengajuan_post . ".pdf";
+            $qInfo = "SELECT k.nama_kelompok, u.nama as ketua 
+                    FROM pengajuan_magang pm
+                    JOIN kelompok k ON pm.id_kelompok = k.id_kelompok
+                    JOIN mahasiswa m ON pm.id_mahasiswa_ketua = m.id_mahasiswa
+                    JOIN users u ON m.id_user = u.id
+                    WHERE pm.id_pengajuan = ?";
+            $stInfo = mysqli_prepare($conn, $qInfo);
+            mysqli_stmt_bind_param($stInfo, 'i', $id_pengajuan_post);
+            mysqli_stmt_execute($stInfo);
+            $resInfo = mysqli_stmt_get_result($stInfo);
+            $dataInfo = mysqli_fetch_assoc($resInfo);
+
+            // Format: SuratPenerimaan_NamaKelompok_NamaKetua_Timestamp.pdf
+            $kelompok_clean = preg_replace('/[^A-Za-z0-9]/', '', $dataInfo['nama_kelompok']);
+            $ketua_clean = preg_replace('/[^A-Za-z0-9]/', '', $dataInfo['ketua']);
+            $timestamp = date('YmdHis');
+            $new_name = "SuratPenerimaan_{$kelompok_clean}_{$ketua_clean}_{$timestamp}.pdf";
             $target_file = $target_dir . $new_name;
 
             if (move_uploaded_file($_FILES['file_penerimaan']['tmp_name'], $target_file)) {
@@ -354,7 +370,7 @@ while ($r = mysqli_fetch_assoc($result)) {
               <div class="alert-box alert-success">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                    <span><i class="fas fa-check-circle"></i> <strong>Surat Penerimaan Mitra telah diupload.</strong></span>
-                   <a href="../../uploads/dokumen_magang/<?= $row['file_penerimaan'] ?>" target="_blank" style="color:#155724; text-decoration:underline; font-size:13px;">Lihat File</a>
+                   <a href="../uploads/dokumen_magang/<?= $row['file_penerimaan'] ?>" target="_blank" style="color:#155724; text-decoration:underline; font-size:13px;">Lihat File</a>
                 </div>
                 <p style="margin-top:5px; font-size:14px;">Status: <em>Menunggu Surat Pelaksanaan dari Koordinator Bidang.</em></p>
               </div>
@@ -363,7 +379,7 @@ while ($r = mysqli_fetch_assoc($result)) {
                 <div class="alert-box alert-info" style="margin-top:15px; border-left: 5px solid #17a2b8;">
                   <h4 style="margin-bottom:10px; color:#0c5460;"><i class="fas fa-file-signature"></i> Surat Pelaksanaan Siap!</h4>
                   <p>Koordinator Bidang telah menerbitkan Surat Pelaksanaan. Silakan download dan serahkan ke Mitra.</p>
-                  <a href="../../uploads/dokumen_magang/<?= $row['file_pelaksanaan'] ?>" target="_blank" class="btn btn-primary" style="margin-top:10px;">
+                  <a href="../uploads/dokumen_magang/<?= $row['file_pelaksanaan'] ?>" target="_blank" class="btn btn-primary" style="margin-top:10px;">
                     <i class="fas fa-download"></i> Download Surat Pelaksanaan
                   </a>
                 </div>

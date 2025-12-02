@@ -291,21 +291,14 @@ if (!$mitra_valid) $warnings[] = "Mitra magang belum dipilih atau tidak valid";
   <form id="formDokumenPendukung" method="POST" action="pages/handler_pengajuan_magang.php" enctype="multipart/form-data">
     <input type="hidden" name="action" value="submit_pengajuan">
 
-    <div class="dokumen-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+    <div class="dokumen-grid" style="max-width: 600px;">
       <div class="form-group">
-        <label for="file_cv">Upload CV (PDF) <span style="color: red;">*</span></label>
-        <input type="file" id="file_cv" name="file_cv" accept=".pdf" required />
-        <small style="color: #666;">Format: PDF | Ukuran maks: 5MB</small>
+        <label for="file_cv">Upload Proposal & CV (gabung dalam satu file PDF) <span style="color: red;">*</span></label>
+        <input type="file" id="file_proposal_cv" name="file_proposal_cv" accept=".pdf" required />
+        <small style="color: #666;">Format: PDF | Gabungkan CV dan Proposal dalam 1 file | Maks: 10MB</small>
+        <div id="preview-proposal-cv" class="preview-box"></div>
         <div id="preview-cv" class="preview-box"></div>
       </div>
-
-      <div class="form-group">
-        <label for="file_proposal">Upload Proposal (PDF) <span style="color: red;">*</span></label>
-        <input type="file" id="file_proposal" name="file_proposal" accept=".pdf" required />
-        <small style="color: #666;">Format: PDF | Ukuran maks: 5MB</small>
-        <div id="preview-proposal" class="preview-box"></div>
-      </div>
-    </div>
 
     <div class="form-actions" style="display: flex; gap: 10px; justify-content: space-between; margin-top: 20px;">
       <button type="button" class="btn-secondary" onclick="window.location.href='index.php?page=pengajuan_Mitra'" style="padding: 12px 24px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer;">
@@ -330,16 +323,16 @@ if (!$mitra_valid) $warnings[] = "Mitra magang belum dipilih atau tidak valid";
 </div>
 
 <script>
-  const fileInputs = ['file_cv', 'file_proposal'];
+  const fileInputs = ['file_proposal_cv'];
 
   fileInputs.forEach(id => {
     const input = document.getElementById(id);
-    const preview = document.getElementById(`preview-${id.replace('file_', '')}`);
+    const preview = document.getElementById('preview-proposal-cv');
 
     input.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (file) {
-        const maxSize = 5 * 1024 * 1024;
+        const maxSize = 10 * 1024 * 1024;
         if (file.size > maxSize) {
           alert('Ukuran file maksimal 5MB!');
           input.value = '';
@@ -385,12 +378,10 @@ if (!$mitra_valid) $warnings[] = "Mitra magang belum dipilih atau tidak valid";
   });
 
   document.getElementById('formDokumenPendukung').addEventListener('submit', (e) => {
-    const cv = document.getElementById('file_cv').files[0];
-    const proposal = document.getElementById('file_proposal').files[0];
-
-    if (!cv || !proposal) {
+    const proposalCV = document.getElementById('file_proposal_cv').files[0];
+    if (!proposalCV) {
       e.preventDefault();
-      alert('Harap upload kedua file (CV dan Proposal)!');
+      alert('Harap upload file Proposal & CV!');
       return false;
     }
 

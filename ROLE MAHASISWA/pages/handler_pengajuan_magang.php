@@ -202,39 +202,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
     // Validasi file upload
     $allowed_extensions = ['pdf'];
-    $max_file_size = 5 * 1024 * 1024;
+    $max_file_size = 10 * 1024 * 1024;
 
-    $file_cv = $_FILES['file_cv'] ?? null;
-    $file_proposal = $_FILES['file_proposal'] ?? null;
+    $file_proposal_cv = $_FILES['file_proposal_cv'] ?? null;
 
-    if (!$file_cv || !$file_proposal) {
-        $_SESSION['error'] = "File CV dan Proposal wajib diupload";
+    if (!$file_proposal_cv) {
+        $_SESSION['error'] = "File Proposal & CV wajib diupload";
         header("Location: ../index.php?page=berkas_Magang");
         exit;
     }
 
-    // Validasi CV
-    $cv_ext = strtolower(pathinfo($file_cv['name'], PATHINFO_EXTENSION));
-    if (!in_array($cv_ext, $allowed_extensions)) {
-        $_SESSION['error'] = "CV harus PDF";
+    // Validasi Proposal & CV
+    $proposal_cv_ext = strtolower(pathinfo($file_proposal_cv['name'], PATHINFO_EXTENSION));
+    if (!in_array($proposal_cv_ext, $allowed_extensions)) {
+        $_SESSION['error'] = "File harus PDF";
         header("Location: ../index.php?page=berkas_Magang");
         exit;
     }
-    if ($file_cv['size'] > $max_file_size) {
-        $_SESSION['error'] = "CV maksimal 5MB";
-        header("Location: ../index.php?page=berkas_Magang");
-        exit;
-    }
-
-    // Validasi Proposal
-    $proposal_ext = strtolower(pathinfo($file_proposal['name'], PATHINFO_EXTENSION));
-    if (!in_array($proposal_ext, $allowed_extensions)) {
-        $_SESSION['error'] = "Proposal harus PDF";
-        header("Location: ../index.php?page=berkas_Magang");
-        exit;
-    }
-    if ($file_proposal['size'] > $max_file_size) {
-        $_SESSION['error'] = "Proposal maksimal 5MB";
+    if ($file_proposal_cv['size'] > (10 * 1024 * 1024)) {
+        $_SESSION['error'] = "File maksimal 10MB";
         header("Location: ../index.php?page=berkas_Magang");
         exit;
     }
@@ -245,24 +231,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         mkdir($upload_dir, 0777, true);
     }
 
-    // Nama file
-    $timestamp = time();
-    $cv_filename = "CV_" . $id_kelompok . "_" . $timestamp . "." . $cv_ext;
-    $proposal_filename = "PROPOSAL_" . $id_kelompok . "_" . $timestamp . "." . $proposal_ext;
+    // PENTING: Ambil nama kelompok untuk penamaan file
+    $query_kelompok = "SELECT nama_kelompok FROM kelompok WHERE id_kelompok = ?";
+    $stmt_k = mysqli_prepare($conn, $query_kelompok);
+    mysqli_stmt_bind_param($stmt_k, 'i', $id_kelompok);
+    mysqli_stmt_execute($stmt_k);
+    $res_k = mysqli_stmt_get_result($stmt_k);
+    $data_k = mysqli_fetch_assoc($res_k);
 
-    $cv_path = $upload_dir . $cv_filename;
-    $proposal_path = $upload_dir . $proposal_filename;
-
+    // Format nama file
+    $kelompok_clean = preg_replace('/[^A-Za-z0-9]/', '', $data_k['nama_kelompok']);
+    $id_kelompok_pad = str_pad($id_kelompok, 3, '0', STR_PAD_LEFT);
+    $timestamp = date('YmdHis');
+    $proposal_cv_filename = "ProposalCV_Kel{$id_kelompok_pad}_{$kelompok_clean}_{$timestamp}.pdf";
+    $proposal_cv_path = $upload_dir . $proposal_cv_filename;
+    
     // Upload
-    if (!move_uploaded_file($file_cv['tmp_name'], $cv_path)) {
-        $_SESSION['error'] = "Upload CV gagal";
-        header("Location: ../index.php?page=berkas_Magang");
-        exit;
-    }
-
-    if (!move_uploaded_file($file_proposal['tmp_name'], $proposal_path)) {
-        unlink($cv_path);
-        $_SESSION['error'] = "Upload Proposal gagal";
+    if (!move_uploaded_file($file_proposal_cv['tmp_name'], $proposal_cv_path)) {
+        $_SESSION['error'] = "Upload file gagal";
         header("Location: ../index.php?page=berkas_Magang");
         exit;
     }
@@ -271,26 +257,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     mysqli_begin_transaction($conn);
 
     try {
-        // Insert pengajuan magang
+        // Insert pengajuan magang (TANPA file, karena file disimpan di tabel dokumen_magang)
         // PERHATIAN: id_mitra bisa NULL jika mitra masih pending
         $query_insert = "INSERT INTO pengajuan_magang 
-                        (id_kelompok, id_mahasiswa_ketua, id_mitra, tanggal_pengajuan, 
-                         file_cv, file_proposal, status_pengajuan) 
-                        VALUES (?, ?, ?, CURDATE(), ?, ?, ?)";
+                        (id_kelompok, id_mahasiswa_ketua, id_mitra, tanggal_pengajuan, status_pengajuan) 
+                        VALUES (?, ?, ?, CURDATE(), ?)";
         
         // Status pengajuan tergantung mitra
         $status_pengajuan = ($mitra_status === 'pending') ? 'menunggu_mitra' : 'menunggu';
         
         $stmt_insert = mysqli_prepare($conn, $query_insert);
-        mysqli_stmt_bind_param($stmt_insert, 'iiisss',
+        mysqli_stmt_bind_param($stmt_insert, 'iiis',
             $id_kelompok, 
             $id_mahasiswa, 
             $id_mitra, // Bisa NULL jika pending
-            $cv_filename, 
-            $proposal_filename,
             $status_pengajuan
         );
         mysqli_stmt_execute($stmt_insert);
+
+        // Ambil ID pengajuan yang baru dibuat
+        $id_pengajuan_baru = mysqli_insert_id($conn);
+
+        // Insert file ke tabel dokumen_magang
+        $jenis_dokumen = 'proposalcv';
+        $tanggal_upload = date('Y-m-d');
+
+        $query_dokumen = "INSERT INTO dokumen_magang 
+                        (id_pengajuan, jenis, file_path, tanggal_upload) 
+                        VALUES (?, ?, ?, ?)";
+        $stmt_dokumen = mysqli_prepare($conn, $query_dokumen);
+        mysqli_stmt_bind_param($stmt_dokumen, 'isss', 
+            $id_pengajuan_baru, 
+            $jenis_dokumen, 
+            $proposal_cv_filename, 
+            $tanggal_upload
+        );
+        mysqli_stmt_execute($stmt_dokumen);
 
         // Update status mahasiswa
         $query_update_status = "UPDATE mahasiswa m
@@ -338,8 +340,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     } catch (Exception $e) {
         mysqli_rollback($conn);
 
-        if (file_exists($cv_path)) unlink($cv_path);
-        if (file_exists($proposal_path)) unlink($proposal_path);
+       if (file_exists($proposal_cv_path )) unlink($proposal_cv_path );
 
         $_SESSION['error'] = "Kesalahan: " . $e->getMessage();
         header("Location: ../index.php?page=berkas_Magang");

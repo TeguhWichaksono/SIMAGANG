@@ -18,9 +18,6 @@ $query = "SELECT
             pm.id_pengajuan,
             pm.tanggal_pengajuan,
             pm.status_pengajuan,
-            pm.file_cv,
-            pm.file_proposal,
-
             k.nama_kelompok,
             k.tahun,
             mp.nama_mitra,
@@ -31,7 +28,19 @@ $query = "SELECT
             u_ketua.nim as nim_ketua,
             mhs_ketua.prodi,
             mhs_ketua.kontak as kontak_ketua,
-            (SELECT COUNT(*) FROM anggota_kelompok WHERE id_kelompok = k.id_kelompok) as jumlah_anggota
+            (SELECT COUNT(*) FROM anggota_kelompok WHERE id_kelompok = k.id_kelompok) as jumlah_anggota,
+            
+            -- Ambil file dari tabel dokumen_magang
+            (SELECT file_path FROM dokumen_magang 
+             WHERE id_pengajuan = pm.id_pengajuan 
+             AND jenis = 'proposalcv' LIMIT 1) as file_proposal,
+            (SELECT file_path FROM dokumen_magang 
+             WHERE id_pengajuan = pm.id_pengajuan 
+             AND jenis = 'surat_penerimaan' LIMIT 1) as file_penerimaan,
+            (SELECT file_path FROM dokumen_magang 
+             WHERE id_pengajuan = pm.id_pengajuan 
+             AND jenis = 'surat_pelaksanaan' LIMIT 1) as file_pelaksanaan
+             
           FROM pengajuan_magang pm
           JOIN kelompok k ON pm.id_kelompok = k.id_kelompok
           JOIN mitra_perusahaan mp ON pm.id_mitra = mp.id_mitra
@@ -610,6 +619,33 @@ $result_dosen = mysqli_query($conn, $query_dosen);
   </div>
 </div>
 
+<!-- Modal Upload Surat Pelaksanaan -->
+<div id="modalUploadPelaksanaan" class="modal">
+  <div class="modal-content">
+    <span class="close-btn" onclick="closeModal('modalUploadPelaksanaan')">&times;</span>
+    <h3><i class="fas fa-file-upload" style="color: #007bff;"></i> Upload Surat Pelaksanaan</h3>
+    
+    <form id="formUploadPelaksanaan" method="POST" action="pages/proses_upload_pelaksanaan.php" enctype="multipart/form-data">
+      <input type="hidden" name="id_pengajuan" id="upload_id_pengajuan">
+      
+      <div class="form-group">
+        <label><i class="fas fa-file-pdf"></i> File Surat Pelaksanaan (PDF) <span style="color: red;">*</span></label>
+        <input type="file" name="file_pelaksanaan" accept=".pdf" required>
+        <small style="color: #666;">Format: PDF, Maksimal 5MB</small>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modalUploadPelaksanaan')">
+          Batal
+        </button>
+        <button type="submit" class="btn btn-primary btn-submit">
+          <i class="fas fa-upload"></i> Upload & Kirim ke Mahasiswa
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
 // Data pengajuan untuk JavaScript
 const pengajuanData = <?= json_encode(mysqli_fetch_all(mysqli_query($conn, $query), MYSQLI_ASSOC)) ?>;
@@ -669,88 +705,114 @@ function viewDetail(id) {
   const data = pengajuanData.find(p => p.id_pengajuan == id);
   if (!data) return;
   
+  // -- HTML Bagian Informasi Detail (Kelompok, Ketua, Mitra) --
   let html = `
     <h3>Detail Pengajuan Magang</h3>
     
     <div class="info-section">
       <h4><i class="fas fa-users"></i> Informasi Kelompok</h4>
       <div class="info-grid">
-        <div class="info-item">
-          <span class="info-label">Nama Kelompok</span>
-          <span class="info-value">${data.nama_kelompok}</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">Tahun Angkatan</span>
-          <span class="info-value">${data.tahun}</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">Jumlah Anggota</span>
-          <span class="info-value">${data.jumlah_anggota} orang</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">Tanggal Pengajuan</span>
-          <span class="info-value">${new Date(data.tanggal_pengajuan).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}</span>
-        </div>
+        <div class="info-item"><span class="info-label">Nama Kelompok</span><span class="info-value">${data.nama_kelompok}</span></div>
+        <div class="info-item"><span class="info-label">Angkatan</span><span class="info-value">${data.tahun}</span></div>
+        <div class="info-item"><span class="info-label">Jumlah Anggota</span><span class="info-value">${data.jumlah_anggota} orang</span></div>
+        <div class="info-item"><span class="info-label">Tanggal Pengajuan</span><span class="info-value">${new Date(data.tanggal_pengajuan).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}</span></div>
       </div>
     </div>
     
     <div class="info-section">
       <h4><i class="fas fa-user-tie"></i> Informasi Ketua</h4>
       <div class="info-grid">
-        <div class="info-item">
-          <span class="info-label">Nama</span>
-          <span class="info-value">${data.nama_ketua}</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">NIM</span>
-          <span class="info-value">${data.nim_ketua}</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">Program Studi</span>
-          <span class="info-value">${data.prodi}</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">Kontak</span>
-          <span class="info-value">${data.kontak_ketua}</span>
-        </div>
+        <div class="info-item"><span class="info-label">Nama</span><span class="info-value">${data.nama_ketua}</span></div>
+        <div class="info-item"><span class="info-label">NIM</span><span class="info-value">${data.nim_ketua}</span></div>
+        <div class="info-item"><span class="info-label">Prodi</span><span class="info-value">${data.prodi}</span></div>
+        <div class="info-item"><span class="info-label">Kontak</span><span class="info-value">${data.kontak_ketua}</span></div>
       </div>
     </div>
     
     <div class="info-section">
       <h4><i class="fas fa-building"></i> Informasi Mitra</h4>
       <div class="info-grid">
-        <div class="info-item">
-          <span class="info-label">Nama Mitra</span>
-          <span class="info-value">${data.nama_mitra}</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">Bidang</span>
-          <span class="info-value">${data.bidang}</span>
-        </div>
-        <div class="info-item" style="grid-column: 1 / -1;">
-          <span class="info-label">Alamat</span>
-          <span class="info-value">${data.alamat_mitra}</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">Kontak</span>
-          <span class="info-value">${data.kontak_mitra}</span>
-        </div>
+        <div class="info-item"><span class="info-label">Nama Mitra</span><span class="info-value">${data.nama_mitra}</span></div>
+        <div class="info-item"><span class="info-label">Bidang</span><span class="info-value">${data.bidang}</span></div>
+        <div class="info-item" style="grid-column: 1 / -1;"><span class="info-label">Alamat</span><span class="info-value">${data.alamat_mitra}</span></div>
+        <div class="info-item"><span class="info-label">Kontak</span><span class="info-value">${data.kontak_mitra}</span></div>
       </div>
     </div>
     
     <div class="info-section">
-      <h4><i class="fas fa-file-alt"></i> Dokumen Pengajuan</h4>
+      <h4><i class="fas fa-file-alt"></i> Dokumen Proposal & CV</h4>
       <div class="doc-links">
-        <a href="../../uploads/pengajuan_magang/${data.file_cv}" target="_blank" class="doc-link">
-          <i class="fas fa-file-pdf"></i> Lihat CV
-        </a>
-        <a href="../../uploads/pengajuan_magang/${data.file_proposal}" target="_blank" class="doc-link">
-          <i class="fas fa-file-alt"></i> Lihat Proposal
-        </a>
+        ${data.file_proposal ? 
+          `<a href="../uploads/pengajuan_magang/${data.file_proposal}" target="_blank" class="doc-link">
+            <i class="fas fa-file-pdf"></i> Lihat Proposal & CV
+          </a>` 
+          : '<span style="color: #999;">Belum ada dokumen</span>'}
       </div>
     </div>
   `;
+
+  // -- LOGIKA BARU: Section Surat Penerimaan & Pelaksanaan --
   
+  // 1. Cek apakah mahasiswa sudah upload Surat Penerimaan
+  if (data.file_penerimaan) {
+    html += `
+      <div class="info-section" style="border-top: 2px dashed #ddd; margin-top: 20px; padding-top: 15px;">
+        <h4><i class="fas fa-exchange-alt"></i> Tindak Lanjut Surat</h4>
+        
+        <div style="background: #e8f5e9; padding: 12px; border-radius: 6px; margin-bottom: 15px;">
+           <div style="font-weight:bold; color: #2e7d32; margin-bottom:5px;">
+             <i class="fas fa-check-circle"></i> Surat Penerimaan (Dari Mitra)
+           </div>
+           <a href="../uploads/dokumen_magang/${data.file_penerimaan}" target="_blank" class="btn btn-view btn-sm" style="background:#28a745; border:none;">
+             <i class="fas fa-download"></i> Download Surat Penerimaan
+           </a>
+        </div>
+    `;
+
+    // 2. Logika Tombol Upload Surat Pelaksanaan (Khusus jika status DITERIMA)
+    if (data.status_pengajuan === 'diterima') {
+      if (!data.file_pelaksanaan) {
+        // Jika belum ada file pelaksanaan -> TAMPILKAN TOMBOL UPLOAD
+        html += `
+          <div style="background: #fff3cd; padding: 15px; border-radius: 6px; border-left: 5px solid #ffc107;">
+            <p style="margin: 0 0 10px 0; color: #856404; font-size: 14px;">
+               <strong>Tugas Korbid:</strong> Silakan terbitkan Surat Pelaksanaan Magang untuk kelompok ini.
+            </p>
+            <button class="btn btn-primary" onclick="closeModal('modalDetail'); openUploadPelaksanaanModal(${data.id_pengajuan});">
+              <i class="fas fa-upload"></i> Upload Surat Pelaksanaan
+            </button>
+          </div>
+        `;
+      } else {
+        // Jika sudah ada file pelaksanaan -> TAMPILKAN LINK FILE
+        html += `
+          <div style="background: #d1ecf1; padding: 12px; border-radius: 6px; border-left: 5px solid #17a2b8;">
+            <div style="font-weight:bold; color: #0c5460; margin-bottom:5px;">
+              <i class="fas fa-check-double"></i> Surat Pelaksanaan Terkirim
+            </div>
+            <a href="../uploads/dokumen_magang/${data.file_pelaksanaan}" target="_blank" style="color:#007bff; text-decoration:underline; font-size:14px;">
+               Lihat File Surat Pelaksanaan
+            </a>
+          </div>
+        `;
+      }
+    } else {
+        // Jika status belum diterima
+        html += `<small style="color: red; font-style: italic;">*Anda harus menyetujui pengajuan ini terlebih dahulu untuk memproses Surat Pelaksanaan.</small>`;
+    }
+    
+    html += `</div>`; // Tutup div info-section
+  } else {
+     // Jika mahasiswa belum upload surat penerimaan
+     if (data.status_pengajuan === 'diterima') {
+        html += `
+        <div class="info-section" style="margin-top: 15px; color: #666; font-style: italic; background:#f8f9fa; padding:10px; border-radius:4px;">
+           <i class="fas fa-clock"></i> Menunggu mahasiswa mengupload Surat Penerimaan Mitra...
+        </div>`;
+     }
+  }
+
+  // Render HTML ke dalam Modal
   document.getElementById('detailContent').innerHTML = html;
   document.getElementById('modalDetail').style.display = 'block';
 }
@@ -812,6 +874,12 @@ document.getElementById('formReject').addEventListener('submit', function(e) {
     e.preventDefault();
   }
 });
+
+// Open upload pelaksanaan modal
+function openUploadPelaksanaanModal(id) {
+  document.getElementById('upload_id_pengajuan').value = id;
+  document.getElementById('modalUploadPelaksanaan').style.display = 'block';
+}
 </script>
 
 </body>
