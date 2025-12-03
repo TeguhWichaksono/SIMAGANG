@@ -310,12 +310,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         // Update status mahasiswa
         $query_update_status = "UPDATE mahasiswa m
                                 JOIN anggota_kelompok ak ON m.id_mahasiswa = ak.id_mahasiswa
-                                SET m.status = 'pra-magang'
+                                SET m.status_magang = 'pra-magang'
                                 WHERE ak.id_kelompok = ? 
-                                AND m.status NOT IN ('magang', 'selesai')";
+                                AND m.status_magang NOT IN ('magang_aktif', 'selesai')"; // ✅ BENAR
         $stmt_update = mysqli_prepare($conn, $query_update_status);
+
+        // Tambahkan error checking
+        if ($stmt_update === false) {
+            throw new Exception("Query prepare error: " . mysqli_error($conn));
+        }
+
         mysqli_stmt_bind_param($stmt_update, 'i', $id_kelompok);
         mysqli_stmt_execute($stmt_update);
+        mysqli_stmt_close($stmt_update);
 
         // Notifikasi ke Korbid
         $query_korbid = "SELECT id, nama FROM users WHERE role = 'Koordinator Bidang Magang'";

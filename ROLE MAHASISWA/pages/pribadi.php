@@ -44,29 +44,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
              mysqli_stmt_close($stmt_check);
             
              if ($exists) {
-                // UPDATE
-                $query_update = "UPDATE mahasiswa SET prodi = ?, angkatan = ?, kontak = ? WHERE id_user = ?";
+                // UPDATE - Tidak mengubah status_magang
+                $query_update = "UPDATE mahasiswa 
+                                 SET prodi = ?, angkatan = ?, kontak = ? 
+                                 WHERE id_user = ?";
                 $stmt_update = mysqli_prepare($conn, $query_update);
-                mysqli_stmt_bind_param($stmt_update, 'sssi', $prodi_input, $angkatan_input, $kontak_input, $id_user);
                 
-                if (mysqli_stmt_execute($stmt_update)) {
-                    $success_message = "Data berhasil diperbarui!";
+                if ($stmt_update === false) {
+                    $error_message = "Error prepare UPDATE: " . mysqli_error($conn);
                 } else {
-                    $error_message = "Gagal update: " . mysqli_stmt_error($stmt_update);
+                    mysqli_stmt_bind_param($stmt_update, 'sssi', $prodi_input, $angkatan_input, $kontak_input, $id_user);
+                    
+                    if (mysqli_stmt_execute($stmt_update)) {
+                        $success_message = "Data berhasil diperbarui!";
+                    } else {
+                        $error_message = "Gagal update: " . mysqli_stmt_error($stmt_update);
+                    }
+                    mysqli_stmt_close($stmt_update);
                 }
-                mysqli_stmt_close($stmt_update);
              } else {
-                // INSERT
-                $query_insert = "INSERT INTO mahasiswa (id_user, prodi, angkatan, kontak, status) VALUES (?, ?, ?, ?, 'pra-magang')";
+                // INSERT - Set status_magang = 'pra-magang'
+                $query_insert = "INSERT INTO mahasiswa (id_user, prodi, angkatan, kontak, status_magang) 
+                                 VALUES (?, ?, ?, ?, 'pra-magang')";
                 $stmt_insert = mysqli_prepare($conn, $query_insert);
-                mysqli_stmt_bind_param($stmt_insert, 'isss', $id_user, $prodi_input, $angkatan_input, $kontak_input);
                 
-                if (mysqli_stmt_execute($stmt_insert)) {
-                    $success_message = "Data berhasil disimpan!";
+                if ($stmt_insert === false) {
+                    $error_message = "Error prepare INSERT: " . mysqli_error($conn);
                 } else {
-                    $error_message = "Gagal simpan: " . mysqli_stmt_error($stmt_insert);
+                    mysqli_stmt_bind_param($stmt_insert, 'isss', $id_user, $prodi_input, $angkatan_input, $kontak_input);
+                    
+                    if (mysqli_stmt_execute($stmt_insert)) {
+                        $success_message = "Data berhasil disimpan! Status Anda: Pra-Magang.";
+                    } else {
+                        $error_message = "Gagal simpan: " . mysqli_stmt_error($stmt_insert);
+                    }
+                    mysqli_stmt_close($stmt_insert);
                 }
-                mysqli_stmt_close($stmt_insert);
              }
         }
     }
@@ -85,7 +98,7 @@ $email = htmlspecialchars($user['email'] ?? '');
 $nim = htmlspecialchars($user['nim'] ?? '');
 mysqli_stmt_close($stmt1);
 
-$query_mhs = "SELECT prodi, angkatan, kontak FROM mahasiswa WHERE id_user = ?";
+$query_mhs = "SELECT prodi, angkatan, kontak, status_magang FROM mahasiswa WHERE id_user = ?";
 $stmt2 = mysqli_prepare($conn, $query_mhs);
 mysqli_stmt_bind_param($stmt2, 'i', $id_user);
 mysqli_stmt_execute($stmt2);
@@ -95,6 +108,7 @@ mysqli_stmt_close($stmt2);
 $prodi = htmlspecialchars($mhs['prodi'] ?? '');
 $angkatan = htmlspecialchars($mhs['angkatan'] ?? '');
 $kontak = htmlspecialchars($mhs['kontak'] ?? '');
+$status_magang = htmlspecialchars($mhs['status_magang'] ?? 'pra-magang');
 ?>
 
 <link rel="stylesheet" href="styles/pribadi.css?v=<?= time(); ?>" />
@@ -117,6 +131,23 @@ $kontak = htmlspecialchars($mhs['kontak'] ?? '');
         <?= htmlspecialchars($error_message) ?>
     </div>
     <?php endif; ?>
+
+    <div style="background: #e3f2fd; padding: 12px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #2196f3;">
+        <strong>Status Magang Anda:</strong> 
+        <span style="color: #1976d2; font-weight: bold;">
+            <?php 
+            if ($status_magang === 'pra-magang') {
+                echo 'PRA-MAGANG (Belum Mengajukan)';
+            } elseif ($status_magang === 'magang_aktif') {
+                echo 'MAGANG AKTIF';
+            } elseif ($status_magang === 'selesai') {
+                echo 'SELESAI MAGANG';
+            } else {
+                echo strtoupper($status_magang);
+            }
+            ?>
+        </span>
+    </div>
 
     <form id="formProfil" method="POST" action="">
         <input type="hidden" name="id_user" value="<?= $id_user ?>">

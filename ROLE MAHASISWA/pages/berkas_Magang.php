@@ -50,7 +50,7 @@ $mahasiswa = array_merge(
     'kontak' => $mahasiswa_data['kontak'] ?? '',
     'angkatan' => $mahasiswa_data['angkatan'] ?? '',
     'prodi' => $mahasiswa_data['prodi'] ?? '',
-    'status' => $mahasiswa_data['status'] ?? 'pra-magang'
+    'status_magang' => $mahasiswa_data['status_magang'] ?? 'pra-magang'
   ] : []
 );
 

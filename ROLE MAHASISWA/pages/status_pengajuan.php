@@ -48,10 +48,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $dataKel = mysqli_fetch_assoc($resKel);
         
         if ($dataKel) {
-            // Kembalikan status mahasiswa ke 'pra-magang'
             $qUpdateMhs = "UPDATE mahasiswa m
                           JOIN anggota_kelompok ak ON m.id_mahasiswa = ak.id_mahasiswa
-                          SET m.status = 'pra-magang'
+                          SET m.status_magang = 'pra-magang'
                           WHERE ak.id_kelompok = ?";
             $stmtMhs = mysqli_prepare($conn, $qUpdateMhs);
             mysqli_stmt_bind_param($stmtMhs, 'i', $dataKel['id_kelompok']);
@@ -83,7 +82,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'upload_penerimaan') {
     $id_pengajuan_post = intval($_POST['id_pengajuan']);
     
-    // Cek file
     if (isset($_FILES['file_penerimaan']) && $_FILES['file_penerimaan']['error'] === 0) {
         $allowed = ['pdf'];
         $filename = $_FILES['file_penerimaan']['name'];
@@ -95,7 +93,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         } elseif ($filesize > 5 * 1024 * 1024) {
             $message_error = "Ukuran file maksimal 5MB.";
         } else {
-            // Upload logic
             $target_dir = "../uploads/dokumen_magang/"; 
             if (!file_exists($target_dir)) mkdir($target_dir, 0777, true);
             
@@ -111,7 +108,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $res_info = mysqli_stmt_get_result($stmt_info);
             $data_info = mysqli_fetch_assoc($res_info);
 
-            // Logic Alias Prodi
             $prodi_raw = strtolower(trim($data_info['prodi'] ?? '')); 
             $alias_prodi = 'UMUM'; 
 
@@ -123,7 +119,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $alias_prodi = 'TIF';
             }
             
-            // FORMAT BARU: SuratPenerimaan_ALIAS_NamaKelompok_Timestamp.pdf
             $clean_nama = preg_replace('/[^A-Za-z0-9]/', '', $data_info['nama_kelompok']);
             $timestamp = date('YmdHis');
             
@@ -134,29 +129,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $target_file = $upload_dir . $new_name;
 
             if (move_uploaded_file($_FILES['file_penerimaan']['tmp_name'], $target_file)) {
-                // Simpan ke tabel dokumen_magang
-                $jenis = 'surat_penerimaan';
-                $today = date('Y-m-d');
-                
-                // Cek dulu apakah sudah pernah upload (update) atau belum (insert)
-                $cekDoc = mysqli_query($conn, "SELECT id_dokumen FROM dokumen_magang WHERE id_pengajuan = $id_pengajuan_post AND jenis = '$jenis'");
-                
-                if (mysqli_num_rows($cekDoc) > 0) {
-                    $qUpd = "UPDATE dokumen_magang SET file_path = ?, tanggal_upload = ? WHERE id_pengajuan = ? AND jenis = ?";
-                    $stmtUpd = mysqli_prepare($conn, $qUpd);
-                    mysqli_stmt_bind_param($stmtUpd, 'ssis', $new_name, $today, $id_pengajuan_post, $jenis);
-                    mysqli_stmt_execute($stmtUpd);
-                } else {
-                    $qIns = "INSERT INTO dokumen_magang (id_pengajuan, jenis, file_path, tanggal_upload) VALUES (?, ?, ?, ?)";
-                    $stmtIns = mysqli_prepare($conn, $qIns);
-                    mysqli_stmt_bind_param($stmtIns, 'isss', $id_pengajuan_post, $jenis, $new_name, $today);
-                    mysqli_stmt_execute($stmtIns);
-                }
-                
-                $message_success = "Surat Penerimaan berhasil diupload! Harap tunggu Korbid mengirimkan Surat Pelaksanaan.";
-            } else {
-                $message_error = "Gagal mengupload file.";
-            }
+              $jenis = 'surat_penerimaan';
+              $today = date('Y-m-d');
+              
+              $cekDoc = mysqli_query($conn, "SELECT id_dokumen FROM dokumen_magang WHERE id_pengajuan = $id_pengajuan_post AND jenis = '$jenis'");
+              
+              if (mysqli_num_rows($cekDoc) > 0) {
+                  $qUpd = "UPDATE dokumen_magang SET file_path = ?, tanggal_upload = ? WHERE id_pengajuan = ? AND jenis = ?";
+                  $stmtUpd = mysqli_prepare($conn, $qUpd);
+                  mysqli_stmt_bind_param($stmtUpd, 'ssis', $new_name, $today, $id_pengajuan_post, $jenis);
+                  mysqli_stmt_execute($stmtUpd);
+              } else {
+                  $qIns = "INSERT INTO dokumen_magang (id_pengajuan, jenis, file_path, tanggal_upload) VALUES (?, ?, ?, ?)";
+                  $stmtIns = mysqli_prepare($conn, $qIns);
+                  mysqli_stmt_bind_param($stmtIns, 'isss', $id_pengajuan_post, $jenis, $new_name, $today);
+                  mysqli_stmt_execute($stmtIns);
+              }
+
+              $qUpdateStatus = "UPDATE mahasiswa m
+                                JOIN anggota_kelompok ak ON m.id_mahasiswa = ak.id_mahasiswa
+                                SET m.status_magang = 'magang_aktif'
+                                WHERE ak.id_kelompok = (
+                                    SELECT id_kelompok FROM pengajuan_magang WHERE id_pengajuan = ?
+                                )";
+              $stmtStatus = mysqli_prepare($conn, $qUpdateStatus);
+              mysqli_stmt_bind_param($stmtStatus, 'i', $id_pengajuan_post);
+              
+              if (mysqli_stmt_execute($stmtStatus)) {
+                  $message_success = "Surat Penerimaan berhasil diupload! Status Anda sekarang MAGANG AKTIF. Harap tunggu Korbid mengirimkan Surat Pelaksanaan.";
+              } else {
+                  $message_success = "Surat Penerimaan berhasil diupload, namun gagal mengubah status mahasiswa. Harap hubungi admin.";
+              }
+              
+              mysqli_stmt_close($stmtStatus);
+          } else {
+              $message_error = "Gagal mengupload file.";
+          }
         }
     } else {
         $message_error = "File belum dipilih atau terjadi error upload.";
@@ -480,7 +488,7 @@ while ($r = mysqli_fetch_assoc($result)) {
             <?php endif; ?>
           </div>
 
-        <?php endif; // End if status diterima ?>
+        <?php endif; ?>
 
       </div>
     <?php endforeach; ?>

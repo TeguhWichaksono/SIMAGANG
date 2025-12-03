@@ -3,6 +3,44 @@ session_start();
 include '../Koneksi/koneksi.php'; 
 require_once '../config.php';
 
+$status_magang = 'pra-magang'; // Default
+$can_access_magang = false;
+$can_crud_magang = false;
+
+if (isset($_SESSION['id'])) {
+    $id_user = $_SESSION['id'];
+    $query_status = "SELECT status_magang FROM mahasiswa WHERE id_user = ?";
+    $stmt_status = mysqli_prepare($conn, $query_status);
+    
+    if ($stmt_status) {
+        mysqli_stmt_bind_param($stmt_status, 'i', $id_user);
+        mysqli_stmt_execute($stmt_status);
+        $result_status = mysqli_stmt_get_result($stmt_status);
+        
+        if ($row_status = mysqli_fetch_assoc($result_status)) {
+            $status_magang = $row_status['status_magang'];
+        }
+        mysqli_stmt_close($stmt_status);
+    }
+}
+
+// Set akses berdasarkan status
+if ($status_magang === 'magang_aktif') {
+    $can_access_magang = true;
+    $can_crud_magang = true; // Bisa CRUD
+} elseif ($status_magang === 'selesai') {
+    $can_access_magang = true;
+    $can_crud_magang = false; // Read-only
+} else {
+    $can_access_magang = false;
+    $can_crud_magang = false;
+}
+
+// Save to session untuk akses di halaman lain
+$_SESSION['status_magang'] = $status_magang;
+$_SESSION['can_access_magang'] = $can_access_magang;
+$_SESSION['can_crud_magang'] = $can_crud_magang;
+
 $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 $pagePath = "pages/$page.php";
 
@@ -78,7 +116,46 @@ $foto_profil_path = '';
         font-size: 13px;
         opacity: 0.8;
       }
-    </style>
+      .nav-item.disabled,
+      .dropdown-btn.disabled {
+        opacity: 0.5;
+        cursor: not-allowed !important;
+        pointer-events: none; /* Mencegah klik */
+        position: relative;
+      }
+
+      .nav-item.disabled::after,
+      .dropdown-btn.disabled::after {
+        content: '🔒';
+        position: absolute;
+        right: 15px;
+        font-size: 14px;
+      }
+
+      /* Tooltip untuk disabled item */
+      .nav-item.disabled:hover::before,
+      .dropdown-btn.disabled:hover::before {
+        content: attr(data-tooltip);
+        position: absolute;
+        left: 100%;
+        top: 50%;
+        transform: translateY(-50%);
+        background: #333;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        white-space: nowrap;
+        z-index: 1000;
+        margin-left: 10px;
+        pointer-events: all; /* Override parent */
+      }
+
+      /* Untuk yang selesai magang (read-only) */
+      .nav-item.readonly::after {
+        content: '👁️'; /* Icon mata untuk read-only */
+      }
+          </style>
   </head>
 
   <body>
@@ -142,13 +219,20 @@ $foto_profil_path = '';
           </a>
         </div>
 
-        <a href="index.php?page=absensi_Kegiatan" class="nav-item <?= $page=='absensi_Kegiatan'?'active':'' ?>">
-          <i class="fas fa-tasks"></i> <span>Absensi & Kegiatan</span>
-        </a>
-        <a href="index.php?page=notifikasi" class="nav-item <?= $page=='notifikasi'?'active':'' ?>">
-          <i class="fas fa-bell"></i> <span>Notifikasi</span>
-        </a>
-      </div>
+          <!-- ABSENSI & KEGIATAN - Conditional Access -->
+          <a href="<?= $can_access_magang ? 'index.php?page=absensi_Kegiatan' : 'javascript:void(0)' ?>" 
+            class="nav-item <?= $page=='absensi_Kegiatan'?'active':'' ?> 
+                    <?= !$can_access_magang ? 'disabled' : '' ?> 
+                    <?= ($status_magang === 'selesai') ? 'readonly' : '' ?>"
+            data-tooltip="<?= !$can_access_magang ? 'Upload Surat Penerimaan dulu untuk akses fitur ini' : ($status_magang === 'selesai' ? 'Magang sudah selesai (Read-only)' : '') ?>"
+            <?= !$can_access_magang ? 'onclick="return false;"' : '' ?>>
+            <i class="fas fa-tasks"></i> <span>Absensi & Kegiatan</span>
+          </a>
+
+          <a href="index.php?page=notifikasi" class="nav-item <?= $page=='notifikasi'?'active':'' ?>">
+            <i class="fas fa-bell"></i> <span>Notifikasi</span>
+          </a>  
+        </div>
 
       <div class="premium-box">
         <h3>Buku Panduan</h3>
@@ -402,7 +486,7 @@ $foto_profil_path = '';
       // Confirm logout
       function confirmLogout() {
         if (confirm('Apakah Anda yakin ingin keluar?')) {
-          window.location.href = '/WSI/SIMAGANGG/';
+          window.location.href = '/WSI/SIMAGANGG/Login/login.php';
         }
       }
     </script>

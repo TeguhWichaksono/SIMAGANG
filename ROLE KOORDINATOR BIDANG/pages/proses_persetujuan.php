@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             // 4. Update status mahasiswa dalam kelompok menjadi "magang"
             $query_update_mhs = "UPDATE mahasiswa m
                                  JOIN anggota_kelompok ak ON m.id_mahasiswa = ak.id_mahasiswa
-                                 SET m.status = 'magang'
+                                 SET m.status_magang = 'pra-magang'
                                  WHERE ak.id_kelompok = ?";
             $stmt3 = mysqli_prepare($conn, $query_update_mhs);
             mysqli_stmt_bind_param($stmt3, 'i', $id_kelompok);
