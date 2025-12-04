@@ -1,74 +1,98 @@
 <?php
-include '../../../Koneksi/koneksi.php';
+include "../../../Koneksi/koneksi.php";
 
-// Ambil data POST
-$id = $_POST['id'];
-$nama = $_POST['nama'];
-$email = $_POST['email'];
-$role = $_POST['role'];
-$nim = $_POST['nim'] ?? null; // Ambil NIM, jika ada
+$isModal = isset($_POST['is_modal']) && $_POST['is_modal'] == '1';
 
-// 1. Mulai Transaksi
-mysqli_begin_transaction($conn);
-$success = true;
-
-try {
-    // 2. UPDATE tabel users
-    $stmt_user = $conn->prepare("UPDATE users SET nama=?, email=?, role=? WHERE id=?");
-    $stmt_user->bind_param("sssi", $nama, $email, $role, $id);
-
-    if (!$stmt_user->execute()) {
-        throw new Exception("Gagal mengupdate data User: " . $stmt_user->error);
+if (isset($_GET['id'])) {
+    $id = mysqli_real_escape_string($conn, $_GET['id']);
+    $query = mysqli_query($conn, "SELECT * FROM users WHERE id = '$id' AND role = 'mahasiswa'");
+    $data = mysqli_fetch_assoc($query);
+    
+    if (!$data) {
+        header("Location: ../../index.php?page=manajemen_User&error=not_found");
+        exit();
     }
+} else {
+    // Redirect jika tidak ada ID
+    if (!$isModal) {
+        header("Location: ../../index.php?page=manajemen_User");
+        exit();
+    }
+}
 
-    // 3. UPDATE/INSERT/DELETE tabel mahasiswa berdasarkan role
-    if ($role === 'Mahasiswa' && !empty($nim)) {
-        // Cek apakah data mahasiswa sudah ada (untuk user lama yang diubah role)
-        $stmt_check_mhs = $conn->prepare("SELECT COUNT(*) FROM mahasiswa WHERE id_user = ?");
-        $stmt_check_mhs->bind_param("i", $id);
-        $stmt_check_mhs->execute();
-        $stmt_check_mhs->bind_result($count);
-        $stmt_check_mhs->fetch();
-        $stmt_check_mhs->close();
-
-        if ($count > 0) {
-            // Jika sudah ada, update NIM
-            $stmt_update_mhs = $conn->prepare("UPDATE mahasiswa SET nim=? WHERE id_user=?");
-            $stmt_update_mhs->bind_param("si", $nim, $id);
-            if (!$stmt_update_mhs->execute()) {
-                throw new Exception("Gagal mengupdate NIM Mahasiswa: " . $stmt_update_mhs->error);
-            }
-        } else {
-            // Jika belum ada (misal diubah dari Admin ke Mahasiswa), insert data NIM
-            $stmt_insert_mhs = $conn->prepare("INSERT INTO mahasiswa (id_user, nim) VALUES (?, ?)");
-            $stmt_insert_mhs->bind_param("is", $id, $nim);
-            if (!$stmt_insert_mhs->execute()) {
-                throw new Exception("Gagal menyimpan NIM baru Mahasiswa: " . $stmt_insert_mhs->error);
-            }
-        }
-
+// Proses update
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $id = mysqli_real_escape_string($conn, $_POST['id']);
+    $nama = mysqli_real_escape_string($conn, $_POST['nama']);
+    $nim = mysqli_real_escape_string($conn, $_POST['nim']);
+    $email = mysqli_real_escape_string($conn, $_POST['email']);
+    
+    // Cek apakah password diubah
+    if (!empty($_POST['password'])) {
+        $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+        $query = mysqli_query($conn, "UPDATE users SET nama = '$nama', nim = '$nim', email = '$email', password = '$password' WHERE id = '$id' AND role = 'mahasiswa'");
     } else {
-        // Jika role bukan Mahasiswa (misal diubah ke Admin), hapus data di tabel mahasiswa
-        $stmt_delete_mhs = $conn->prepare("DELETE FROM mahasiswa WHERE id_user=?");
-        $stmt_delete_mhs->bind_param("i", $id);
-        // Jalankan DELETE, abaikan jika tidak ada data (karena tidak semua user punya data mhs)
-        $stmt_delete_mhs->execute();
+        $query = mysqli_query($conn, "UPDATE users SET nama = '$nama', nim = '$nim', email = '$email' WHERE id = '$id' AND role = 'mahasiswa'");
     }
     
-    // 4. Commit Transaksi
-    mysqli_commit($conn);
-
-} catch (Exception $e) {
-    // Rollback jika ada error
-    mysqli_rollback($conn);
-    $success = false;
-    echo "SQL ERROR: " . $e->getMessage();
-    exit;
-}
-
-// Redirect setelah berhasil
-if ($success) {
-    header("Location: ../../index.php?page=manajemen_User");
-    exit;
+    if ($query) {
+        header("Location: ../../index.php?page=manajemen_User&success_update=1&tab=mahasiswa");
+    } else {
+        header("Location: ../../index.php?page=manajemen_User&error=update_failed&tab=mahasiswa");
+    }
+    exit();
 }
 ?>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Edit Mahasiswa</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="container mt-5">
+  <div class="card">
+    <div class="card-header">
+      <h4>Edit Data Mahasiswa</h4>
+    </div>
+    <div class="card-body">
+      <form method="POST">
+        <input type="hidden" name="id" value="<?= $id ?>">
+        
+        <div class="mb-3">
+          <label class="form-label">Nama</label>
+          <input type="text" name="nama" class="form-control" value="<?= htmlspecialchars($data['nama']) ?>" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">NIM</label>
+          <input type="text" name="nim" class="form-control" value="<?= htmlspecialchars($data['nim']) ?>" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Email</label>
+          <input type="email" name="email" class="form-control" value="<?= htmlspecialchars($data['email']) ?>" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          <input type="password" name="password" class="form-control" placeholder="Kosongkan jika tidak ingin mengubah">
+          <small class="text-muted">*Isi hanya jika ingin mengubah password</small>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+          <a href="../../index.php?page=manajemen_User" class="btn btn-secondary">Batal</a>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
