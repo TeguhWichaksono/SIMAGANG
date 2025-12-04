@@ -1,3 +1,41 @@
+<?php
+include 'C:/xampp/htdocs/SIMAGANG/Koneksi/koneksi.php';
+
+// Hitung jumlah mahasiswa
+$queryMahasiswa = mysqli_query($conn, "SELECT COUNT(*) as total FROM mahasiswa");
+$dataMahasiswa = mysqli_fetch_assoc($queryMahasiswa);
+$totalMahasiswa = $dataMahasiswa['total'];
+
+// Hitung jumlah dosen pembimbing
+$queryDosen = mysqli_query($conn, "SELECT COUNT(*) as total FROM dosen");
+$dataDosen = mysqli_fetch_assoc($queryDosen);
+$totalDosen = $dataDosen['total'];
+
+// Hitung jumlah mitra/perusahaan
+$queryMitra = mysqli_query($conn, "SELECT COUNT(*) as total FROM mitra_perusahaan");
+$dataMitra = mysqli_fetch_assoc($queryMitra);
+$totalMitra = $dataMitra['total'];
+
+// Hitung mahasiswa aktif (yang sedang magang)
+$queryMahasiswaAktif = mysqli_query($conn, "SELECT COUNT(*) as total FROM mahasiswa WHERE status_magang = 'magang_aktif'");
+$dataMahasiswaAktif = mysqli_fetch_assoc($queryMahasiswaAktif);
+$totalMahasiswaAktif = $dataMahasiswaAktif['total'];
+
+// Hitung mahasiswa yang sudah ditempatkan
+$queryDitempatkan = mysqli_query($conn, "SELECT COUNT(*) as total FROM pengajuan_mitra WHERE status_pengajuan = 'disetujui'");
+$dataDitempatkan = mysqli_fetch_assoc($queryDitempatkan);
+$totalDitempatkan = $dataDitempatkan['total'];
+
+// Hitung persentase mahasiswa ditempatkan
+$persenDitempatkan = $totalMahasiswa > 0 ? round(($totalDitempatkan / $totalMahasiswa) * 100) : 0;
+
+// Ambil aktivitas terbaru dari log_aktivitas
+$queryAktivitas = mysqli_query($conn, "SELECT * FROM log_aktivitas ORDER BY waktu DESC LIMIT 5");
+
+// Ambil data mitra untuk pemetaan (dengan koordinat)
+$queryMitraPeta = mysqli_query($conn, "SELECT nama_mitra, alamat, bidang FROM mitra_perusahaan WHERE status = 'aktif' LIMIT 20");
+?>
+
 <link rel="stylesheet" href="styles/dashboard.css" />
 <!-- Dashboard Container -->
 <div class="dashboard-container">
@@ -5,29 +43,31 @@
   <div class="dashboard-main">
     <!-- Transfer Cards -->
     <div class="transfer-cards">
-      <div class="transfer-card">
+      <!-- Card Mahasiswa - Klik ke halaman data mahasiswa -->
+      <div class="transfer-card clickable" onclick="window.location.href='index.php?page=data_Mahasiswa'">
         <div class="card-icon">
           <i class="fas fa-users"></i>
         </div>
         <p class="card-title">Jumlah Mahasiswa Magang</p>
-        <h2 class="card-amount">94 Mahasiswa</h2>
+        <h2 class="card-amount"><?= $totalMahasiswa ?> Mahasiswa</h2>
       </div>
 
-      <div class="transfer-card">
+      <!-- Card Dosen - Klik ke halaman data dosen -->
+      <div class="transfer-card clickable" onclick="window.location.href='index.php?page=data_dospem'">
         <div class="card-icon">
           <i class="fas fa-chalkboard-teacher"></i>
         </div>
         <p class="card-title">Jumlah Dosen Pembimbing</p>
-        <h2 class="card-amount">45 Dosen</h2>
+        <h2 class="card-amount"><?= $totalDosen ?> Dosen</h2>
       </div>
 
-      <div class="transfer-card">
+      <!-- Card Mitra - Klik ke halaman data mitra -->
+      <div class="transfer-card clickable" onclick="window.location.href='index.php?page=data_Mitra'">
         <div class="card-icon">
           <i class="fas fa-building"></i>
         </div>
-        <!-- ✅ Revisi kecil pada teks -->
-        <p class="card-title">Jumlah Instansi/perusahaan Mitra</p>
-        <h2 class="card-amount">165 Mitra</h2>
+        <p class="card-title">Jumlah Instansi/Perusahaan Mitra</p>
+        <h2 class="card-amount"><?= $totalMitra ?> Mitra</h2>
       </div>
     </div>
 
@@ -43,31 +83,30 @@
     <div class="transaction-section">
       <div class="transaction-card">
         <h3 class="section-title">Aktivitas Terbaru</h3>
-        <div class="transaction-item">
-          <div class="transaction-icon">
-            <i class="fas fa-file-upload"></i>
-          </div>
-          <div class="transaction-content">
-            <div class="transaction-title">Budi Santoso mengunggah Laporan Bab II</div>
-            <div class="transaction-time">
-              <i class="far fa-clock"></i> Today, 14:45
+        
+        <?php if (mysqli_num_rows($queryAktivitas) > 0) : ?>
+          <?php while ($aktivitas = mysqli_fetch_assoc($queryAktivitas)) : ?>
+            <div class="transaction-item">
+              <div class="transaction-icon">
+                <i class="fas fa-file-upload"></i>
+              </div>
+              <div class="transaction-content">
+                <div class="transaction-title"><?= htmlspecialchars($aktivitas['aktivitas']) ?></div>
+                <div class="transaction-time">
+                  <i class="far fa-clock"></i> <?= date('d M Y, H:i', strtotime($aktivitas['waktu'])) ?>
+                </div>
+              </div>
+              <div class="transaction-amount positive">Selesai</div>
+            </div>
+          <?php endwhile; ?>
+        <?php else : ?>
+          <div class="transaction-item">
+            <div class="transaction-content">
+              <div class="transaction-title">Belum ada aktivitas terbaru</div>
             </div>
           </div>
-          <div class="transaction-amount positive">Selesai</div>
-        </div>
-
-        <div class="transaction-item">
-          <div class="transaction-icon">
-            <i class="fas fa-user-graduate"></i>
-          </div>
-          <div class="transaction-content">
-            <div class="transaction-title">Siti Aminah ditempatkan di PT Telkom</div>
-            <div class="transaction-time">
-              <i class="far fa-clock"></i> Yesterday, 16:08
-            </div>
-          </div>
-          <div class="transaction-amount positive">Selesai</div>
-        </div>
+        <?php endif; ?>
+        
       </div>
     </div>
   </div>
@@ -76,7 +115,7 @@
   <div class="dashboard-sidebar">
     <div class="savings-card">
       <h3 class="savings-title">Jumlah Mahasiswa Aktif</h3>
-      <div class="savings-amount">65 Mahasiswa</div>
+      <div class="savings-amount"><?= $totalMahasiswaAktif ?> Mahasiswa</div>
       <div class="time-filter">
         <button class="time-option">Harian</button>
         <button class="time-option">Mingguan</button>
@@ -118,7 +157,7 @@
         <div class="plan-status">Proses</div>
       </div>
       <div class="plan-progress">
-        <div class="plan-percentage">68%</div>
+        <div class="plan-percentage"><?= $persenDitempatkan ?>%</div>
       </div>
     </div>
   </div>
@@ -139,58 +178,37 @@
 
   var markersGroup = L.markerClusterGroup();
 
-<<<<<<< HEAD
+  // Data mitra dari database
   var mitra = [
-    { name: "PT Jember Abadi", coords: [-8.1681, 113.7040], address: "Jl. Letjen Panjaitan No.1" },
-    { name: "CV Jember Maju", coords: [-8.1800, 113.6950], address: "Jl. Gajah Mada No.12" },
-    { name: "Koperasi Sejahtera", coords: [-8.1750, 113.7100], address: "Jl. Sudirman No.5" },
-    { name: "PT Nusantara Jember", coords: [-8.1700, 113.7200], address: "Jl. Ahmad Yani No.25" },
-    { name: "CV Sentosa", coords: [-8.1650, 113.6900], address: "Jl. Raya Jember No.8" }
-=======
-  var mitra = [{
-      name: "PT Jember Abadi",
-      coords: [-8.1681, 113.7040],
-      address: "Jl. Letjen Panjaitan No.1"
-    },
-    {
-      name: "CV Jember Maju",
-      coords: [-8.1800, 113.6950],
-      address: "Jl. Gajah Mada No.12"
-    },
-    {
-      name: "Koperasi Sejahtera",
-      coords: [-8.1750, 113.7100],
-      address: "Jl. Sudirman No.5"
-    },
-    {
-      name: "PT Nusantara Jember",
-      coords: [-8.1700, 113.7200],
-      address: "Jl. Ahmad Yani No.25"
-    },
-    {
-      name: "CV Sentosa",
-      coords: [-8.1650, 113.6900],
-      address: "Jl. Raya Jember No.8"
+    <?php 
+    $mitraArray = [];
+    while ($mitraPeta = mysqli_fetch_assoc($queryMitraPeta)) {
+      // Generate koordinat random di sekitar Jember untuk demo
+      $lat = -8.1731 + (rand(-100, 100) / 1000);
+      $lng = 113.7035 + (rand(-100, 100) / 1000);
+      
+      echo "{
+        name: '" . addslashes($mitraPeta['nama_mitra']) . "',
+        coords: [" . $lat . ", " . $lng . "],
+        address: '" . addslashes($mitraPeta['alamat']) . "',
+        bidang: '" . addslashes($mitraPeta['bidang']) . "'
+      },";
     }
->>>>>>> da8ac0270e58e01401749368d131f5922e6f440e
+    ?>
   ];
 
   mitra.forEach(m => {
-    var marker = L.marker(m.coords).bindPopup(`<b>${m.name}</b><br>${m.address}`);
+    var marker = L.marker(m.coords).bindPopup(`
+      <b>${m.name}</b><br>
+      <i class="fas fa-map-marker-alt"></i> ${m.address}<br>
+      <i class="fas fa-briefcase"></i> ${m.bidang}
+    `);
     markersGroup.addLayer(marker);
   });
 
   map.addLayer(markersGroup);
 
   if (markersGroup.getLayers().length > 0) {
-<<<<<<< HEAD
-    map.fitBounds(markersGroup.getBounds(), { padding:[40,40] });
+    map.fitBounds(markersGroup.getBounds(), { padding: [40, 40] });
   }
 </script>
-=======
-    map.fitBounds(markersGroup.getBounds(), {
-      padding: [40, 40]
-    });
-  }
-</script>
->>>>>>> da8ac0270e58e01401749368d131f5922e6f440e

@@ -228,3 +228,51 @@
   width: 100% !important;
   height: 300px !important;
 }
+/* Tambahkan CSS ini ke file dashboard.css yang sudah ada */
+
+/* Card yang bisa diklik */
+.transfer-card.clickable {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.transfer-card.clickable::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  transition: left 0.5s;
+}
+
+.transfer-card.clickable:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.transfer-card.clickable:hover::before {
+  left: 100%;
+}
+
+.transfer-card.clickable:active {
+  transform: translateY(-2px);
+}
+
+/* Icon animasi saat hover */
+.transfer-card.clickable:hover .card-icon i {
+  animation: bounce 0.6s ease;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Tambahkan efek glow pada angka saat hover */
+.transfer-card.clickable:hover .card-amount {
+  text-shadow: 0 0 10px rgba(66, 112, 244, 0.5);
+}

@@ -2,24 +2,37 @@
 // Koneksi database
 include '../Koneksi/koneksi.php';
 
-// Query untuk mengambil data mahasiswa dengan join ke tabel terkait
+// Query untuk mengambil data mahasiswa
+// Mitra dan status diambil dari KELOMPOK (bukan per mahasiswa)
+// Menggunakan subquery untuk ambil mitra dari salah satu anggota kelompok yang sudah disetujui
 $query = "SELECT 
             m.id_mahasiswa,
             u.nim,
             u.nama,
             m.prodi,
             k.nama_kelompok,
+            ak.peran,
             ud.nama AS nama_dosen,
-            mt.nama_mitra,
-            pm.status_pengajuan
+            mitra_kelompok.nama_mitra,
+            mitra_kelompok.status_pengajuan
           FROM mahasiswa m
           LEFT JOIN users u ON m.id_user = u.id
           LEFT JOIN anggota_kelompok ak ON m.id_mahasiswa = ak.id_mahasiswa
           LEFT JOIN kelompok k ON ak.id_kelompok = k.id_kelompok
           LEFT JOIN dosen d ON k.id_dosen_pembimbing = d.id_dosen
           LEFT JOIN users ud ON d.id_user = ud.id
-          LEFT JOIN pengajuan_mitra pm ON m.id_mahasiswa = pm.id_mahasiswa
-          LEFT JOIN mitra_perusahaan mt ON pm.id_mitra = mt.id_mitra
+          LEFT JOIN (
+              -- Subquery: ambil mitra dari kelompok (dari salah satu anggota yang sudah punya pengajuan)
+              SELECT 
+                  ak2.id_kelompok,
+                  mt.nama_mitra,
+                  pm.status_pengajuan
+              FROM anggota_kelompok ak2
+              JOIN pengajuan_mitra pm ON ak2.id_mahasiswa = pm.id_mahasiswa
+              JOIN mitra_perusahaan mt ON pm.id_mitra = mt.id_mitra
+              WHERE pm.status_pengajuan = 'disetujui'
+              GROUP BY ak2.id_kelompok
+          ) mitra_kelompok ON k.id_kelompok = mitra_kelompok.id_kelompok
           ORDER BY u.nim ASC";
 
 $result = mysqli_query($conn, $query);
@@ -43,6 +56,7 @@ if (!$result) {
   <div class="container">
     <div class="content-section">
       <h3><i class="fas fa-user-graduate"></i> Data Mahasiswa</h3>
+      
       <div class="search-bar-data">
         <input type="text" id="searchMahasiswa" placeholder="Cari Mahasiswa..." />
       </div>
@@ -55,6 +69,7 @@ if (!$result) {
             <th>Nama Mahasiswa</th>
             <th>Program Studi</th>
             <th>Kelompok</th>
+            <th>Peran</th>
             <th>Dosen Pembimbing</th>
             <th>Mitra / Tempat Magang</th>
             <th>Status</th>
@@ -83,19 +98,28 @@ if (!$result) {
                 $statusText = 'Belum Terdaftar';
               }
               
+              // Format peran dengan styling
+              $peranText = '-';
+              if ($row['peran'] == 'ketua') {
+                $peranText = '<span style="color: #2563eb; font-weight: bold;"><i class="fas fa-crown"></i> Ketua</span>';
+              } elseif ($row['peran'] == 'anggota') {
+                $peranText = '<span style="color: #64748b;">Anggota</span>';
+              }
+              
               echo "<tr>";
               echo "<td>" . $no++ . "</td>";
               echo "<td>" . htmlspecialchars($row['nim']) . "</td>";
               echo "<td>" . htmlspecialchars($row['nama']) . "</td>";
               echo "<td>" . htmlspecialchars($row['prodi']) . "</td>";
               echo "<td>" . ($row['nama_kelompok'] ? htmlspecialchars($row['nama_kelompok']) : '-') . "</td>";
+              echo "<td>" . $peranText . "</td>";
               echo "<td>" . ($row['nama_dosen'] ? htmlspecialchars($row['nama_dosen']) : '-') . "</td>";
               echo "<td>" . ($row['nama_mitra'] ? htmlspecialchars($row['nama_mitra']) : '-') . "</td>";
               echo "<td><span class='" . $statusClass . "'>" . $statusText . "</span></td>";
               echo "</tr>";
             }
           } else {
-            echo "<tr><td colspan='8' style='text-align:center;'>Tidak ada data mahasiswa</td></tr>";
+            echo "<tr><td colspan='9' style='text-align:center;'>Tidak ada data mahasiswa</td></tr>";
           }
           ?>
         </tbody>

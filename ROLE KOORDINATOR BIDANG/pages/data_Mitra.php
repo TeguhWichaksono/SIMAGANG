@@ -18,6 +18,11 @@ $query = mysqli_query($conn, "SELECT * FROM mitra_perusahaan ORDER BY id_mitra D
   <a href="pages/Create_Mitra.php" class="add-btn">
     <i class="fas fa-plus"></i> Tambah Mitra
   </a>
+  
+  <!-- TAMBAHKAN INI -->
+<a href="pages/Export_Mitra_Excel.php" class="export-btn">
+  <i class="fas fa-file-excel"></i> Export ke Excel
+</a>
 
   <table id="tabelMitra">
     <thead>
@@ -45,7 +50,7 @@ $query = mysqli_query($conn, "SELECT * FROM mitra_perusahaan ORDER BY id_mitra D
           <td><?= htmlspecialchars($row['kontak']); ?></td>
           <td><?= ucfirst($row['status']); ?></td>
           <td>
-            <button class="btn-view" data-id="<?= $row['id_mitra']; ?>">Lihat</button>
+    
             <button class="action-btn edit-btn" data-id="<?= $row['id_mitra']; ?>">
               <i class="fas fa-pen"></i>
             </button>
