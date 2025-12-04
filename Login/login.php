@@ -17,7 +17,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
     if (password_verify($password, $data['password'])) {
 
       $_SESSION['id'] = $data['id'];
-      $_SESSION['nama'] = $data['nama'];
+      // $_SESSION['nama'] = $data['nama'];
       $_SESSION['nim'] = $data['nim'];
       $_SESSION['role'] = $data['role'];
 
@@ -77,7 +77,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
           <p style="color:red;"><?= $message ?></p>
         <?php endif; ?>
 
-        <input type="text" name="nama" placeholder="Nama" required />
+        <!-- <input type="text" name="nama" placeholder="Nama" required /> -->
         <input type="email" name="email" placeholder="Email" required>
         <input type="password" name="password" placeholder="Kata Sandi" required>
         <button type="submit" name="login">Masuk</button>

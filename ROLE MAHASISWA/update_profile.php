@@ -18,6 +18,7 @@ try {
     $email    = trim($_POST['email'] ?? '');
     $prodi    = trim($_POST['prodi'] ?? '');
     $angkatan = trim($_POST['angkatan'] ?? '');
+    $kontak   = trim($_POST['kontak'] ?? '');
 
     // --- Validasi dasar ---
     if ($id_user != $_SESSION['id']) {
@@ -28,17 +29,6 @@ try {
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         throw new Exception('Format email tidak valid');
     }
-
-    // --- Update tabel USERS (NIM & EMAIL) ---
-    $stmt1 = mysqli_prepare($conn,
-        "UPDATE users SET nim = ?, email = ? WHERE id = ?"
-    );
-    mysqli_stmt_bind_param($stmt1, 'ssi', $nim, $email, $id_user);
-
-    if (!mysqli_stmt_execute($stmt1)) {
-        throw new Exception("Gagal update users: " . mysqli_stmt_error($stmt1));
-    }
-    mysqli_stmt_close($stmt1);
 
     // --- Cek apakah baris mahasiswa sudah ada ---
     $stmt2 = mysqli_prepare($conn,
@@ -55,17 +45,17 @@ try {
     if ($exists) {
         $stmt3 = mysqli_prepare($conn,
             "UPDATE mahasiswa 
-             SET nim = ?, prodi = ?, angkatan = ? 
-             WHERE id_user = ?"
+            SET prodi = ?, angkatan = ?, kontak = ? 
+            WHERE id_user = ?"
         );
-        mysqli_stmt_bind_param($stmt3, 'ssii', $nim, $prodi, $angkatan, $id_user);
+        mysqli_stmt_bind_param($stmt3, 'sssi', $nim, $prodi, $angkatan, $kontak, $id_user);
 
     } else {
         $stmt3 = mysqli_prepare($conn,
-            "INSERT INTO mahasiswa (id_user, nim, prodi, angkatan, status)
-             VALUES (?, ?, ?, ?, 'pra-magang')"
+            "INSERT INTO mahasiswa (id_user, nim, prodi, angkatan, kontak, status) 
+            VALUES (?, ?, ?, ?, ?, 'pra-magang')"
         );
-        mysqli_stmt_bind_param($stmt3, 'isss', $id_user, $nim, $prodi, $angkatan);
+        mysqli_stmt_bind_param($stmt3, 'issss', $id_user, $nim, $prodi, $angkatan, $kontak);
     }
 
     if (!mysqli_stmt_execute($stmt3)) {

@@ -54,6 +54,26 @@ if ($action == 'tambah_anggota') {
         exit;
     }
     
+    $stmt_count = $conn->prepare("SELECT COUNT(*) as total FROM anggota_kelompok WHERE id_kelompok = ?");
+    $stmt_count->bind_param("i", $id_kelompok);
+    $stmt_count->execute();
+    $res_count = $stmt_count->get_result();
+    $row_count = $res_count->fetch_assoc();
+
+    if ($row_count['total'] >= 4) {
+        // Pesan Error yang lebih Stylish menggunakan HTML
+        $_SESSION['error'] = "
+            <div style='text-align:left;'>
+                <strong>⛔ Penambahan Ditolak!</strong><br>
+                Kelompok ini sudah mencapai batas mutlak <strong>4 orang</strong> (termasuk Ketua).<br>
+                <small>Silakan hapus salah satu anggota jika ingin menggantinya.</small>
+            </div>
+        ";
+        $_SESSION['active_tab'] = 'anggota';
+        header("Location: ../../index.php?page=kelompok");
+        exit;
+    }
+
     // Cari mahasiswa berdasarkan NIM di tabel users
     $stmt_mhs = $conn->prepare("
         SELECT m.id_mahasiswa, u.nama 
@@ -244,6 +264,25 @@ elseif ($action == 'hapus_anggota') {
         exit;
     }
     
+    $stmt_cek_status = $conn->prepare("
+        SELECT m.status_magang, u.nama
+        FROM anggota_kelompok ak
+        JOIN mahasiswa m ON ak.id_mahasiswa = m.id_mahasiswa
+        JOIN users u ON m.id_user = u.id
+        WHERE ak.id_anggota = ?
+    ");
+    $stmt_cek_status->bind_param("i", $id_anggota);
+    $stmt_cek_status->execute();
+    $res_status = $stmt_cek_status->get_result();
+    $data_status = $res_status->fetch_assoc();
+
+    if ($data_status['status_magang'] == 'magang_aktif') {
+        $_SESSION['error'] = "GAGAL: Anggota '{$data_status['nama']}' sedang berstatus Magang Aktif. Tidak dapat dihapus!";
+        $_SESSION['active_tab'] = 'anggota';
+        header("Location: ../../index.php?page=kelompok");
+        exit;
+    }
+
     // Hapus anggota
     $stmt_delete = $conn->prepare("DELETE FROM anggota_kelompok WHERE id_anggota = ?");
     $stmt_delete->bind_param("i", $id_anggota);

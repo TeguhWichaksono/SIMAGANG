@@ -40,7 +40,7 @@ $prodi = '';
 $angkatan = '';
 
 // ---- Ambil Data mahasiswa ----
-$stmt_mhs = mysqli_prepare($conn, "SELECT prodi, angkatan FROM mahasiswa WHERE id_user = ?");
+$stmt_mhs = mysqli_prepare($conn, "SELECT prodi, angkatan, kontak FROM mahasiswa WHERE id_user = ?");
 mysqli_stmt_bind_param($stmt_mhs, 'i', $id);
 mysqli_stmt_execute($stmt_mhs);
 $result_mhs = mysqli_stmt_get_result($stmt_mhs);
@@ -49,6 +49,7 @@ if ($result_mhs && mysqli_num_rows($result_mhs) > 0) {
     $m = mysqli_fetch_assoc($result_mhs);
     $prodi = htmlspecialchars($m['prodi']);
     $angkatan = htmlspecialchars($m['angkatan']);
+    $kontak = htmlspecialchars($m['kontak'] ?? '');
 }
 mysqli_stmt_close($stmt_mhs);
 
@@ -63,14 +64,7 @@ if (isset($_SESSION['upload_message'])) {
 }
 ?>
 
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles/Akun.css">
-</head>
-<body>
     <div class="profile-header" style="background-image: url('<?= $fotoCover ?>');"></div>
 
     <div class="profile-section">
@@ -103,12 +97,13 @@ if (isset($_SESSION['upload_message'])) {
 
             <div class="info-row">
                 <span class="info-label">NIM</span>
-                <input type="text" class="info-input" name="nim" value="<?= $nim ?>">
-            </div>
-
+                <input type="text" class="info-input readonly-input" name="nim" value="<?= $nim ?>" readonly title="NIM tidak dapat diubah">            </div>
             <div class="info-row">
                 <span class="info-label">Email</span>
-                <input type="email" class="info-input" name="email" value="<?= $email ?>">
+                <input type="email" class="info-input readonly-input" name="email" value="<?= $email ?>" readonly title="Email tidak dapat diubah">            </div>
+            <div class="info-row">
+                <span class="info-label">No. Kontak</span>
+                <input type="text" class="info-input" name="kontak" value="<?= $kontak ?>" placeholder="08xxxxxxxxxx">
             </div>
 
             <div class="info-row">
@@ -179,5 +174,3 @@ if (isset($_SESSION['upload_message'])) {
         });
     });
     </script>
-</body>
-</html>
