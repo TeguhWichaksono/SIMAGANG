@@ -58,7 +58,7 @@ $prodiResult = mysqli_query($conn, $prodiQuery);
   </div>
 
   <!-- Info jumlah data -->
-  <div class="info-badge">
+  <!-- <div class="info-badge">
     <div class="badge-icon">
       <i class="fas fa-users"></i>
     </div>
@@ -66,7 +66,7 @@ $prodiResult = mysqli_query($conn, $prodiQuery);
       <span class="badge-label">Total Dosen Pembimbing</span>
       <span class="badge-count" id="infoCount"><?= $totalData; ?> Dosen</span>
     </div>
-  </div>
+  </div> -->
 
   <table id="tabelDosen">
     <thead>

@@ -107,3 +107,22 @@ table tr:nth-child(even) {
         cursor: pointer;
         margin-bottom: 10px;
       }
+
+   .export-btn {
+  display: inline-block;
+  padding: 10px 20px;
+  background: #28a745;
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+  margin-left: 10px;
+  transition: 0.3s;
+}
+
+.export-btn:hover {
+  background: #218838;
+}
+
+.export-btn i {
+  margin-right: 5px;
+}
