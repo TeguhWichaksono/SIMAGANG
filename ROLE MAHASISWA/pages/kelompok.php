@@ -158,7 +158,7 @@ if ($id_kelompok) {
                         <i class="fa fa-plus"></i> Tambah Anggota
                     </button>
                 <?php elseif (!$id_kelompok): ?>
-                    <span style="color:red; font-size:0.9rem;">Buat kelompok di tab Profil terlebih dahulu.</span>
+                    <span style="color:red; font-size:0.9rem;">Buat kelompok lebih dulu atau minta seorang ketua kelompok memasukkan anda kedalam kelompok mereka.</span>
                 <?php endif; ?>
             </div>
 

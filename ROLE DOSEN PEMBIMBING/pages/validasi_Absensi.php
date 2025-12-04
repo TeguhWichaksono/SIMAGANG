@@ -22,7 +22,7 @@ $query = "
     a.id_absen,
     m.id_mahasiswa,
     u.nama AS nama_mahasiswa,
-    m.nim,
+    nim,
     a.tanggal,
     a.lokasi,
     a.foto_mahasiswa,

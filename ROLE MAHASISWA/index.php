@@ -220,13 +220,22 @@ $foto_profil_path = '';
         </div>
 
           <!-- ABSENSI & KEGIATAN - Conditional Access -->
-          <a href="<?= $can_access_magang ? 'index.php?page=absensi_Kegiatan' : 'javascript:void(0)' ?>" 
-            class="nav-item <?= $page=='absensi_Kegiatan'?'active':'' ?> 
+          <a href="<?= $can_access_magang ? 'index.php?page=absensi' : 'javascript:void(0)' ?>" 
+            class="nav-item <?= $page=='absensi'?'active':'' ?> 
                     <?= !$can_access_magang ? 'disabled' : '' ?> 
                     <?= ($status_magang === 'selesai') ? 'readonly' : '' ?>"
             data-tooltip="<?= !$can_access_magang ? 'Upload Surat Penerimaan dulu untuk akses fitur ini' : ($status_magang === 'selesai' ? 'Magang sudah selesai (Read-only)' : '') ?>"
             <?= !$can_access_magang ? 'onclick="return false;"' : '' ?>>
-            <i class="fas fa-tasks"></i> <span>Absensi & Kegiatan</span>
+            <i class="fas fa-tasks"></i> <span>Absensi Harian</span>
+          </a>
+
+          <a href="<?= $can_access_magang ? 'index.php?page=kegiatan' : 'javascript:void(0)' ?>" 
+            class="nav-item <?= $page=='kegiatan'?'active':'' ?> 
+                    <?= !$can_access_magang ? 'disabled' : '' ?> 
+                    <?= ($status_magang === 'selesai') ? 'readonly' : '' ?>"
+            data-tooltip="<?= !$can_access_magang ? 'Upload Surat Penerimaan dulu untuk akses fitur ini' : ($status_magang === 'selesai' ? 'Magang sudah selesai (Read-only)' : '') ?>"
+            <?= !$can_access_magang ? 'onclick="return false;"' : '' ?>>
+            <i class="fas fa-tasks"></i> <span>Kegiatan Harian</span>
           </a>
 
           <a href="index.php?page=notifikasi" class="nav-item <?= $page=='notifikasi'?'active':'' ?>">
