@@ -1,21 +1,31 @@
 <?php
-include '../../../Koneksi/koneksi.php';
+include "../../../Koneksi/koneksi.php";
 
-$nama = $_POST['nama'];
-$email = $_POST['email'];
-$role = $_POST['role'];
-$password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $nama = $_POST['nama'];
+    $email = $_POST['email'];
+    $pass = $_POST['password'];
+    $role = $_POST['role'];
 
-$query = "INSERT INTO users (nama, email, role, password) 
-          VALUES ('$nama', '$email', '$role', '$password')";
+    // Hash password
+    $password_hash = password_hash($pass, PASSWORD_DEFAULT);
 
-$result = mysqli_query($conn, $query);
+    // Query insert
+    $query = mysqli_query($conn, "INSERT INTO users (nama, email, password, role)
+                                 VALUES ('$nama', '$email', '$password_hash', '$role')");
 
-if (!$result) {
-    echo "SQL ERROR: " . mysqli_error($conn);
-    exit;
+    if ($query) {
+        // Redirect ke halaman manajemen_User.php dengan parameter success
+        header("Location: ../../index.php?page=manajemen_User&success=1");
+        exit();
+    } else {
+        // Redirect dengan parameter error
+        header("Location: ../../index.php?page=manajemen_User&error=1");
+        exit();
+    }
+} else {
+    // Jika bukan POST request, redirect ke halaman manajemen
+    header("Location: ../../index.php?page=manajemen_User");
+    exit();
 }
-
-header("Location: ../../index.php?page=manajemen_User");
-exit;
 ?>

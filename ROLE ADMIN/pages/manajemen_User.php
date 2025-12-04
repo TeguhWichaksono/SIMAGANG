@@ -1,258 +1,70 @@
 <?php
 include '../Koneksi/koneksi.php';
 
-// 1. Query untuk Data Pengurus (Selain Mahasiswa)
-$query_pengurus = "SELECT * FROM users 
-                   WHERE role != 'Mahasiswa' 
-                   ORDER BY id ASC";
-$result_pengurus = mysqli_query($conn, $query_pengurus);
+$query_pengurus = mysqli_query($conn, "SELECT * FROM users WHERE role <> 'mahasiswa' ORDER BY id ASC");
 
-// 2. Query untuk Data Mahasiswa (Khusus Mahasiswa)
-$query_mahasiswa = "SELECT * FROM users 
-                    WHERE role = 'Mahasiswa' 
-                    ORDER BY id ASC";
-$result_mahasiswa = mysqli_query($conn, $query_mahasiswa);
-
-if (!$result_pengurus || !$result_mahasiswa) {
-    die("Query Error: " . mysqli_error($conn));
-}
+$query_mahasiswa = mysqli_query($conn, "SELECT * FROM users WHERE role = 'mahasiswa' ORDER BY id ASC");
 ?>
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>Manajemen User - SI MAGANG</title>
-  <link rel="stylesheet" href="styles/manajemen_User.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Manajemen User</title>
 
-  <style>
-    /* Reset & Basic Style mirip referensi */
-    body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #f4f6f9;
-        margin: 0;
-        padding: 20px;
-    }
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    /* Card Container */
-    .card {
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 0 15px rgba(0,0,0,0.05);
-        overflow: hidden;
-        max-width: 1000px;
-        margin: 0 auto;
-    }
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    .card-header-title {
-        text-align: center;
-        font-size: 24px;
-        font-weight: bold;
-        color: #333;
-        padding: 20px 0 10px;
-    }
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    /* Tab Navigation */
-    .tab-nav {
-        display: flex;
-        border-bottom: 2px solid #e0e0e0;
-        margin-top: 10px;
-    }
+  <link rel="stylesheet" href="/SIMAGANG-arilmun/ROLE%20ADMIN/styles/manajemen_user.css?v=3">
 
-    .tab-btn {
-        flex: 1;
-        padding: 15px;
-        border: none;
-        background: none;
-        cursor: pointer;
-        font-size: 16px;
-        font-weight: 600;
-        color: #6c757d;
-        border-bottom: 3px solid transparent;
-        transition: all 0.3s;
-    }
-
-    .tab-btn:hover {
-        background-color: #f8f9fa;
-    }
-
-    /* Active Tab Style (Biru seperti gambar) */
-    .tab-btn.active {
-        color: #4e73df; /* Warna biru */
-        border-bottom-color: #4e73df;
-    }
-
-    .tab-btn i {
-        margin-right: 8px;
-    }
-
-    /* Tab Content */
-    .tab-content {
-        display: none; /* Hidden by default */
-        padding: 20px;
-        animation: fadeIn 0.5s;
-    }
-    
-    .tab-content.active {
-        display: block;
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-
-    /* Section Header (Judul & Tombol Tambah) */
-    .content-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-    }
-
-    .content-title {
-        font-size: 18px;
-        font-weight: bold;
-        color: #444;
-    }
-
-    /* Buttons */
-    .btn {
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        padding: 8px 12px;
-        font-size: 14px;
-        color: white;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-    }
-
-    .btn-success { background-color: #28a745; } /* Hijau */
-    .btn-warning { background-color: #ffc107; color: #fff; } /* Kuning */
-    .btn-danger { background-color: #dc3545; } /* Merah */
-
-    .btn:hover { opacity: 0.9; }
-
-    /* Table Styling */
-    .custom-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px;
-    }
-
-    .custom-table th, .custom-table td {
-        padding: 12px 15px;
-        text-align: left;
-        border-bottom: 1px solid #eee;
-    }
-
-    .custom-table th {
-        background-color: #f8f9fc;
-        color: #555;
-        font-weight: bold;
-    }
-
-    .custom-table tr:hover {
-        background-color: #fafafa;
-    }
-
-    .role-badge {
-        font-weight: bold;
-        color: #4e73df;
-    }
-
-    /* Modal Styling (Sederhana) */
-    .modal-bg {
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background: rgba(0,0,0,0.5);
-        display: none;
-        justify-content: center;
-        align-items: center;
-        z-index: 999;
-    }
-
-    .modal-box {
-        background: white;
-        padding: 25px;
-        border-radius: 8px;
-        width: 400px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    }
-
-    .modal-box h3 { margin-top: 0; margin-bottom: 20px; }
-    
-    .modal-box input, .modal-box select {
-        width: 100%;
-        padding: 10px;
-        margin-bottom: 10px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        box-sizing: border-box; /* Agar padding tidak menambah lebar */
-    }
-
-    .modal-footer {
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-        margin-top: 10px;
-    }
-
-    .btn-close { background-color: #6c757d; }
-    .btn-save { background-color: #4e73df; }
-
-  </style>
 </head>
-
 <body>
 
-<div class="card">
-  <div class="card-header-title">Manajemen User</div>
+<div class="user-container">
+  <h2 style="margin-bottom:15px;">Manajemen User</h2>
 
-  <div class="tab-nav">
-    <button class="tab-btn active" onclick="switchTab('pengurus')">
-      <i class="fa fa-file-lines"></i> Data Pengurus
-    </button>
-    <button class="tab-btn" onclick="switchTab('mahasiswa')">
-      <i class="fa fa-users"></i> Data Mahasiswa
-    </button>
+  <div class="header-action" style="gap:8px;">
+    <button id="btnPengurus" class="add-btn tab-btn" onclick="showPengurus()">Data Pengurus</button>
+    <button id="btnMahasiswa" class="add-btn tab-btn" onclick="showMahasiswa()">Data Mahasiswa</button>
   </div>
 
-  <div id="pengurus" class="tab-content active">
-    <div class="content-header">
-        <span class="content-title">Daftar Pengurus</span>
-        <button class="btn btn-success" onclick="openAddModal('pengurus')">
-            <i class="fa fa-plus"></i> Tambah Pengurus
-        </button>
+  <!-- ===================== PENGURUS ========================= -->
+  <div id="pengurusTable">
+    <div class="header-action">
+      <button class="add-btn" data-bs-toggle="modal" data-bs-target="#modalPengurus">+ Tambah Pengurus</button>
     </div>
 
-    <table class="custom-table">
+    <table class="user-table">
       <thead>
-        <tr>
-          <th width="5%">No</th>
-          <th>Nama</th>
-          <th>Email</th>
-          <th>Role</th> <th width="15%">Aksi</th>
-        </tr>
+        <tr><th>No</th><th>Nama</th><th>Email</th><th>Role</th><th>Aksi</th></tr>
       </thead>
       <tbody>
-        <?php $no = 1; while($row = mysqli_fetch_assoc($result_pengurus)): ?>
+        <?php $no=1; while($row = mysqli_fetch_assoc($query_pengurus)): ?>
         <tr>
           <td><?= $no++ ?></td>
-          <td><?= $row['nama'] ?></td>
-          <td><?= $row['email'] ?></td>
-          <td><span class="role-badge"><?= $row['role'] ?></span></td>
+          <td><?= htmlspecialchars($row['nama']) ?></td>
+          <td><?= htmlspecialchars($row['email']) ?></td>
           <td>
-            <button class="btn btn-warning" onclick="openEditModal('<?= $row['id']?>', '<?= $row['nama']?>', '<?= $row['email']?>', '<?= $row['role']?>', '')">
-                <i class="fa fa-pen"></i>
+            <?php 
+              // Format tampilan role
+              $roleDisplay = $row['role'];
+              if ($row['role'] == 'koordinator_bidang') {
+                  $roleDisplay = 'Koordinator Bidang';
+              } elseif ($row['role'] == 'dosen_pembimbing') {
+                  $roleDisplay = 'Dosen Pembimbing';
+              }
+              echo htmlspecialchars($roleDisplay);
+            ?>
+          </td>
+          <td>
+            <button class="action-btn edit-btn" onclick="editPengurus(<?= $row['id'] ?>, '<?= addslashes($row['nama']) ?>', '<?= addslashes($row['email']) ?>', '<?= addslashes($row['role']) ?>')">
+              <i class="fa fa-pen"></i>
             </button>
-            <a href="pages/crud_user/delete_pengurus.php?id=<?= $row['id'] ?>" onclick="return confirm('Hapus pengurus ini?')" class="btn btn-danger">
-                <i class="fa fa-trash"></i>
+            <a href="pages/crud_user/delete_pengurus.php?id=<?= $row['id'] ?>" class="delete-link">
+              <button class="action-btn delete-btn"><i class="fa fa-trash"></i></button>
             </a>
           </td>
         </tr>
@@ -261,36 +73,44 @@ if (!$result_pengurus || !$result_mahasiswa) {
     </table>
   </div>
 
-  <div id="mahasiswa" class="tab-content">
-    <div class="content-header">
-        <span class="content-title">Daftar Mahasiswa</span>
-        <button class="btn btn-success" onclick="openAddModal('mahasiswa')">
-            <i class="fa fa-plus"></i> Tambah Mahasiswa
-        </button>
+  <!-- ===================== MAHASISWA ========================= -->
+  <div id="mahasiswaTable" style="display:none;">
+    <div class="header-action">
+      <button class="add-btn" data-bs-toggle="modal" data-bs-target="#modalMahasiswa">+ Tambah Mahasiswa</button>
     </div>
 
-    <table class="custom-table">
+    <!-- Upload Excel Section -->
+    <div class="upload-container">
+      <form action="pages/crud_user/upload_excel_mahasiswa.php" method="POST" enctype="multipart/form-data" id="formUploadExcel">
+        <div class="upload-row">
+          <input type="file" name="excel_file" class="file-input" accept=".csv,.xlsx,.xls" required>
+          <button type="submit" class="upload-btn">
+            <i class="fa fa-upload"></i> Upload Excel
+          </button>
+        </div>
+        <small class="upload-note small-note">
+          Format: <strong>Kolom A = Nama</strong>, <strong>Kolom B = NIM</strong> | Support sheets (File .csv)
+        </small>
+      </form>
+    </div>
+
+    <table class="user-table">
       <thead>
-        <tr>
-          <th width="5%">No</th>
-          <th>Nama</th>
-          <th>NIM</th> <th>Email</th>
-          <th width="15%">Aksi</th>
-        </tr>
+        <tr><th>No</th><th>NIM</th><th>Nama</th><th>Email</th><th>Aksi</th></tr>
       </thead>
       <tbody>
-        <?php $no = 1; while($row = mysqli_fetch_assoc($result_mahasiswa)): ?>
+        <?php $no=1; while($m = mysqli_fetch_assoc($query_mahasiswa)): ?>
         <tr>
           <td><?= $no++ ?></td>
-          <td><?= $row['nama'] ?></td>
-          <td><?= isset($row['nim']) ? $row['nim'] : '-' ?></td>
-          <td><?= $row['email'] ?></td>
+          <td><?= htmlspecialchars($m['nim']) ?></td>
+          <td><?= htmlspecialchars($m['nama']) ?></td>
+          <td><?= htmlspecialchars($m['email']) ?></td>
           <td>
-            <button class="btn btn-warning" onclick="openEditModal('<?= $row['id']?>', '<?= $row['nama']?>', '<?= $row['email']?>', 'Mahasiswa', '<?= isset($row['nim']) ? $row['nim'] : '' ?>')">
-                <i class="fa fa-pen"></i>
+            <button class="action-btn edit-btn" onclick="editMahasiswa(<?= $m['id'] ?>, '<?= addslashes($m['nama']) ?>', '<?= addslashes($m['nim']) ?>', '<?= addslashes($m['email']) ?>')">
+              <i class="fa fa-pen"></i>
             </button>
-            <a href="pages/crud_user/delete_pengurus.php?id=<?= $row['id'] ?>" onclick="return confirm('Hapus mahasiswa ini?')" class="btn btn-danger">
-                <i class="fa fa-trash"></i>
+            <a href="pages/crud_user/delete_mahasiswa.php?id=<?= $m['id'] ?>" class="delete-link">
+              <button class="action-btn delete-btn"><i class="fa fa-trash"></i></button>
             </a>
           </td>
         </tr>
@@ -300,139 +120,324 @@ if (!$result_pengurus || !$result_mahasiswa) {
   </div>
 </div>
 
-<div class="modal-bg" id="addModal">
-  <div class="modal-box">
-    <h3 id="modalTitle">Tambah User</h3>
-    <form action="pages/crud_user/create_pengurus.php" method="POST">
-      
-      <input type="text" name="nama" placeholder="Nama Lengkap" required>
-      
-      <div id="inputNimGroup" style="display:none;">
-         <input type="text" name="nim" placeholder="Nomor Induk Mahasiswa (NIM)">
-         <input type="hidden" name="role_fixed" value="Mahasiswa">
+<!-- =================== MODAL EDIT PENGURUS ==================== -->
+<div class="modal fade" id="modalEditPengurus" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Data Pengurus</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
+      <form action="pages/crud_user/update_pengurus.php" method="POST" id="formEditPengurus">
+        <input type="hidden" name="id" id="edit_pengurus_id">
+        <input type="hidden" name="is_modal" value="1">
+        <div class="modal-body">
+          <label class="form-label">Nama</label>
+          <input type="text" name="nama" id="edit_pengurus_nama" class="form-control mb-3" required>
 
-      <input type="email" name="email" placeholder="Email Institusional Polije" required>
-      <input type="password" name="password" placeholder="Kata Sandi" required>
+          <label class="form-label">Email</label>
+          <input type="email" name="email" id="edit_pengurus_email" class="form-control mb-3" required>
 
-      <select name="role" id="inputRoleGroup" required>
-        <option value="">Pilih Role</option>
-        <option value="Admin">Admin</option>
-        <option value="Koordinator Bidang Magang">Koordinator Bidang Magang</option>
-        <option value="Dosen Pembimbing">Dosen Pembimbing</option>
-      </select>
+          <label class="form-label">Password</label>
+          <input type="password" name="password" class="form-control mb-3" placeholder="Kosongkan jika tidak ingin mengubah">
+          <small class="text-muted">*Isi hanya jika ingin mengubah password</small>
 
-      <div class="modal-footer">
-        <button type="button" class="btn btn-close" onclick="closeModal('addModal')">Tutup</button>
-        <button type="submit" class="btn btn-save">Simpan</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<div class="modal-bg" id="editModal">
-  <div class="modal-box">
-    <h3>Edit User</h3>
-    <form action="pages/crud_user/update_pengurus.php" method="POST">
-      <input type="hidden" id="edit_id" name="id">
-      
-      <label>Nama</label>
-      <input type="text" id="edit_nama" name="nama" required>
-      
-      <div id="editNimGroup" style="display:none;">
-        <label>NIM</label>
-        <input type="text" id="edit_nim" name="nim">
-      </div>
-
-      <label>Email</label>
-      <input type="email" id="edit_email" name="email" required>
-
-      <div id="editRoleGroup">
-          <label>Role</label>
-          <select id="edit_role" name="role">
+          <label class="form-label">Role</label>
+          <select name="role" id="edit_pengurus_role" class="form-select mb-3" required>
             <option value="Admin">Admin</option>
-            <option value="Koordinator Bidang Magang">Koordinator Bidang Magang</option>
-            <option value="Dosen Pembimbing">Dosen Pembimbing</option>
-            <!-- <option value="Mahasiswa">Mahasiswa</option>   -->
+            <option value="koordinator_bidang">Koordinator Bidang</option>
+            <option value="dosen_pembimbing">Dosen Pembimbing</option>
           </select>
-      </div>
-
-      <div class="modal-footer">
-        <button type="button" class="btn btn-close" onclick="closeModal('editModal')">Tutup</button>
-        <button type="submit" class="btn btn-save">Update</button>
-      </div>
-    </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+          <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
+
+<!-- =================== MODAL EDIT MAHASISWA ==================== -->
+<div class="modal fade" id="modalEditMahasiswa" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Data Mahasiswa</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="pages/crud_user/update_mahasiswa.php" method="POST" id="formEditMahasiswa">
+        <input type="hidden" name="id" id="edit_mahasiswa_id">
+        <input type="hidden" name="is_modal" value="1">
+        <div class="modal-body">
+          <label class="form-label">NIM</label>
+          <input type="text" name="nim" id="edit_mahasiswa_nim" class="form-control mb-3" required>
+
+          <label class="form-label">Nama</label>
+          <input type="text" name="nama" id="edit_mahasiswa_nama" class="form-control mb-3" required>
+
+          <label class="form-label">Email</label>
+          <input type="email" name="email" id="edit_mahasiswa_email" class="form-control mb-3" required>
+
+          <label class="form-label">Password</label>
+          <input type="password" name="password" class="form-control mb-3" placeholder="Kosongkan jika tidak ingin mengubah">
+          <small class="text-muted">*Isi hanya jika ingin mengubah password</small>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+          <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- =================== MODAL TAMBAH PENGURUS ==================== -->
+<div class="modal fade" id="modalPengurus" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Tambah Pengurus</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <form action="pages/crud_user/create_pengurus.php" method="POST">
+        <div class="modal-body">
+          
+          <label class="form-label">Nama</label>
+          <input type="text" name="nama" class="form-control mb-3" placeholder="Masukkan Nama" required>
+
+          <label class="form-label">Email</label>
+          <input type="email" name="email" class="form-control mb-3" placeholder="Masukkan Email" required>
+
+          <label class="form-label">Password</label>
+          <input type="password" name="password" class="form-control mb-3" placeholder="Masukkan Password" required>
+
+          <label class="form-label">Role</label>
+          <select name="role" class="form-select mb-3" required>
+            <option value="" disabled selected>Pilih Role</option>
+            <option value="Admin">Admin</option>
+            <option value="koordinator_bidang">Koordinator Bidang</option>
+            <option value="dosen_pembimbing">Dosen Pembimbing</option>
+          </select>
+
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+          <button type="submit" class="btn btn-primary">Simpan</button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<!-- =================== MODAL TAMBAH MAHASISWA ==================== -->
+<div class="modal fade" id="modalMahasiswa" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Tambah Mahasiswa</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <form action="pages/crud_user/create_mahasiswa.php" method="POST">
+        <div class="modal-body">
+          
+          <label class="form-label">NIM</label>
+          <input type="text" name="nim" class="form-control mb-3" placeholder="Masukkan NIM" required>
+
+          <label class="form-label">Nama</label>
+          <input type="text" name="nama" class="form-control mb-3" placeholder="Masukkan Nama" required>
+
+          <label class="form-label">Email</label>
+          <input type="email" name="email" class="form-control mb-3" placeholder="Masukkan Email" required>
+
+          <label class="form-label">Password</label>
+          <input type="password" name="password" class="form-control mb-3" placeholder="Masukkan Password" required>
+
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+          <button type="submit" class="btn btn-primary">Simpan</button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+
 
 <script>
-function switchTab(tabName) {
-    var contents = document.getElementsByClassName("tab-content");
-    for (var i = 0; i < contents.length; i++) {
-        contents[i].classList.remove("active");
+function showPengurus(){
+  document.getElementById('pengurusTable').style.display='block';
+  document.getElementById('mahasiswaTable').style.display='none';
+}
+function showMahasiswa(){
+  document.getElementById('pengurusTable').style.display='none';
+  document.getElementById('mahasiswaTable').style.display='block';
+}
+
+// Cek parameter tab dari URL
+const urlParams = new URLSearchParams(window.location.search);
+const activeTab = urlParams.get('tab');
+
+if (activeTab === 'mahasiswa') {
+    showMahasiswa();
+} else {
+    showPengurus();
+}
+
+// Function untuk edit pengurus
+function editPengurus(id, nama, email, role) {
+    document.getElementById('edit_pengurus_id').value = id;
+    document.getElementById('edit_pengurus_nama').value = nama;
+    document.getElementById('edit_pengurus_email').value = email;
+    document.getElementById('edit_pengurus_role').value = role;
+    
+    var modal = new bootstrap.Modal(document.getElementById('modalEditPengurus'));
+    modal.show();
+}
+
+// Function untuk edit mahasiswa
+function editMahasiswa(id, nama, nim, email) {
+    document.getElementById('edit_mahasiswa_id').value = id;
+    document.getElementById('edit_mahasiswa_nim').value = nim;
+    document.getElementById('edit_mahasiswa_nama').value = nama;
+    document.getElementById('edit_mahasiswa_email').value = email;
+    
+    var modal = new bootstrap.Modal(document.getElementById('modalEditMahasiswa'));
+    modal.show();
+}
+
+// Validasi upload Excel
+document.getElementById('formUploadExcel')?.addEventListener('submit', function(e) {
+    const fileInput = this.querySelector('input[type="file"]');
+    if (!fileInput.files.length) {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'warning',
+            title: 'Pilih File!',
+            text: 'Silakan pilih file Excel/CSV terlebih dahulu',
+        });
+        return;
     }
     
-    var buttons = document.getElementsByClassName("tab-btn");
-    for (var i = 0; i < buttons.length; i++) {
-        buttons[i].classList.remove("active");
-    }
-
-    document.getElementById(tabName).classList.add("active");
+    const fileName = fileInput.files[0].name;
+    const fileExt = fileName.split('.').pop().toLowerCase();
     
-    if(tabName === 'pengurus') {
-        document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
-    } else {
-        document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
+    if (!['csv', 'xlsx', 'xls'].includes(fileExt)) {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'error',
+            title: 'Format Salah!',
+            text: 'Hanya file .csv, .xlsx, atau .xls yang diperbolehkan',
+        });
+        return;
     }
-}
+});
 
-// Logic Modal Tambah
-function openAddModal(type){
-  document.getElementById("addModal").style.display = "flex";
-  
-  if(type === 'mahasiswa'){
-    document.getElementById("modalTitle").innerText = "Tambah Mahasiswa";
-    document.getElementById("inputNimGroup").style.display = "block"; // Tampilkan NIM
-    document.getElementById("inputRoleGroup").style.display = "none"; // Sembunyikan Select Role
-    document.getElementById("inputRoleGroup").removeAttribute('required'); // Hapus required role
-  } else {
-    document.getElementById("modalTitle").innerText = "Tambah Pengurus";
-    document.getElementById("inputNimGroup").style.display = "none"; // Sembunyikan NIM
-    document.getElementById("inputRoleGroup").style.display = "block"; // Tampilkan Select Role
-    document.getElementById("inputRoleGroup").setAttribute('required', 'true');
-  }
-}
+// Konfirmasi hapus dengan SweetAlert
+document.querySelectorAll('.delete-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const url = this.href;
+        
+        Swal.fire({
+            title: 'Hapus Data?',
+            text: 'Apakah Anda yakin ingin menghapus data ini?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e63946',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = url;
+            }
+        });
+    });
+});
 
-// Logic Modal Edit
-function openEditModal(id, nama, email, role, nim){
-  document.getElementById("editModal").style.display = "flex";
+// Notifikasi
+<?php if (isset($_GET['success'])): ?>
+Swal.fire({
+    icon: 'success',
+    title: 'Berhasil!',
+    text: 'Akun baru berhasil ditambahkan!',
+    showConfirmButton: false,
+    timer: 1500
+});
+<?php endif; ?>
 
-  document.getElementById("edit_id").value = id;
-  document.getElementById("edit_nama").value = nama;
-  document.getElementById("edit_email").value = email;
-  document.getElementById("edit_role").value = role;
-  
-  if(role === 'Mahasiswa'){
-      document.getElementById("editNimGroup").style.display = "block";
-      document.getElementById("edit_nim").value = nim;
-      document.getElementById("editRoleGroup").style.display = "none"; 
-  } else {
-      document.getElementById("editNimGroup").style.display = "none";
-      document.getElementById("editRoleGroup").style.display = "block"; 
-  }
-}
+<?php if (isset($_GET['success_upload'])): ?>
+Swal.fire({
+    icon: 'success',
+    title: 'Upload Berhasil!',
+    html: 'Berhasil: <strong><?= $_GET['success_upload'] ?></strong> data<br>Gagal: <strong><?= $_GET['failed_upload'] ?? 0 ?></strong> data (duplikat)',
+    confirmButtonText: 'OK'
+});
+<?php endif; ?>
 
-function closeModal(modalId){
-  document.getElementById(modalId).style.display = "none";
-}
+<?php if (isset($_GET['success_delete'])): ?>
+Swal.fire({
+    icon: 'success',
+    title: 'Berhasil Dihapus!',
+    text: 'Data berhasil dihapus dari sistem',
+    showConfirmButton: false,
+    timer: 1500
+});
+<?php endif; ?>
 
-// Tutup modal jika klik di luar box
-window.onclick = function(event) {
-  if (event.target.classList.contains('modal-bg')) {
-    event.target.style.display = "none";
-  }
-}
+<?php if (isset($_GET['success_update'])): ?>
+Swal.fire({
+    icon: 'success',
+    title: 'Berhasil Diupdate!',
+    text: 'Data berhasil diperbarui',
+    showConfirmButton: false,
+    timer: 1500
+});
+<?php endif; ?>
+
+<?php if (isset($_GET['error'])): ?>
+<?php 
+    $errorMsg = 'Terjadi kesalahan!';
+    switch($_GET['error']) {
+        case 'invalid_file':
+            $errorMsg = 'Format file tidak valid! Gunakan .csv, .xlsx, atau .xls';
+            break;
+        case 'upload_failed':
+            $errorMsg = 'Upload file gagal!';
+            break;
+        case 'read_failed':
+            $errorMsg = 'Gagal membaca file Excel!';
+            break;
+        case 'no_data':
+            $errorMsg = 'Tidak ada data yang berhasil diimport!';
+            break;
+        case 'duplicate_nim':
+            $errorMsg = 'NIM sudah terdaftar!';
+            break;
+        case 'library_missing':
+            $errorMsg = 'Library PhpSpreadsheet belum terinstall! Jalankan: composer require phpoffice/phpspreadsheet';
+            break;
+    }
+?>
+Swal.fire({
+    icon: 'error',
+    title: 'Gagal!',
+    text: '<?= $errorMsg ?>',
+    confirmButtonText: 'OK'
+});
+<?php endif; ?>
 </script>
 
-  </body>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
 </html>
