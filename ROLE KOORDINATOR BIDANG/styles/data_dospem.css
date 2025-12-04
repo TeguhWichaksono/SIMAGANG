@@ -1,3 +1,4 @@
+/* Content Section - Sesuai tema sistem */
 .content-section {
   background: #fff;
   border-radius: 15px;
@@ -19,6 +20,131 @@
   color: #4270f4;
 }
 
+/* Filter Wrapper */
+.filter-wrapper {
+  background: #f9f9f9;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #e0e0e0;
+}
+
+/* Search Bar */
+.search-bar-data {
+  margin-bottom: 10px;
+}
+
+.search-bar-data input {
+  padding: 10px 15px;
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+.search-bar-data input:focus {
+  outline: none;
+  border-color: #4270f4;
+  box-shadow: 0 0 0 3px rgba(66, 112, 244, 0.1);
+}
+
+/* Filter Controls */
+.filter-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.filter-select {
+  flex: 1;
+  padding: 10px 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #4270f4;
+  box-shadow: 0 0 0 3px rgba(66, 112, 244, 0.1);
+}
+
+/* Button Reset */
+.btn-reset {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background-color: #4270f4;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.btn-reset:hover {
+  background-color: #3056c5;
+}
+
+.btn-reset i {
+  font-size: 13px;
+}
+
+/* Info Badge - Design Modern */
+.info-badge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 15px 20px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.badge-icon {
+  background: rgba(255, 255, 255, 0.2);
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+}
+
+.badge-icon i {
+  font-size: 24px;
+  color: white;
+}
+
+.badge-content {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.badge-label {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.badge-count {
+  color: white;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* Table Styling - Sesuai tema sistem */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -42,26 +168,47 @@ table tr:nth-child(even) {
   background: #f9f9f9;
 }
 
-.search-bar-data {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 10px;
+table tr:hover {
+  background: #f0f7ff;
 }
 
-.search-bar-data input {
-  padding: 8px;
-  width: 250px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
+/* No Data Message */
+#noData {
+  background: #f9f9f9;
+  border-radius: 10px;
+  border: 2px dashed #ddd;
 }
 
-ul.anggota-list {
-  list-style-type: disc;
-  margin: 5px 0 5px 20px;
-  padding: 0;
+/* Responsive Design */
+@media (max-width: 768px) {
+  .filter-controls {
+    flex-direction: column;
+  }
+
+  .filter-select {
+    width: 100%;
+  }
+
+  .btn-reset {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .search-bar-data input {
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+
+  table {
+    font-size: 13px;
+  }
+
+  table th,
+  table td {
+    padding: 8px 5px;
+  }
 }
 
-ul.anggota-list li {
-  margin-bottom: 5px;
+/* Smooth Transitions */
+* {
+  transition: all 0.3s ease;
 }
-
