@@ -51,6 +51,28 @@ $pagePath = "pages/$page.php";
 // }
 
 $foto_profil_path = ''; 
+
+if (isset($_SESSION['id'])) {
+    $id = $_SESSION['id'];
+    
+    // Ambil foto_profil dari database
+    $stmt = mysqli_prepare($conn, "SELECT foto_profil FROM users WHERE id = ?");
+    
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, 'i', $id);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+
+        if ($result && $row = mysqli_fetch_assoc($result)) {
+            $db_foto = $row['foto_profil'];
+            
+            if (!empty($db_foto) && file_exists("uploads/" . $db_foto)) {
+                $foto_profil_path = "uploads/" . $db_foto;
+            } 
+        }
+        mysqli_stmt_close($stmt);
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">

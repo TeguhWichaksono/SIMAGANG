@@ -1,7 +1,7 @@
 <?php
 session_start();
 // Sesuaikan path koneksi dengan struktur folder
-include '../Koneksi/koneksi.php';
+include '../../Koneksi/koneksi.php';
 
 if (!isset($_SESSION['id'])) {
     $_SESSION['upload_message'] = "Error: Sesi pengguna tidak ditemukan.";

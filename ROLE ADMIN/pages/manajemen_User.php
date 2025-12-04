@@ -18,7 +18,7 @@ $query_mahasiswa = mysqli_query($conn, "SELECT * FROM users WHERE role = 'mahasi
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-  <link rel="stylesheet" href="/SIMAGANG-arilmun/ROLE%20ADMIN/styles/manajemen_user.css?v=3">
+  <link rel="stylesheet" href="styles/manajemen_user.css?v=3">
 
 </head>
 <body>

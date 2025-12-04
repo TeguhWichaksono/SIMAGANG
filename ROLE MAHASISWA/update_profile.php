@@ -1,6 +1,6 @@
 <?php
 session_start();
-include '../Koneksi/koneksi.php';
+include '../../Koneksi/koneksi.php';
 
 // Pastikan output JSON
 header('Content-Type: application/json');
