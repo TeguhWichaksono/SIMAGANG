@@ -106,9 +106,6 @@ table tr:nth-child(even) {
         border-radius: 5px;
         cursor: pointer;
         margin-bottom: 10px;
-<<<<<<< HEAD
-      }
-=======
       }
 
    .export-btn {
@@ -129,4 +126,3 @@ table tr:nth-child(even) {
 .export-btn i {
   margin-right: 5px;
 }
->>>>>>> origin/arilmun

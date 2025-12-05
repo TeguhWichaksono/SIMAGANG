@@ -16,12 +16,9 @@ if (!empty($id)) {
         $user = mysqli_fetch_assoc($result);
     }
     mysqli_stmt_close($stmt);
-<<<<<<< HEAD
-=======
 } else {
     header('Location: '. '../Login/login.php');
     exit;
->>>>>>> origin/arilmun
 }
 
 if (!$user) {
@@ -35,11 +32,7 @@ if (!$user) {
 }
 
 $nama  = htmlspecialchars($user['nama']);
-<<<<<<< HEAD
-$nim = htmlspecialchars($user['nim']);
-=======
 $nim   = htmlspecialchars($user['nim'] ?: '');
->>>>>>> origin/arilmun
 $email = htmlspecialchars($user['email'] ?: '');
 $role  = ucfirst($user['role']);
 
@@ -47,11 +40,7 @@ $prodi = '';
 $angkatan = '';
 
 // ---- Ambil Data mahasiswa ----
-<<<<<<< HEAD
-$stmt_mhs = mysqli_prepare($conn, "SELECT prodi, angkatan FROM mahasiswa WHERE id_user = ?");
-=======
 $stmt_mhs = mysqli_prepare($conn, "SELECT prodi, angkatan, kontak FROM mahasiswa WHERE id_user = ?");
->>>>>>> origin/arilmun
 mysqli_stmt_bind_param($stmt_mhs, 'i', $id);
 mysqli_stmt_execute($stmt_mhs);
 $result_mhs = mysqli_stmt_get_result($stmt_mhs);
@@ -60,10 +49,7 @@ if ($result_mhs && mysqli_num_rows($result_mhs) > 0) {
     $m = mysqli_fetch_assoc($result_mhs);
     $prodi = htmlspecialchars($m['prodi']);
     $angkatan = htmlspecialchars($m['angkatan']);
-<<<<<<< HEAD
-=======
     $kontak = htmlspecialchars($m['kontak'] ?? '');
->>>>>>> origin/arilmun
 }
 mysqli_stmt_close($stmt_mhs);
 
@@ -78,18 +64,7 @@ if (isset($_SESSION['upload_message'])) {
 }
 ?>
 
-<<<<<<< HEAD
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles/Akun.css">
-</head>
-<body>
-=======
-    <link rel="stylesheet" href="styles/Akun.css">
->>>>>>> origin/arilmun
     <div class="profile-header" style="background-image: url('<?= $fotoCover ?>');"></div>
 
     <div class="profile-section">
@@ -122,14 +97,6 @@ if (isset($_SESSION['upload_message'])) {
 
             <div class="info-row">
                 <span class="info-label">NIM</span>
-<<<<<<< HEAD
-                <input type="text" class="info-input" name="nim" value="<?= $nim ?>">
-            </div>
-
-            <div class="info-row">
-                <span class="info-label">Email</span>
-                <input type="email" class="info-input" name="email" value="<?= $email ?>">
-=======
                 <input type="text" class="info-input readonly-input" name="nim" value="<?= $nim ?>" readonly title="NIM tidak dapat diubah">            </div>
             <div class="info-row">
                 <span class="info-label">Email</span>
@@ -137,7 +104,6 @@ if (isset($_SESSION['upload_message'])) {
             <div class="info-row">
                 <span class="info-label">No. Kontak</span>
                 <input type="text" class="info-input" name="kontak" value="<?= $kontak ?>" placeholder="08xxxxxxxxxx">
->>>>>>> origin/arilmun
             </div>
 
             <div class="info-row">

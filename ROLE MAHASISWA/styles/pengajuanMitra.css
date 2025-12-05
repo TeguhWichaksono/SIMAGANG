@@ -16,11 +16,7 @@
 form {
   display: flex;
   flex-wrap: wrap;
-<<<<<<< HEAD
-  gap: 20px;
-=======
   gap: 5px;
->>>>>>> origin/arilmun
 }
 
 .form-group {
@@ -30,16 +26,12 @@ form {
 }
 
 .form-group.full-width {
-<<<<<<< HEAD
-  flex: 1 1 100%;
-=======
   flex: 1 1 100% !important;
 }
 
 .form-group textarea {
   resize: vertical;
   min-height: 80px;
->>>>>>> origin/arilmun
 }
 
 .form-group label {
@@ -48,15 +40,9 @@ form {
   margin-bottom: 5px;
 }
 
-<<<<<<< HEAD
-.form-group input,
-.form-group textarea,
-.form-group select {
-=======
 /* ==== INPUT FIELD STYLE ==== */
 .form-group input,
 .form-group textarea {
->>>>>>> origin/arilmun
   border: 1px solid #ccc;
   border-radius: 8px;
   padding: 10px 12px;
@@ -65,60 +51,33 @@ form {
 }
 
 .form-group input:focus,
-<<<<<<< HEAD
-.form-group textarea:focus,
-.form-group select:focus {
-=======
 .form-group textarea:focus {
->>>>>>> origin/arilmun
   border-color: #4270f4;
   outline: none;
 }
 
-<<<<<<< HEAD
-textarea {
-  resize: vertical;
-  min-height: 80px;
-}
-
-.form-actions {
-  width: 100%;
-  text-align: center;
-  margin-top: 20px;
-=======
 /* ==== ACTION BUTTONS ==== */
 .form-actions {
   width: 100%;
   text-align: center;
   margin-top: 10px;
->>>>>>> origin/arilmun
 }
 
 .form-actions button {
   background: #4270f4;
   color: white;
   border: none;
-<<<<<<< HEAD
-  padding: 10px 30px;
-  font-size: 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.3s;
-=======
   padding: 10px 25px;
   font-size: 15px;
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.3s;
   margin: 5px;
->>>>>>> origin/arilmun
 }
 
 .form-actions button:hover {
   background: #3056c5;
 }
-<<<<<<< HEAD
-=======
 
 /* ==== POPUP OVERLAY ==== */
 .popup {
@@ -219,4 +178,3 @@ textarea {
 }
 
 
->>>>>>> origin/arilmun

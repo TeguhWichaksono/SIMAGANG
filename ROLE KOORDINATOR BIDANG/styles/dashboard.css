@@ -228,8 +228,6 @@
   width: 100% !important;
   height: 300px !important;
 }
-<<<<<<< HEAD
-=======
 /* Tambahkan CSS ini ke file dashboard.css yang sudah ada */
 
 /* Card yang bisa diklik */
@@ -278,4 +276,3 @@
 .transfer-card.clickable:hover .card-amount {
   text-shadow: 0 0 10px rgba(66, 112, 244, 0.5);
 }
->>>>>>> origin/arilmun

@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 <?php
 include 'C:/xampp/htdocs/SIMAGANG/Koneksi/koneksi.php';
 
@@ -38,7 +36,6 @@ $queryAktivitas = mysqli_query($conn, "SELECT * FROM log_aktivitas ORDER BY wakt
 $queryMitraPeta = mysqli_query($conn, "SELECT nama_mitra, alamat, bidang FROM mitra_perusahaan WHERE status = 'aktif' LIMIT 20");
 ?>
 
->>>>>>> origin/arilmun
 <link rel="stylesheet" href="styles/dashboard.css" />
 <!-- Dashboard Container -->
 <div class="dashboard-container">
@@ -46,44 +43,21 @@ $queryMitraPeta = mysqli_query($conn, "SELECT nama_mitra, alamat, bidang FROM mi
   <div class="dashboard-main">
     <!-- Transfer Cards -->
     <div class="transfer-cards">
-<<<<<<< HEAD
-      <div class="transfer-card">
-=======
       <!-- Card Mahasiswa - Klik ke halaman data mahasiswa -->
       <div class="transfer-card clickable" onclick="window.location.href='index.php?page=data_Mahasiswa'">
->>>>>>> origin/arilmun
         <div class="card-icon">
           <i class="fas fa-users"></i>
         </div>
         <p class="card-title">Jumlah Mahasiswa Magang</p>
-<<<<<<< HEAD
-        <h2 class="card-amount">94 Mahasiswa</h2>
-      </div>
-
-      <div class="transfer-card">
-=======
         <h2 class="card-amount"><?= $totalMahasiswa ?> Mahasiswa</h2>
       </div>
 
       <!-- Card Dosen - Klik ke halaman data dosen -->
       <div class="transfer-card clickable" onclick="window.location.href='index.php?page=data_dospem'">
->>>>>>> origin/arilmun
         <div class="card-icon">
           <i class="fas fa-chalkboard-teacher"></i>
         </div>
         <p class="card-title">Jumlah Dosen Pembimbing</p>
-<<<<<<< HEAD
-        <h2 class="card-amount">45 Dosen</h2>
-      </div>
-
-      <div class="transfer-card">
-        <div class="card-icon">
-          <i class="fas fa-building"></i>
-        </div>
-        <!-- ✅ Revisi kecil pada teks -->
-        <p class="card-title">Jumlah Instansi/perusahaan Mitra</p>
-        <h2 class="card-amount">165 Mitra</h2>
-=======
         <h2 class="card-amount"><?= $totalDosen ?> Dosen</h2>
       </div>
 
@@ -94,7 +68,6 @@ $queryMitraPeta = mysqli_query($conn, "SELECT nama_mitra, alamat, bidang FROM mi
         </div>
         <p class="card-title">Jumlah Instansi/Perusahaan Mitra</p>
         <h2 class="card-amount"><?= $totalMitra ?> Mitra</h2>
->>>>>>> origin/arilmun
       </div>
     </div>
 
@@ -110,33 +83,6 @@ $queryMitraPeta = mysqli_query($conn, "SELECT nama_mitra, alamat, bidang FROM mi
     <div class="transaction-section">
       <div class="transaction-card">
         <h3 class="section-title">Aktivitas Terbaru</h3>
-<<<<<<< HEAD
-        <div class="transaction-item">
-          <div class="transaction-icon">
-            <i class="fas fa-file-upload"></i>
-          </div>
-          <div class="transaction-content">
-            <div class="transaction-title">Budi Santoso mengunggah Laporan Bab II</div>
-            <div class="transaction-time">
-              <i class="far fa-clock"></i> Today, 14:45
-            </div>
-          </div>
-          <div class="transaction-amount positive">Selesai</div>
-        </div>
-
-        <div class="transaction-item">
-          <div class="transaction-icon">
-            <i class="fas fa-user-graduate"></i>
-          </div>
-          <div class="transaction-content">
-            <div class="transaction-title">Siti Aminah ditempatkan di PT Telkom</div>
-            <div class="transaction-time">
-              <i class="far fa-clock"></i> Yesterday, 16:08
-            </div>
-          </div>
-          <div class="transaction-amount positive">Selesai</div>
-        </div>
-=======
         
         <?php if (mysqli_num_rows($queryAktivitas) > 0) : ?>
           <?php while ($aktivitas = mysqli_fetch_assoc($queryAktivitas)) : ?>
@@ -161,7 +107,6 @@ $queryMitraPeta = mysqli_query($conn, "SELECT nama_mitra, alamat, bidang FROM mi
           </div>
         <?php endif; ?>
         
->>>>>>> origin/arilmun
       </div>
     </div>
   </div>
@@ -170,11 +115,7 @@ $queryMitraPeta = mysqli_query($conn, "SELECT nama_mitra, alamat, bidang FROM mi
   <div class="dashboard-sidebar">
     <div class="savings-card">
       <h3 class="savings-title">Jumlah Mahasiswa Aktif</h3>
-<<<<<<< HEAD
-      <div class="savings-amount">65 Mahasiswa</div>
-=======
       <div class="savings-amount"><?= $totalMahasiswaAktif ?> Mahasiswa</div>
->>>>>>> origin/arilmun
       <div class="time-filter">
         <button class="time-option">Harian</button>
         <button class="time-option">Mingguan</button>
@@ -192,19 +133,10 @@ $queryMitraPeta = mysqli_query($conn, "SELECT nama_mitra, alamat, bidang FROM mi
           </defs>
           <path
             class="chart-line-path"
-<<<<<<< HEAD
-            d="M0,80 C20,70 40,30 60,60 C80,90 100,40 120,30 C140,20 160,50 180,20 C200,30 220,60 240,80 C260,60 280,40 300,60"
-          ></path>
-          <path
-            class="chart-area"
-            d="M0,80 C20,70 40,30 60,60 C80,90 100,40 120,30 C140,20 160,50 180,20 C200,30 220,60 240,80 C260,60 280,40 300,60 L300,100 L0,100 Z"
-          ></path>
-=======
             d="M0,80 C20,70 40,30 60,60 C80,90 100,40 120,30 C140,20 160,50 180,20 C200,30 220,60 240,80 C260,60 280,40 300,60"></path>
           <path
             class="chart-area"
             d="M0,80 C20,70 40,30 60,60 C80,90 100,40 120,30 C140,20 160,50 180,20 C200,30 220,60 240,80 C260,60 280,40 300,60 L300,100 L0,100 Z"></path>
->>>>>>> origin/arilmun
           <circle cx="180" cy="20" r="6" fill="#4270F4" stroke="#ffffff" stroke-width="3" />
         </svg>
       </div>
@@ -250,18 +182,6 @@ $queryMitraPeta = mysqli_query($conn, "SELECT nama_mitra, alamat, bidang FROM mi
 
   var markersGroup = L.markerClusterGroup();
 
-<<<<<<< HEAD
-  var mitra = [
-    { name: "PT Jember Abadi", coords: [-8.1681, 113.7040], address: "Jl. Letjen Panjaitan No.1" },
-    { name: "CV Jember Maju", coords: [-8.1800, 113.6950], address: "Jl. Gajah Mada No.12" },
-    { name: "Koperasi Sejahtera", coords: [-8.1750, 113.7100], address: "Jl. Sudirman No.5" },
-    { name: "PT Nusantara Jember", coords: [-8.1700, 113.7200], address: "Jl. Ahmad Yani No.25" },
-    { name: "CV Sentosa", coords: [-8.1650, 113.6900], address: "Jl. Raya Jember No.8" }
-  ];
-
-  mitra.forEach(m => {
-    var marker = L.marker(m.coords).bindPopup(`<b>${m.name}</b><br>${m.address}`);
-=======
   // Data mitra dari database
   var mitra = [
     <?php 
@@ -287,19 +207,12 @@ $queryMitraPeta = mysqli_query($conn, "SELECT nama_mitra, alamat, bidang FROM mi
       <i class="fas fa-map-marker-alt"></i> ${m.address}<br>
       <i class="fas fa-briefcase"></i> ${m.bidang}
     `);
->>>>>>> origin/arilmun
     markersGroup.addLayer(marker);
   });
 
   map.addLayer(markersGroup);
 
   if (markersGroup.getLayers().length > 0) {
-<<<<<<< HEAD
-    map.fitBounds(markersGroup.getBounds(), { padding:[40,40] });
-  }
-</script>
-=======
     map.fitBounds(markersGroup.getBounds(), { padding: [40, 40] });
   }
 </script>
->>>>>>> origin/arilmun

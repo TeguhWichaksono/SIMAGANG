@@ -1,30 +1,18 @@
 <?php
 session_start();
-<<<<<<< HEAD
-// Sertakan koneksi database
-include '../Koneksi/koneksi.php'; 
-=======
-include '../Koneksi/koneksi.php'; 
+include '../Koneksi/koneksi.php';
 require_once '../config.php';
->>>>>>> origin/arilmun
 
 $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 $pagePath = "pages/$page.php";
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-// cekRole('Dosen Pembimbing');
-=======
 cekRole('Dosen Pembimbing');
->>>>>>> 09c0ddacc8f269e389b85ef1022cafa3289e0c87
 
 if($_SESSION['role'] !== 'Dosen Pembimbing'){
   echo "Anda bukan Dosen Pembimbing";
 }
 
->>>>>>> origin/arilmun
-$foto_profil_path = ''; 
+$foto_profil_path = '';
 
 if (isset($_SESSION['id'])) {
     $id = $_SESSION['id'];
@@ -317,7 +305,6 @@ if (isset($_SESSION['id'])) {
   </head>
 
   <body>
-    <!-- Sidebar -->
     <div class="sidebar">
       <div class="logo">
         <svg width="100" height="40" viewBox="0 0 100 40">
@@ -355,9 +342,7 @@ if (isset($_SESSION['id'])) {
       </div>
     </div>
 
-    <!-- Main Content -->
     <div class="main-content">
-      <!-- Header -->
       <div class="header">
         <div class="welcome-section">
           <p class="greeting">
@@ -377,7 +362,6 @@ if (isset($_SESSION['id'])) {
           <div class="user-profile" onclick="toggleProfileMenu(event)">
             <img src="<?= $foto_profil_path ?>" alt="Foto Profil" class="profile-pic" />
             
-            <!-- Dropdown Menu -->
             <div class="profile-dropdown" id="profileDropdown">
               <a href="Akun.php" class="profile-menu-item" onclick="event.stopPropagation();">
                 <i class="fas fa-user"></i>
@@ -396,7 +380,6 @@ if (isset($_SESSION['id'])) {
         </div>
       </div>
 
-      <!-- Konten Halaman Dinamis -->
       <div class="page-container">
         <?php
           if (file_exists($pagePath)) {
@@ -408,7 +391,6 @@ if (isset($_SESSION['id'])) {
       </div>
     </div>
 
-    <!-- Modal Ganti Kata Sandi -->
     <div class="modal-overlay" id="changePasswordModal">
       <div class="modal-content">
         <div class="modal-header">
@@ -438,7 +420,6 @@ if (isset($_SESSION['id'])) {
       </div>
     </div>
 
-    <!-- Modal Konfirmasi Penutupan -->
     <div class="modal-overlay" id="confirmCloseModal">
       <div class="modal-content modal-small">
         <div class="modal-header">
@@ -454,7 +435,6 @@ if (isset($_SESSION['id'])) {
       </div>
     </div>
 
-    <!-- JavaScript -->
     <script>
       // Toggle profile dropdown
       function toggleProfileMenu(event) {
