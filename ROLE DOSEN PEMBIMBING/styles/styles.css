@@ -182,6 +182,19 @@ body {
   margin-bottom: 40px;
 }
 
+/* .header {
+  background-color: var(--white);
+  padding: 15px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--gray-medium);
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.03);
+  flex-shrink: 0;
+  z-index: 90;
+  margin-bottom: 0; 
+} */
+
 .greeting {
   color: var(--text-secondary);
   font-size: 16px;
@@ -234,31 +247,28 @@ body {
   border: 2px solid var(--white);
 }
 
+/* Profile Dropdown */
 .user-profile {
   display: flex;
   align-items: center;
   cursor: pointer;
   position: relative;
+  width: 52px;
+  height: 52px;
 }
 
 .user-profile::after {
-<<<<<<< HEAD
-  pointer-events: none;
-=======
->>>>>>> origin/arilmun
   content: "";
   position: absolute;
+  top: 0;
+  left: 0;
   width: 52px;
   height: 52px;
   border: 2px solid var(--gray-medium);
   border-radius: 50%;
   box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
-<<<<<<< HEAD
-  top: 0;      /* Tambahkan agar posisi pseudo-element sesuai */
-  left: 0;
-  /* pointer-events: none; sudah ditambahkan di atas */
-=======
->>>>>>> origin/arilmun
+  pointer-events: none;
+  z-index: 2;
 }
 
 .profile-pic {
@@ -268,44 +278,275 @@ body {
   object-fit: cover;
   border: 3px solid var(--white);
   transition: transform 0.3s ease;
+  position: relative;
+  z-index: 1;
+  display: block;
 }
 
 .user-profile:hover .profile-pic {
   transform: scale(1.05);
 }
 
-.search-bar {
-  background: var(--white);
-  border-radius: 50px;
-  padding: 12px 25px;
+.profile-dropdown {
+  position: absolute;
+  top: 60px;
+  right: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  display: none;
+  z-index: 1000;
+  overflow: hidden;
+  animation: fadeInDown 0.3s ease;
+}
+
+.profile-dropdown.show {
+  display: block;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.profile-menu-item {
+  padding: 12px 20px;
   display: flex;
   align-items: center;
-  width: 300px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
+  gap: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  color: #262A39;
+  font-size: 14px;
 }
 
-.search-bar:focus-within {
-  box-shadow: 0 5px 15px rgba(66, 112, 244, 0.15);
-  transform: translateY(-2px);
+.profile-menu-item:hover {
+  background-color: rgba(66, 112, 244, 0.08);
 }
 
-.search-bar input {
-  border: none;
-  outline: none;
-  width: 100%;
-  margin-left: 15px;
-  font-size: 15px;
-  color: var(--text-primary);
+.profile-menu-item {
+  text-decoration: none;
+  display: flex;
 }
 
-.search-bar input::placeholder {
-  color: var(--gray-dark);
+.profile-menu-item.logout {
+  color: #dc3545;
+  border-top: 1px solid #f0f0f0;
 }
 
-.search-bar i {
-  color: var(--gray-dark);
+.profile-menu-item.logout:hover {
+  background-color: rgba(220, 53, 69, 0.08);
+}
+
+.profile-menu-item i {
   font-size: 16px;
+  width: 20px;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-overlay.show {
+  display: flex;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  padding: 0;
+  width: 90%;
+  max-width: 450px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-content.modal-small {
+  max-width: 400px;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #e9ecef;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 20px;
+  color: #262A39;
+  font-weight: 600;
+}
+
+.close-modal {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.close-modal:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.modal-body p {
+  margin: 0;
+  color: #495057;
+  line-height: 1.6;
+  font-size: 15px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group:first-of-type {
+  margin-top: 24px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #262A39;
+  font-size: 14px;
+}
+
+.password-input-wrapper {
+  position: relative;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px 40px 12px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #4270F4;
+  box-shadow: 0 0 0 3px rgba(66, 112, 244, 0.1);
+}
+
+.toggle-password {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #6c757d;
+  font-size: 16px;
+  transition: color 0.2s ease;
+}
+
+.toggle-password:hover {
+  color: #4270F4;
+}
+
+.modal-footer {
+  padding: 16px 24px 24px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-danger {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background-color: #4270F4;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #3461e8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(66, 112, 244, 0.3);
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #c82333;
 }
 
 /* Content Layout */
@@ -1123,9 +1364,75 @@ body {
   .promo-btn {
     padding: 12px 20px;
   }
+  
+/* ========== DROPDOWN STYLES ========== */
+
+/* Style untuk dropdown parent */
+.dropdown-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-weight: 600;
+  background-color: rgba(66, 112, 244, 0.05);
+  border-left: 3px solid transparent;
 }
-<<<<<<< HEAD
-=======
+
+.dropdown-btn:hover {
+  background-color: rgba(66, 112, 244, 0.1);
+  border-left-color: #4270F4;
+}
+
+.dropdown-btn.active {
+  background-color: rgba(66, 112, 244, 0.15);
+  border-left-color: #4270F4;
+}
+
+.dropdown-btn .arrow {
+  transition: transform 0.3s ease;
+  font-size: 12px;
+}
+
+.dropdown-btn.active .arrow {
+  transform: rotate(180deg);
+}
+
+/* Submenu container - IMPORTANT: display none by default */
+.submenu {
+  display: none;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-left: 2px solid rgba(66, 112, 244, 0.2);
+  margin-left: 10px;
+}
+
+/* Style untuk child items di dalam submenu */
+.submenu .nav-item {
+  padding-left: 45px !important;
+  font-weight: 400;
+  font-size: 14px;
+  border-left: none;
+  background-color: transparent;
+}
+
+.submenu .nav-item:hover {
+  background-color: rgba(66, 112, 244, 0.08);
+  padding-left: 48px !important;
+}
+
+.submenu .nav-item.active {
+  background-color: rgba(66, 112, 244, 0.12);
+  border-left: 3px solid #4270F4;
+  color: #4270F4;
+  font-weight: 500;
+}
+
+.submenu .nav-item i {
+  font-size: 13px;
+  opacity: 0.8;
+}
+   
+}
 
 .main-content {
   height: 100vh;         
@@ -1145,4 +1452,3 @@ body {
   padding: 20px;     
 }     
 }
->>>>>>> origin/arilmun
