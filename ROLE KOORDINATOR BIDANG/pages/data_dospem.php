@@ -1,16 +1,6 @@
 <?php
 include '../Koneksi/koneksi.php';
 
-<<<<<<< HEAD
-$query = "
-    SELECT 
-        dosen.nip,
-        dosen.prodi,
-        users.nama
-    FROM dosen
-    JOIN users ON users.id = dosen.id_user
-    WHERE users.role = 'dosen_pembimbing'
-=======
 // Query untuk mengambil data dosen pembimbing
 $query = "
     SELECT 
@@ -23,13 +13,10 @@ $query = "
     FROM dosen
     INNER JOIN users ON users.id = dosen.id_user
     WHERE users.role = 'Dosen Pembimbing'
->>>>>>> origin/arilmun
     ORDER BY users.nama ASC
 ";
 
 $result = mysqli_query($conn, $query);
-<<<<<<< HEAD
-=======
 
 // Debug: Cek apakah query berhasil dan ada data
 if (!$result) {
@@ -41,26 +28,11 @@ $totalData = mysqli_num_rows($result);
 // Ambil data untuk filter prodi
 $prodiQuery = "SELECT DISTINCT prodi FROM dosen WHERE prodi IS NOT NULL ORDER BY prodi ASC";
 $prodiResult = mysqli_query($conn, $prodiQuery);
->>>>>>> origin/arilmun
 ?>
 
 <link rel="stylesheet" href="styles/data_dospem.css">
 
 <div class="content-section">
-<<<<<<< HEAD
-  <h3><i class="fas fa-user-graduate"></i> Data Dosen Pembimbing</h3>
-
-  <div class="search-bar-data">
-    <input type="text" id="searchMahasiswa" placeholder="Cari Dosen..." />
-  </div>
-
-  <table id="tabelMahasiswa">
-    <thead>
-      <tr>
-        <th>No</th>
-        <th>NIP</th>
-        <th>Nama Dosen</th>
-=======
   <h3><i class="fas fa-chalkboard-teacher"></i> Data Dosen Pembimbing</h3>
 
   <!-- Filter Section -->
@@ -104,22 +76,12 @@ $prodiResult = mysqli_query($conn, $prodiQuery);
         <th>Nama Dosen</th>
         <th>Email</th>
         <th>Kontak</th>
->>>>>>> origin/arilmun
         <th>Program Studi</th>
       </tr>
     </thead>
     <tbody>
       <?php 
       $no = 1;
-<<<<<<< HEAD
-      while ($row = mysqli_fetch_assoc($result)) {
-      ?>
-      <tr>
-        <td><?= $no++; ?></td>
-        <td><?= $row['nip']; ?></td>
-        <td><?= $row['nama']; ?></td>
-        <td><?= $row['prodi']; ?></td>
-=======
       mysqli_data_seek($result, 0);
       while ($row = mysqli_fetch_assoc($result)) {
       ?>
@@ -130,23 +92,10 @@ $prodiResult = mysqli_query($conn, $prodiQuery);
         <td><?= htmlspecialchars($row['email']); ?></td>
         <td><?= htmlspecialchars($row['kontak']); ?></td>
         <td><?= htmlspecialchars($row['prodi']); ?></td>
->>>>>>> origin/arilmun
       </tr>
       <?php } ?>
     </tbody>
   </table>
-<<<<<<< HEAD
-</div>
-
-<script>
-  document.getElementById("searchMahasiswa").addEventListener("keyup", function () {
-    let value = this.value.toLowerCase();
-    document.querySelectorAll("#tabelMahasiswa tbody tr").forEach((row) => {
-      row.style.display = row.textContent.toLowerCase().includes(value) ? "" : "none";
-    });
-  });
-</script>
-=======
 
   <!-- Pesan jika tidak ada data -->
   <div id="noData" style="display: none; text-align: center; padding: 30px; color: #999;">
@@ -212,4 +161,3 @@ function resetFilter() {
 document.getElementById("searchDosen").addEventListener("keyup", filterTable);
 document.getElementById("filterProdi").addEventListener("change", filterTable);
 </script>
->>>>>>> origin/arilmun

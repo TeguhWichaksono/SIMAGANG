@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-=======
 /* Content Section - Sesuai tema sistem */
->>>>>>> origin/arilmun
 .content-section {
   background: #fff;
   border-radius: 15px;
@@ -23,8 +20,6 @@
   color: #4270f4;
 }
 
-<<<<<<< HEAD
-=======
 /* Filter Wrapper */
 .filter-wrapper {
   background: #f9f9f9;
@@ -150,7 +145,6 @@
 }
 
 /* Table Styling - Sesuai tema sistem */
->>>>>>> origin/arilmun
 table {
   width: 100%;
   border-collapse: collapse;
@@ -174,31 +168,6 @@ table tr:nth-child(even) {
   background: #f9f9f9;
 }
 
-<<<<<<< HEAD
-.search-bar-data {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 10px;
-}
-
-.search-bar-data input {
-  padding: 8px;
-  width: 250px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-}
-
-ul.anggota-list {
-  list-style-type: disc;
-  margin: 5px 0 5px 20px;
-  padding: 0;
-}
-
-ul.anggota-list li {
-  margin-bottom: 5px;
-}
-
-=======
 table tr:hover {
   background: #f0f7ff;
 }
@@ -243,4 +212,3 @@ table tr:hover {
 * {
   transition: all 0.3s ease;
 }
->>>>>>> origin/arilmun

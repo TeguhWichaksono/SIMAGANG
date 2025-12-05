@@ -1,11 +1,13 @@
 <?php
 session_start();
-<<<<<<< HEAD
-// Sertakan koneksi database
-include '../Koneksi/koneksi.php'; 
-=======
 include '../Koneksi/koneksi.php'; 
 require_once '../config.php';
+
+cekRole('Mahasiswa');
+
+if($_SESSION['role'] !== 'Mahasiswa'){
+  echo "Anda bukan Mahasiswa";
+}
 
 $status_magang = 'pra-magang'; // Default
 $can_access_magang = false;
@@ -44,22 +46,13 @@ if ($status_magang === 'magang_aktif') {
 $_SESSION['status_magang'] = $status_magang;
 $_SESSION['can_access_magang'] = $can_access_magang;
 $_SESSION['can_crud_magang'] = $can_crud_magang;
->>>>>>> origin/arilmun
 
 $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 $pagePath = "pages/$page.php";
 
-<<<<<<< HEAD
-$foto_profil_path = 'images/tyakk.png'; 
-=======
-// cekRole('Mahasiswa');
 
-// if($_SESSION['role'] !== 'Mahasiswa'){
-//   echo "Anda bukan Mahasiswa";
-// }
 
 $foto_profil_path = ''; 
->>>>>>> origin/arilmun
 
 if (isset($_SESSION['id'])) {
     $id = $_SESSION['id'];
@@ -94,12 +87,6 @@ if (isset($_SESSION['id'])) {
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
     />
     <link rel="stylesheet" href="styles/styles.css" />
-<<<<<<< HEAD
-  </head>
-
-  <body>
-    <!-- Sidebar -->
-=======
 
     <style>
       .dropdown-btn {
@@ -196,7 +183,6 @@ if (isset($_SESSION['id'])) {
   </head>
 
   <body>
->>>>>>> origin/arilmun
     <div class="sidebar">
       <div class="logo">
         <svg width="100" height="40" viewBox="0 0 100 40">
@@ -208,30 +194,6 @@ if (isset($_SESSION['id'])) {
       </div>
 
       <div class="nav-menu">
-<<<<<<< HEAD
-        <a href="index.php?page=dashboard" class="nav-item <?= $page=='dashboard'?'active':'' ?>">
-          <i class="fas fa-home"></i> <span>Dashboard</span>
-        </a>
-        <a href="index.php?page=kelompok" class="nav-item <?= $page=='kelompok'?'active':'' ?>">
-          <i class="fas fa-users"></i> <span>Kelompok</span>
-        </a>
-        <a href="index.php?page=pengajuan_Mitra" class="nav-item <?= $page=='pengajuan_Mitra'?'active':'' ?>">
-          <i class="fas fa-building"></i> <span>Pengajuan Mitra</span>
-        </a>
-        <a href="index.php?page=pengajuan_Magang" class="nav-item <?= $page=='pengajuan_Magang'?'active':'' ?>">
-          <i class="fas fa-file-alt"></i> <span>Pengajuan Magang</span>
-        </a>
-        <a href="index.php?page=absensi_Kegiatan" class="nav-item <?= $page=='absensi_Kegiatan'?'active':'' ?>">
-          <i class="fas fa-tasks"></i> <span>Absensi & Kegiatan</span>
-        </a>
-        <a href="index.php?page=laporan_Magang" class="nav-item <?= $page=='laporan_Magang'?'active':'' ?>">
-          <i class="fas fa-file-upload"></i> <span>Laporan Magang</span>
-        </a>
-        <a href="index.php?page=notifikasi" class="nav-item <?= $page=='notifikasi'?'active':'' ?>">
-          <i class="fas fa-bell"></i> <span>Notifikasi</span>
-        </a>
-      </div>
-=======
 
         <a href="index.php?page=dashboard" class="nav-item <?= $page=='dashboard'?'active':'' ?>">
           <i class="fas fa-home"></i> <span>Dashboard</span>
@@ -296,7 +258,6 @@ if (isset($_SESSION['id'])) {
             <i class="fas fa-bell"></i> <span>Notifikasi</span>
           </a>  
         </div>
->>>>>>> origin/arilmun
 
       <div class="premium-box">
         <h3>Buku Panduan</h3>
@@ -323,19 +284,6 @@ if (isset($_SESSION['id'])) {
             <div class="notification-indicator"></div>
           </div>
 
-<<<<<<< HEAD
-          <div class="user-profile">
-            <a href="Akun.php">
-              <img src="<?= $foto_profil_path ?>" alt="Foto Profil" class="profile-pic" style="cursor:pointer;" />
-            </a>
-          </div>
-
-
-          <div class="search-bar">
-            <i class="fas fa-search"></i>
-            <input type="text" placeholder="Mencari" />
-          </div>
-=======
           <div class="user-profile" onclick="toggleProfileMenu(event)">
             <img src="<?= $foto_profil_path ?>" alt="Foto Profil" class="profile-pic" />
             
@@ -356,7 +304,6 @@ if (isset($_SESSION['id'])) {
             </div>
           </div>
 
->>>>>>> origin/arilmun
         </div>
       </div>
 
@@ -371,8 +318,6 @@ if (isset($_SESSION['id'])) {
         ?>
       </div>
     </div>
-<<<<<<< HEAD
-=======
 
     <!-- Modal Ganti Kata Sandi -->
     <div class="modal-overlay" id="changePasswordModal">
@@ -571,6 +516,5 @@ if (isset($_SESSION['id'])) {
       }
     </script>
 
->>>>>>> origin/arilmun
   </body>
 </html>
