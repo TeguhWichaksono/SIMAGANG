@@ -3,6 +3,15 @@ session_start();
 include '../Koneksi/koneksi.php'; 
 require_once '../config.php';
 
+$page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
+$pagePath = "pages/$page.php";
+
+cekRole('Mahasiswa');
+
+if($_SESSION['role'] !== 'Mahasiswa'){
+  echo "Anda bukan Mahasiswa";
+}
+
 $status_magang = 'pra-magang'; // Default
 $can_access_magang = false;
 $can_crud_magang = false;
@@ -41,14 +50,8 @@ $_SESSION['status_magang'] = $status_magang;
 $_SESSION['can_access_magang'] = $can_access_magang;
 $_SESSION['can_crud_magang'] = $can_crud_magang;
 
-$page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
-$pagePath = "pages/$page.php";
 
-// cekRole('Mahasiswa');
 
-// if($_SESSION['role'] !== 'Mahasiswa'){
-//   echo "Anda bukan Mahasiswa";
-// }
 
 $foto_profil_path = ''; 
 
@@ -509,7 +512,7 @@ if (isset($_SESSION['id'])) {
       // Confirm logout
       function confirmLogout() {
         if (confirm('Apakah Anda yakin ingin keluar?')) {
-          window.location.href = '/WSI/SIMAGANGG/Login/login.php';
+          window.location.href = '/WSI/SIMAGANGG/Login/logout.php';
         }
       }
     </script>
