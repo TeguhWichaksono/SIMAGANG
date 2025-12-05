@@ -22,7 +22,11 @@ $query = "
     a.id_absen,
     m.id_mahasiswa,
     u.nama AS nama_mahasiswa,
+<<<<<<< HEAD
     m.nim,
+=======
+    nim,
+>>>>>>> origin/arilmun
     a.tanggal,
     a.lokasi,
     a.foto_mahasiswa,

@@ -48,7 +48,11 @@ if ($result_dosen && mysqli_num_rows($result_dosen) > 0) {
 mysqli_stmt_close($stmt_dosen);
 
 $fotoCover  = 'images/JTI.jpg';
+<<<<<<< HEAD
 $fotoProfil = !empty($user['foto_profil']) ? "uploads/" . $user['foto_profil'] : "images/default.jpg";
+=======
+$fotoProfil = !empty($user['foto_profil']) ? "uploads/" . $user['foto_profil'] : "https://i.pravatar.cc/150?img=8";
+>>>>>>> origin/arilmun
 
 // Pesan upload jika ada
 $upload_message = '';

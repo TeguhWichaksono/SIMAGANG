@@ -1,0 +1,152 @@
+/* Container Utama */
+.form-container {
+  background: #fff;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  max-width: 860px;
+  margin: 40px auto;
+  box-sizing: border-box; /* Pastikan padding tidak melebarkan wadah */
+}
+
+.form-container h2 {
+  color: #262a39;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.form-container p {
+  font-size: 0.9rem;
+  color: #666;
+  line-height: 1.5;
+  margin-top: -5px;
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+/* GRID LAYOUT 
+   Menggunakan selektor spesifik '.form-container form' 
+   agar tidak tertukar dengan form lain 
+*/
+.form-container form {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 2 Kolom rata */
+  column-gap: 40px;
+  row-gap: 30px;
+  align-items: stretch; /* PENTING: Paksa tinggi kolom kiri & kanan SAMA */
+}
+
+/* FORM GROUP (Solusi Bentrok)
+   Kita gunakan '.form-container .form-group' agar style ini MENANG
+   melawan style '.form-group' biasa yang ada di styles.css 
+*/
+.form-container .form-group {
+  display: flex;
+  flex-direction: column;
+  height: 100%;       /* Isi penuh tinggi grid */
+  
+  /* RESET GLOBAL STYLE DARI styles.css */
+  padding: 0 !important; 
+  margin: 0 !important;
+  border: none;
+}
+
+.form-container .form-group label {
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+
+.form-container .form-group input {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  height: 42px;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.3s;
+  margin-top: auto; 
+}
+
+.form-container .form-group input:focus {
+  border-color: #4270f4;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(66, 112, 244, 0.1);
+}
+
+.form-container input[readonly] {
+  background: #f4f4f4;
+  cursor: not-allowed;
+  color: #777;
+}
+
+/* TOMBOL */
+.form-actions {
+  grid-column: 1 / -1; /* Membentang dari kiri ke kanan */
+  width: 100%;
+  text-align: center;
+  margin-top: 15px;
+}
+
+.form-actions button {
+  background: #4270f4;
+  color: white;
+  border: none;
+  padding: 12px 40px;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.1s;
+  font-weight: 500;
+}
+
+.form-actions button:hover {
+  background: #3056c5;
+}
+
+.form-actions button:active {
+  transform: scale(0.98);
+}
+
+/* ALERT */
+.alert-sukses, .alert-error {
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  text-align: center;
+  font-weight: 600;
+  display: none; /* Default hidden */
+}
+
+.alert-sukses {
+  background: #dfffe0;
+  border-left: 5px solid #2dbb2d;
+  color: #246b24;
+}
+
+.alert-error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+/* RESPONSIVE (HP) */
+@media (max-width: 768px) {
+  .form-container {
+    padding: 20px;
+    margin: 20px;
+  }
+
+  .form-container form {
+    grid-template-columns: 1fr; /* Jadi 1 kolom */
+    gap: 15px;
+  }
+  
+  /* Reset padding global styles.css jika ada di mode mobile */
+  .form-container .form-group {
+      padding: 0 !important;
+  }
+}

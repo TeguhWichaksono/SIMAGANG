@@ -1,11 +1,25 @@
 <?php
 session_start();
+<<<<<<< HEAD
 // Sertakan koneksi database
 include '../Koneksi/koneksi.php'; 
+=======
+include '../Koneksi/koneksi.php'; 
+require_once '../config.php';
+>>>>>>> origin/arilmun
 
 $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 $pagePath = "pages/$page.php";
 
+<<<<<<< HEAD
+=======
+// cekRole('Dosen Pembimbing');
+
+// if($_SESSION['role'] !== 'Dosen Pembimbing'){
+//   echo "Anda bukan Dosen Pembimbing";
+// }
+
+>>>>>>> origin/arilmun
 $foto_profil_path = ''; 
 
 if (isset($_SESSION['id'])) {

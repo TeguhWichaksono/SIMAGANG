@@ -1,11 +1,17 @@
 <?php
 session_start();
+<<<<<<< HEAD
 // Sertakan koneksi database
 include '../Koneksi/koneksi.php'; 
+=======
+include '../Koneksi/koneksi.php'; 
+require_once '../config.php';
+>>>>>>> origin/arilmun
 
 $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 $pagePath = "pages/$page.php";
 
+<<<<<<< HEAD
 $foto_profil_path = 'images/tyakk.png'; 
 
 if (isset($_SESSION['id'])) {
@@ -30,6 +36,15 @@ if (isset($_SESSION['id'])) {
     }
 }
 ?>
+=======
+// cekRole('Admin');
+
+// if($_SESSION['role'] !== 'Admin'){
+//   echo "Anda bukan Admin";
+// }
+?>
+
+>>>>>>> origin/arilmun
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -59,6 +74,12 @@ if (isset($_SESSION['id'])) {
         <a href="index.php?page=dashboard" class="nav-item <?= $page=='dashboard'?'active':'' ?>">
             <i class="fas fa-home"></i> <span>Dashboard</span>
         </a>
+<<<<<<< HEAD
+=======
+        <a href="index.php?page=akun" class="nav-item <?= $page=='akun'?'active':'' ?>">
+            <i class="fas fa-user-circle"></i> <span>Akun</span>
+        </a>
+>>>>>>> origin/arilmun
         <a href="index.php?page=manajemen_User" class="nav-item <?= $page=='manajemen_User'?'active':'' ?>">
             <i class="fas fa-users-gear"></i> <span>Manajemen User</span>
         </a>
@@ -102,6 +123,7 @@ if (isset($_SESSION['id'])) {
           </div>
 
           <div class="user-profile">
+<<<<<<< HEAD
             <a href="Akun.php">
               <img src="<?= $foto_profil_path ?>" alt="Foto Profil" class="profile-pic" style="cursor:pointer;" />
             </a>
@@ -111,6 +133,11 @@ if (isset($_SESSION['id'])) {
             <i class="fas fa-search"></i>
             <input type="text" placeholder="Mencari" />
           </div>
+=======
+            <img src="" alt="Foto Profil" class="profile-pic" />
+          </div>
+          
+>>>>>>> origin/arilmun
         </div>
       </div>
 

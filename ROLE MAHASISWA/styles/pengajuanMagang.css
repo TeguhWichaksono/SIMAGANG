@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 .form-container {
   background: #fff;
   padding: 30px;
@@ -27,10 +28,42 @@ form {
 
 .form-group.full-width {
   flex: 1 1 100%;
+=======
+/* === FORM STYLE === */
+.form-container {
+  width: 100%;
+  max-width: 900px;
+  margin: 40px auto;
+  background: #ffffff;
+  padding: 25px 35px;
+  border-radius: 15px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  font-family: "Poppins", sans-serif;
+  box-sizing: border-box;
+}
+
+h2, h3 {
+  text-align: left;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.form-section {
+  margin-bottom: 25px;
+}
+
+/* Label dan input sejajar dan memenuhi lebar container */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+  width: 100%;
+>>>>>>> origin/arilmun
 }
 
 .form-group label {
   font-weight: 600;
+<<<<<<< HEAD
   color: #444;
   margin-bottom: 5px;
 }
@@ -76,4 +109,142 @@ textarea {
 
 .form-actions button:hover {
   background: #3056c5;
+=======
+  margin-bottom: 6px;
+  color: #444;
+}
+
+/* Field input penuh ke kanan */
+.form-group input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid #ccc;
+  border-radius: 8px;
+  font-size: 15px;
+  box-sizing: border-box;
+  display: block;
+  background-color: #fff;
+}
+
+/* Fokus efek */
+.form-group input:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0 0 6px rgba(0,123,255,0.3);
+}
+
+/* === TOMBOL (Umum) === */
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.3s;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 15px;
+}
+
+/* Tombol utama - biru */
+#tambahAnggotaBtn {
+  background-color: #007bff;
+  color: white;
+}
+
+#tambahAnggotaBtn:hover {
+  background-color: #0056b3;
+}
+
+/* Tombol lanjut - hijau */
+#lanjutMitra {
+  background-color: #28a745;
+  color: white;
+}
+
+#lanjutMitra:hover {
+  background-color: #1e7e34;
+}
+
+/* Tombol hapus - merah */
+.hapusAnggota {
+  background-color: #dc3545;
+  color: white;
+}
+
+.hapusAnggota:hover {
+  background-color: #b02a37;
+}
+
+/* === Tata letak tombol di bawah form === */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+/* Box setiap anggota */
+.anggota-box {
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 15px;
+  background-color: #f9f9f9;
+}
+
+.anggota-box h4 {
+  margin-bottom: 10px;
+  color: #007bff;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 1000px) {
+  .form-container {
+    width: 95%;
+    padding: 20px 25px;
+  }
+  .form-group input {
+    font-size: 14px;
+  }
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .form-actions button {
+    width: 100%;
+  }
+  .btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.3s;
+}
+
+.btn:hover {
+  background-color: #0056b3;
+}
+button {
+  background-color: #007bff !important;
+  color: white !important;
+  border: none !important;
+  padding: 12px 22px !important;
+  border-radius: 8px !important;
+}
+
+
+}
+
+/* Jika ingin field betul-betul mepet kanan tanpa padding form */
+.fullwide .form-group input {
+  width: calc(100% + 70px);
+  margin-right: -35px;
+>>>>>>> origin/arilmun
 }
