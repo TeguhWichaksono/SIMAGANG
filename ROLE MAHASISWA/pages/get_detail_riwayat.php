@@ -5,7 +5,7 @@
 // ========================================
 
 session_start();
-require_once '../config/connection.php';
+include '../../Koneksi/koneksi.php';
 
 header('Content-Type: application/json');
 
@@ -48,9 +48,10 @@ $id_mahasiswa = $mahasiswa['id_mahasiswa'];
 $id_logbook = intval($_GET['id_logbook']);
 
 // Get logbook harian data
-$query_logbook = "SELECT lh.*, d.nama as nama_dosen
+$query_logbook = "SELECT lh.*, u.nama as nama_dosen
                   FROM logbook_harian lh
                   LEFT JOIN dosen d ON lh.id_dosen_validator = d.id_dosen
+                  LEFT JOIN users u ON d.id_user = u.id
                   WHERE lh.id_logbook = ? AND lh.id_mahasiswa = ?";
 $stmt_logbook = mysqli_prepare($conn, $query_logbook);
 mysqli_stmt_bind_param($stmt_logbook, 'ii', $id_logbook, $id_mahasiswa);

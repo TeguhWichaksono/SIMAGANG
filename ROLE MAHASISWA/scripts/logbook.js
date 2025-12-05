@@ -5,7 +5,187 @@
 // Global variables
 let video, canvas, stream, currentLocation, capturedData;
 let cameraActive = false;
+let lastLocationData = {
+    address: null,
+    lat: null,
+    lon: null,
+    isFound: false
+};
 
+function updateLocation() {
+    const liveLocation = document.getElementById('liveLocation');
+    
+    if (!navigator.geolocation) {
+        liveLocation.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Geolocation tidak didukung';
+        return;
+    }
+    
+    navigator.geolocation.getCurrentPosition(
+        async (position) => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            
+            // Simpan koordinat mentah dulu (untuk jaga-jaga)
+            lastLocationData.lat = lat.toFixed(6);
+            lastLocationData.lon = lon.toFixed(6);
+            lastLocationData.isFound = true;
+            
+            try {
+                // Coba ambil alamat (Reverse Geocoding)
+                const response = await fetch(
+                    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
+                );
+                
+                // Cek status response
+                if (!response.ok) throw new Error('Network response was not ok');
+
+                const data = await response.json();
+                
+                // VALIDASI ALAMAT
+                if (data && data.display_name) {
+                    lastLocationData.address = data.display_name;
+                    // Tampilkan alamat di UI Kamera
+                    liveLocation.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${data.display_name.substring(0, 50)}...`;
+                } else {
+                    throw new Error('Alamat tidak ditemukan');
+                }
+                
+            } catch (err) {
+                // FALLBACK: Jika gagal ambil alamat, gunakan Lat/Long
+                console.warn('Gagal ambil alamat, menggunakan koordinat:', err);
+                lastLocationData.address = null; // Set null agar logic capture tahu
+                
+                // Tampilkan Lat/Long di UI Kamera
+                liveLocation.innerHTML = `<i class="fas fa-map-pin"></i> ${lastLocationData.lat}, ${lastLocationData.lon}`;
+            }
+        },
+        (error) => {
+            lastLocationData.isFound = false;
+            liveLocation.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Lokasi tidak tersedia';
+            console.error('Location error:', error);
+        },
+        {
+            enableHighAccuracy: true, // Paksa GPS akurasi tinggi
+            timeout: 10000,
+            maximumAge: 0
+        }
+    );
+}
+
+// 2. UPDATE FUNCTION CAPTURE PHOTO
+// Ini inti "Burn-in" timestamp-nya
+function capturePhoto() {
+    if (!lastLocationData.isFound) {
+        alert('Menunggu lokasi terdeteksi... Pastikan GPS aktif.');
+        return;
+    }
+    
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    
+    // Set ukuran canvas sesuai video asli
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    const ctx = canvas.getContext('2d');
+    
+    // A. Gambar Video ke Canvas
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    // --- MULAI PROSES WATERMARKING (TIMESTAMP) ---
+    
+    // Siapkan Data Waktu
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('id-ID', {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+    });
+    const timeStr = now.toLocaleTimeString('id-ID', { 
+        hour: '2-digit', minute: '2-digit', second: '2-digit' 
+    }) + ' WIB';
+    
+    // Logika Penentuan Teks Lokasi (Alamat vs Koordinat)
+    let locationText = "";
+    let subLocationText = "";
+
+    if (lastLocationData.address) {
+        // Jika ada alamat, pakai alamat
+        // Kita potong biar gak kepanjangan di foto
+        locationText = lastLocationData.address.substring(0, 60); 
+        if(lastLocationData.address.length > 60) locationText += "...";
+        subLocationText = `Lat: ${lastLocationData.lat}, Long: ${lastLocationData.lon}`;
+    } else {
+        // Jika alamat NULL/Gagal, pakai Koordinat sbg teks utama
+        locationText = `Lat: ${lastLocationData.lat}, Long: ${lastLocationData.lon}`;
+        subLocationText = "Lokasi Peta Tidak Terdeteksi";
+    }
+
+    // Setting Font & Style
+    const fontSize = Math.floor(canvas.width * 0.03); // Responsif (3% dari lebar)
+    const padding = 20;
+    const lineHeight = fontSize * 1.4;
+    
+    // Hitung posisi kotak background (di bawah)
+    const boxHeight = (lineHeight * 4) + (padding * 2); // Cukup untuk 3-4 baris teks
+    const boxY = canvas.height - boxHeight;
+    
+    // B. Gambar Kotak Hitam Transparan (Agar tulisan terbaca)
+    ctx.fillStyle = "rgba(0, 0, 0, 0.6)"; // Hitam transparansi 60%
+    ctx.fillRect(0, boxY, canvas.width, boxHeight);
+    
+    // C. Tulis Teks Putih
+    ctx.fillStyle = "white";
+    ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+    ctx.textBaseline = "top";
+    
+    // Baris 1: Tanggal
+    ctx.fillText("📅 " + dateStr, padding, boxY + padding);
+    
+    // Baris 2: Jam
+    ctx.fillText("⏰ " + timeStr, padding, boxY + padding + lineHeight);
+    
+    // Baris 3: Lokasi Utama (Alamat atau LatLong)
+    ctx.font = `${fontSize * 0.9}px Arial, sans-serif`; // Font lokasi agak kecil dikit
+    ctx.fillText("📍 " + locationText, padding, boxY + padding + (lineHeight * 2));
+    
+    // Baris 4: Info Tambahan (LatLong jika alamat ada)
+    ctx.font = `${fontSize * 0.7}px Arial, sans-serif`; // Lebih kecil lagi
+    ctx.fillStyle = "#ddd"; // Agak abu-abu
+    ctx.fillText(subLocationText, padding, boxY + padding + (lineHeight * 3));
+
+    // --- SELESAI WATERMARKING ---
+    
+    // Ambil hasil gambar yang sudah ada tulisannya
+    const imageData = canvas.toDataURL('image/jpeg', 0.85); // Kualitas 85%
+    
+    // Tampilkan di Preview Image (Ganti src img preview)
+    const capturedImage = document.getElementById('capturedImage');
+    capturedImage.src = imageData;
+    
+    // Hapus overlay HTML lama (karena teks sudah nempel di foto)
+    const photoTimestamp = document.getElementById('photoTimestamp');
+    if(photoTimestamp) photoTimestamp.style.display = 'none'; 
+    
+    // Simpan data untuk dikirim ke server
+    capturedData = {
+        image: imageData, // Ini sudah mengandung tulisan
+        timestamp: now.toISOString(),
+        location: {
+            address: locationText, // Kirim teks yang dipakai
+            lat: lastLocationData.lat,
+            lon: lastLocationData.lon
+        }
+    };
+    
+    // Update UI: Sembunyikan video, Tampilkan preview
+    document.getElementById('cameraSection').style.display = 'none';
+    document.getElementById('previewSection').style.display = 'block';
+    
+    document.getElementById('captureBtn').style.display = 'none';
+    document.getElementById('saveAbsenBtn').style.display = 'inline-flex';
+    document.getElementById('retakeBtn').style.display = 'inline-flex';
+    
+    stopCamera();
+}
 // ========================================
 // TAB SWITCHING
 // ========================================
@@ -400,81 +580,90 @@ async function lihatDetailRiwayat(idLogbook) {
             const logbook = data.logbook;
             const kegiatan = data.kegiatan;
             
-            // Update modal title
-            document.getElementById('detailRiwayatTanggal').textContent = 
-                '📅 ' + logbook.tanggal_formatted;
+            // Set Judul Tanggal
+            document.getElementById('detailRiwayatTanggal').innerHTML = 
+                `<i class="fas fa-calendar-day" style="color:var(--primary-color)"></i> &nbsp;` + logbook.tanggal_formatted;
             
-            // Build HTML content
+            // --- BUILD HTML BARU ---
             let html = `
-                <!-- Absensi Section -->
                 <div class="detail-section">
-                    <h4 class="section-title">
-                        <i class="fas fa-camera"></i>
-                        Data Absensi
-                    </h4>
-                    <div class="detail-grid">
-                        <div class="detail-item">
-                            <label>Waktu Absensi</label>
-                            <div class="detail-value">
+                    <h4 class="section-title" style="font-size:14px; margin-bottom:10px; color:#666;">Informasi Absensi</h4>
+                    
+                    <div class="detail-info-grid">
+                        <div class="info-card">
+                            <div class="info-card-icon">
                                 <i class="fas fa-clock"></i>
-                                ${logbook.jam_absensi_formatted} WIB
+                            </div>
+                            <div class="info-card-content">
+                                <small>Waktu Masuk</small>
+                                <div>${logbook.jam_absensi_formatted} WIB</div>
                             </div>
                         </div>
-                        <div class="detail-item">
-                            <label>Lokasi</label>
-                            <div class="detail-value">
+
+                        <div class="info-card">
+                            <div class="info-card-icon">
                                 <i class="fas fa-map-marker-alt"></i>
-                                ${logbook.lokasi_absensi}
+                            </div>
+                            <div class="info-card-content">
+                                <small>Lokasi Absen</small>
+                                <div style="font-size:13px; line-height:1.2;">
+                                    ${logbook.lokasi_absensi.substring(0, 40)}${logbook.lokasi_absensi.length > 40 ? '...' : ''}
+                                </div>
                             </div>
                         </div>
-                        <div class="detail-item full-width">
-                            <label>Foto Absensi</label>
-                            <img src="uploads/${logbook.foto_absensi}" 
-                                 alt="Foto Absensi" 
-                                 class="detail-photo"
-                                 onclick="openImageModal(this.src)">
+                    </div>
+
+                    <div class="detail-photo-container">
+                        <img src="uploads/${logbook.foto_absensi}" 
+                             alt="Foto Absensi" 
+                             class="detail-photo-mini"
+                             onclick="openImageModal(this.src)"
+                             title="Klik untuk memperbesar">
+                        <div style="margin-top:5px; font-size:11px; color:#888;">
+                            <i class="fas fa-search-plus"></i> Klik foto untuk memperbesar
                         </div>
                     </div>
                 </div>
                 
-                <!-- Kegiatan Section -->
+                <hr style="border:0; border-top:1px dashed #ddd; margin: 20px 0;">
+
                 <div class="detail-section">
-                    <h4 class="section-title">
-                        <i class="fas fa-clipboard-list"></i>
-                        Detail Kegiatan (${data.jumlah_kegiatan})
+                    <h4 class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+                        <span><i class="fas fa-clipboard-list"></i> Daftar Kegiatan</span>
+                        <span class="badge badge-blue">${data.jumlah_kegiatan} Item</span>
                     </h4>
             `;
             
             if (kegiatan.length > 0) {
-                html += '<div class="kegiatan-list">';
+                html += '<div class="kegiatan-list-compact">';
                 kegiatan.forEach((k, idx) => {
                     html += `
-                        <div class="kegiatan-item">
-                            <div class="kegiatan-number">${idx + 1}</div>
-                            <div class="kegiatan-content">
-                                <div class="kegiatan-time">
-                                    <i class="fas fa-clock"></i>
+                        <div class="kegiatan-compact-item">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                                <strong style="color:var(--primary-color)">#${idx + 1}</strong>
+                                <span style="font-size:12px; background:#eee; padding:2px 8px; border-radius:10px;">
                                     ${k.jam_mulai.substring(0, 5)} - ${k.jam_selesai.substring(0, 5)}
-                                </div>
-                                <div class="kegiatan-text">
-                                    ${k.deskripsi_kegiatan.replace(/\n/g, '<br>')}
-                                </div>
-                                ${k.foto_kegiatan ? `
-                                    <img src="uploads/${k.foto_kegiatan}" 
-                                         alt="Foto Kegiatan" 
-                                         class="kegiatan-photo"
-                                         onclick="openImageModal(this.src)">
-                                ` : ''}
+                                </span>
                             </div>
+                            <p style="font-size:14px; color:#444; margin:0;">
+                                ${k.deskripsi_kegiatan}
+                            </p>
+                            ${k.foto_kegiatan ? `
+                                <div style="margin-top:8px;">
+                                    <button onclick="openImageModal('uploads/${k.foto_kegiatan}')" 
+                                            class="btn-sm btn-secondary" style="font-size:11px; padding:4px 10px;">
+                                        <i class="fas fa-image"></i> Lihat Foto Kegiatan
+                                    </button>
+                                </div>
+                            ` : ''}
                         </div>
                     `;
                 });
                 html += '</div>';
             } else {
                 html += `
-                    <div class="empty-kegiatan">
-                        <i class="fas fa-inbox"></i>
-                        <p>Tidak ada kegiatan yang dicatat</p>
+                    <div class="empty-state-small" style="text-align:center; padding:20px; color:#999; background:#f9f9f9; border-radius:8px;">
+                        <i class="fas fa-minus-circle"></i> Tidak ada kegiatan
                     </div>
                 `;
             }

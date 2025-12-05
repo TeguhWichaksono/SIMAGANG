@@ -241,24 +241,16 @@ if (isset($_SESSION['id'])) {
           </a>
         </div>
 
-          <!-- ABSENSI & KEGIATAN - Conditional Access -->
-          <a href="<?= $can_access_magang ? 'index.php?page=absensi' : 'javascript:void(0)' ?>" 
-            class="nav-item <?= $page=='absensi'?'active':'' ?> 
+          <a href="<?= $can_access_magang ? 'index.php?page=logbook' : 'javascript:void(0)' ?>" 
+            class="nav-item <?= $page=='logbook'?'active':'' ?> 
                     <?= !$can_access_magang ? 'disabled' : '' ?> 
                     <?= ($status_magang === 'selesai') ? 'readonly' : '' ?>"
             data-tooltip="<?= !$can_access_magang ? 'Upload Surat Penerimaan dulu untuk akses fitur ini' : ($status_magang === 'selesai' ? 'Magang sudah selesai (Read-only)' : '') ?>"
             <?= !$can_access_magang ? 'onclick="return false;"' : '' ?>>
-            <i class="fas fa-tasks"></i> <span>Absensi Harian</span>
+            <i class="fas fa-list"></i> <span>Logbook Harian</span>
           </a>
 
-          <a href="<?= $can_access_magang ? 'index.php?page=kegiatan' : 'javascript:void(0)' ?>" 
-            class="nav-item <?= $page=='kegiatan'?'active':'' ?> 
-                    <?= !$can_access_magang ? 'disabled' : '' ?> 
-                    <?= ($status_magang === 'selesai') ? 'readonly' : '' ?>"
-            data-tooltip="<?= !$can_access_magang ? 'Upload Surat Penerimaan dulu untuk akses fitur ini' : ($status_magang === 'selesai' ? 'Magang sudah selesai (Read-only)' : '') ?>"
-            <?= !$can_access_magang ? 'onclick="return false;"' : '' ?>>
-            <i class="fas fa-tasks"></i> <span>Kegiatan Harian</span>
-          </a>
+          
 
           <a href="index.php?page=notifikasi" class="nav-item <?= $page=='notifikasi'?'active':'' ?>">
             <i class="fas fa-bell"></i> <span>Notifikasi</span>

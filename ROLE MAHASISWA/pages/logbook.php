@@ -7,6 +7,25 @@ if (!isset($_SESSION['id'])) {
     exit;
 }
 
+function tanggal_indo($tanggal) {
+    $bulan = array (
+        1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    );
+    $hari = array (
+        'Sunday' => 'Minggu', 'Monday' => 'Senin', 'Tuesday' => 'Selasa',
+        'Wednesday' => 'Rabu', 'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu'
+    );
+    
+    $timestamp = strtotime($tanggal);
+    $nama_hari = $hari[date('l', $timestamp)];
+    $tgl = date('d', $timestamp);
+    $bln = $bulan[(int)date('m', $timestamp)];
+    $thn = date('Y', $timestamp);
+    
+    return $nama_hari . ', ' . $tgl . ' ' . $bln . ' ' . $thn;
+}
+
 // ========================================
 // GET MAHASISWA DATA
 // ========================================
@@ -26,10 +45,13 @@ $can_crud = isset($_SESSION['can_crud_magang']) ? $_SESSION['can_crud_magang'] :
 // ========================================
 // CEK STATUS ABSENSI HARI INI
 // ========================================
-$query_check_absen = "SELECT id_logbook, jam_absensi, foto_absensi, lokasi_absensi, status_validasi 
+$query_check_absen = "SELECT id_logbook, tanggal, jam_absensi, foto_absensi, lokasi_absensi, status_validasi 
                       FROM logbook_harian 
                       WHERE id_mahasiswa = ? AND tanggal = ?";
 $stmt_check = mysqli_prepare($conn, $query_check_absen);
+if (!$stmt_check) {
+    die("Query Error: " . mysqli_error($conn));
+}
 mysqli_stmt_bind_param($stmt_check, 'is', $id_mahasiswa, $today);
 mysqli_stmt_execute($stmt_check);
 $result_check = mysqli_stmt_get_result($stmt_check);
