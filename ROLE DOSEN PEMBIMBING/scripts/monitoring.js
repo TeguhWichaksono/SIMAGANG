@@ -1,125 +1,80 @@
 /**
+ * ========================================
  * monitoring.js
- * JavaScript untuk Monitoring & Validasi Logbook Mahasiswa
- * 
- * Features:
- * - Switch tabs
- * - Filter logbook
- * - Load detail logbook (AJAX)
- * - Submit validasi (AJAX)
- * - Modal management
- * - Image viewer
+ * JavaScript untuk Monitoring Logbook
+ * UPDATED - Fixed AJAX URLs
+ * ========================================
  */
-
-// ========================================
-// GLOBAL VARIABLES
-// ========================================
-let currentLogbookData = null;
-
-// ========================================
-// TAB SWITCHING
-// ========================================
+// Tab Switching
 function switchTab(tabName) {
-    // Remove active class from all tabs
+    console.log('Switching to tab:', tabName);
+    
     const tabButtons = document.querySelectorAll('.tab-button');
     const tabContents = document.querySelectorAll('.tab-content');
     
     tabButtons.forEach(btn => btn.classList.remove('active'));
     tabContents.forEach(content => content.classList.remove('active'));
     
-    // Add active class to selected tab
-    document.getElementById(`tab-btn-${tabName}`).classList.add('active');
-    document.getElementById(`tab-${tabName}`).classList.add('active');
+    const selectedButton = document.getElementById(`tab-btn-${tabName}`);
+    const selectedContent = document.getElementById(`tab-${tabName}`);
+    
+    if (selectedButton && selectedContent) {
+        selectedButton.classList.add('active');
+        selectedContent.classList.add('active');
+    }
 }
 
-// ========================================
-// FILTER LOGBOOK (CLIENT-SIDE)
-// ========================================
+// Filter Logbook
 function applyFilter() {
+    console.log('Applying filters...');
+    
     const filterMahasiswa = document.getElementById('filterMahasiswa').value;
     const filterStatus = document.getElementById('filterStatus').value;
     const filterTanggalMulai = document.getElementById('filterTanggalMulai').value;
     const filterTanggalSelesai = document.getElementById('filterTanggalSelesai').value;
     
     const table = document.getElementById('tableRiwayat');
-    const rows = table.querySelectorAll('tbody tr');
+    if (!table) return;
     
+    const rows = table.querySelectorAll('tbody tr');
     let visibleCount = 0;
     
-    rows.forEach((row, index) => {
+    rows.forEach((row) => {
         const mahasiswaId = row.getAttribute('data-mahasiswa');
         const status = row.getAttribute('data-status');
         const tanggal = row.getAttribute('data-tanggal');
         
         let showRow = true;
         
-        // Filter Mahasiswa
-        if (filterMahasiswa && mahasiswaId !== filterMahasiswa) {
-            showRow = false;
-        }
+        if (filterMahasiswa && mahasiswaId !== filterMahasiswa) showRow = false;
+        if (filterStatus && status !== filterStatus) showRow = false;
+        if (filterTanggalMulai && tanggal < filterTanggalMulai) showRow = false;
+        if (filterTanggalSelesai && tanggal > filterTanggalSelesai) showRow = false;
         
-        // Filter Status
-        if (filterStatus && status !== filterStatus) {
-            showRow = false;
-        }
-        
-        // Filter Tanggal Mulai
-        if (filterTanggalMulai && tanggal < filterTanggalMulai) {
-            showRow = false;
-        }
-        
-        // Filter Tanggal Selesai
-        if (filterTanggalSelesai && tanggal > filterTanggalSelesai) {
-            showRow = false;
-        }
-        
-        // Show/Hide row
         if (showRow) {
             row.style.display = '';
             visibleCount++;
-            // Update nomor urut
             row.querySelector('td:first-child').textContent = visibleCount;
         } else {
             row.style.display = 'none';
         }
     });
     
-    // Show empty state if no results
-    const tableWrapper = table.closest('.table-wrapper');
-    let emptyState = tableWrapper.nextElementSibling;
-    
-    if (visibleCount === 0) {
-        if (!emptyState || !emptyState.classList.contains('empty-state')) {
-            emptyState = document.createElement('div');
-            emptyState.className = 'empty-state';
-            emptyState.style.marginTop = '20px';
-            emptyState.innerHTML = `
-                <i class="fas fa-search"></i>
-                <h3>Tidak Ada Hasil</h3>
-                <p>Tidak ada logbook yang sesuai dengan filter Anda</p>
-            `;
-            tableWrapper.parentNode.insertBefore(emptyState, tableWrapper.nextSibling);
-        }
-        tableWrapper.style.display = 'none';
-        emptyState.style.display = 'block';
-    } else {
-        tableWrapper.style.display = 'block';
-        if (emptyState && emptyState.classList.contains('empty-state')) {
-            emptyState.style.display = 'none';
-        }
-    }
+    showNotification('info', `Menampilkan ${visibleCount} hasil`);
 }
 
-// ========================================
-// LIHAT DETAIL LOGBOOK (AJAX)
-// ========================================
+// Lihat Detail Logbook
 function lihatDetailLogbook(idLogbook) {
+    console.log('Loading detail for logbook:', idLogbook);
+    
     const modal = document.getElementById('modalDetailLogbook');
     const modalBody = document.getElementById('detailLogbookContent');
-    const modalFooter = document.getElementById('detailLogbookFooter');
-    const subtitle = document.getElementById('detailSubtitle');
     
-    // Show modal with loading
+    if (!modal || !modalBody) {
+        console.error('Modal elements not found');
+        return;
+    }
+    
     modal.classList.add('show');
     modalBody.innerHTML = `
         <div class="loading-spinner">
@@ -128,39 +83,37 @@ function lihatDetailLogbook(idLogbook) {
         </div>
     `;
     
-    // AJAX Request
-    fetch(`pages/get_detail_logbook.php?id_logbook=${idLogbook}`)
-        .then(response => response.json())
+    // FIXED: URL ke ajax_handler.php
+    const url = `ajax_handler.php?action=get_detail_logbook&id_logbook=${idLogbook}`;
+    console.log('Fetching from:', url);
+    
+    fetch(url)
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log('Data received:', data);
+            
             if (data.success) {
-                currentLogbookData = data.data;
                 renderDetailLogbook(data.data);
             } else {
-                modalBody.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <h3>Error</h3>
-                        <p>${data.message}</p>
-                    </div>
-                `;
+                showError(modalBody, data.message || 'Gagal memuat data');
             }
         })
         .catch(error => {
-            console.error('Error:', error);
-            modalBody.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <h3>Terjadi Kesalahan</h3>
-                    <p>Gagal memuat data logbook. Silakan coba lagi.</p>
-                </div>
-            `;
+            console.error('Fetch error:', error);
+            showError(modalBody, 'Terjadi kesalahan saat memuat data. Silakan coba lagi.');
         });
 }
 
-// ========================================
-// RENDER DETAIL LOGBOOK
-// ========================================
+// Render Detail Logbook
 function renderDetailLogbook(data) {
+    console.log('Rendering detail logbook...');
+    
     const logbook = data.logbook;
     const kegiatan = data.kegiatan;
     
@@ -168,72 +121,47 @@ function renderDetailLogbook(data) {
     const modalFooter = document.getElementById('detailLogbookFooter');
     const subtitle = document.getElementById('detailSubtitle');
     
-    // Update subtitle
     subtitle.innerHTML = `
         <i class="fas fa-user"></i>
         ${logbook.nama_mahasiswa} - ${logbook.nim}
     `;
     
-    // Status badge styling
-    const statusClass = {
-        'pending': 'pending',
-        'disetujui': 'disetujui',
-        'ditolak': 'ditolak'
+    const statusConfig = {
+        'pending': { class: 'pending', icon: 'fa-clock', text: 'Pending' },
+        'disetujui': { class: 'disetujui', icon: 'fa-check-circle', text: 'Disetujui' },
+        'ditolak': { class: 'ditolak', icon: 'fa-times-circle', text: 'Ditolak' }
     };
     
-    const statusIcon = {
-        'pending': 'fa-clock',
-        'disetujui': 'fa-check-circle',
-        'ditolak': 'fa-times-circle'
-    };
+    const status = statusConfig[logbook.status_validasi];
     
-    const statusText = {
-        'pending': 'Pending',
-        'disetujui': 'Disetujui',
-        'ditolak': 'Ditolak'
-    };
-    
-    // Build HTML
     let html = `
-        <!-- INFO ABSENSI -->
         <div class="detail-section">
             <h4><i class="fas fa-camera"></i> Informasi Absensi</h4>
             
             <div class="info-grid">
                 <div class="info-card">
-                    <div class="info-card-icon">
-                        <i class="fas fa-calendar"></i>
-                    </div>
+                    <div class="info-card-icon"><i class="fas fa-calendar"></i></div>
                     <div class="info-card-content">
                         <small>Tanggal</small>
                         <div>${logbook.tanggal_formatted}</div>
                     </div>
                 </div>
-                
                 <div class="info-card">
-                    <div class="info-card-icon">
-                        <i class="fas fa-clock"></i>
-                    </div>
+                    <div class="info-card-icon"><i class="fas fa-clock"></i></div>
                     <div class="info-card-content">
                         <small>Jam Absensi</small>
                         <div>${logbook.jam_formatted}</div>
                     </div>
                 </div>
-                
                 <div class="info-card">
-                    <div class="info-card-icon">
-                        <i class="fas fa-map-marker-alt"></i>
-                    </div>
+                    <div class="info-card-icon"><i class="fas fa-map-marker-alt"></i></div>
                     <div class="info-card-content">
                         <small>Lokasi</small>
                         <div>${logbook.lokasi_absensi || '-'}</div>
                     </div>
                 </div>
-                
                 <div class="info-card">
-                    <div class="info-card-icon">
-                        <i class="fas fa-building"></i>
-                    </div>
+                    <div class="info-card-icon"><i class="fas fa-building"></i></div>
                     <div class="info-card-content">
                         <small>Tempat Magang</small>
                         <div>${logbook.nama_mitra || '-'}</div>
@@ -243,15 +171,14 @@ function renderDetailLogbook(data) {
             
             ${logbook.foto_absensi ? `
                 <div class="photo-container">
-                    <img src="uploads/${logbook.foto_absensi}" 
+                    <img src="../ROLE Mahasiswa/uploads/${logbook.foto_absensi}" 
                          alt="Foto Absensi" 
                          onclick="openImageModal(this.src)"
                          style="cursor: pointer;">
                 </div>
-            ` : '<p class="text-muted">Tidak ada foto absensi</p>'}
+            ` : '<p style="color: var(--gray-500); font-style: italic; text-align: center;">Tidak ada foto absensi</p>'}
         </div>
         
-        <!-- DETAIL KEGIATAN -->
         <div class="detail-section">
             <h4><i class="fas fa-tasks"></i> Detail Kegiatan (${kegiatan.length})</h4>
             
@@ -267,10 +194,10 @@ function renderDetailLogbook(data) {
                                 </span>
                             </div>
                             <div class="kegiatan-desc">
-                                ${k.deskripsi_kegiatan.replace(/\n/g, '<br>')}
+                                ${escapeHtml(k.deskripsi_kegiatan).replace(/\n/g, '<br>')}
                             </div>
                             ${k.foto_kegiatan ? `
-                                <img src="uploads/${k.foto_kegiatan}" 
+                                <img src="../ROLE Mahasiswa/uploads/${k.foto_kegiatan}" 
                                      alt="Foto Kegiatan" 
                                      class="kegiatan-foto"
                                      onclick="openImageModal(this.src)">
@@ -278,17 +205,16 @@ function renderDetailLogbook(data) {
                         </div>
                     `).join('')}
                 </div>
-            ` : '<p class="text-muted">Tidak ada detail kegiatan</p>'}
+            ` : '<p style="color: var(--gray-500); font-style: italic; text-align: center;">Tidak ada detail kegiatan</p>'}
         </div>
         
-        <!-- STATUS VALIDASI -->
         <div class="detail-section">
             <h4><i class="fas fa-clipboard-check"></i> Status Validasi</h4>
             
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
-                <span class="status-badge ${statusClass[logbook.status_validasi]}">
-                    <i class="fas ${statusIcon[logbook.status_validasi]}"></i>
-                    ${statusText[logbook.status_validasi]}
+                <span class="status-badge ${status.class}">
+                    <i class="fas ${status.icon}"></i>
+                    ${status.text}
                 </span>
             </div>
             
@@ -298,53 +224,44 @@ function renderDetailLogbook(data) {
                         Catatan Dosen:
                     </strong>
                     <p style="font-size: 14px; line-height: 1.6; color: var(--gray-600); margin: 0;">
-                        ${logbook.catatan_dosen}
+                        ${escapeHtml(logbook.catatan_dosen)}
                     </p>
                 </div>
-            ` : '<p class="text-muted">Tidak ada catatan</p>'}
+            ` : '<p style="color: var(--gray-500); font-style: italic; text-align: center;">Tidak ada catatan</p>'}
         </div>
     `;
     
     modalBody.innerHTML = html;
     
-    // Update footer buttons
     if (logbook.status_validasi === 'pending') {
         modalFooter.innerHTML = `
-            <button class="btn btn-secondary" onclick="closeModal('modalDetailLogbook')">
-                Tutup
-            </button>
+            <button class="btn btn-secondary" onclick="closeModal('modalDetailLogbook')">Tutup</button>
             <button class="btn btn-danger" onclick="closeModal('modalDetailLogbook'); validasiLogbook(${logbook.id_logbook}, 'ditolak')">
-                <i class="fas fa-times"></i>
-                Tolak
+                <i class="fas fa-times"></i> Tolak
             </button>
             <button class="btn btn-success" onclick="closeModal('modalDetailLogbook'); validasiLogbook(${logbook.id_logbook}, 'disetujui')">
-                <i class="fas fa-check"></i>
-                Setujui
+                <i class="fas fa-check"></i> Setujui
             </button>
         `;
     } else {
         modalFooter.innerHTML = `
-            <button class="btn btn-secondary" onclick="closeModal('modalDetailLogbook')">
-                Tutup
-            </button>
+            <button class="btn btn-secondary" onclick="closeModal('modalDetailLogbook')">Tutup</button>
         `;
     }
 }
 
-// ========================================
-// VALIDASI LOGBOOK (SHOW MODAL)
-// ========================================
+// Validasi Logbook
 function validasiLogbook(idLogbook, status) {
+    console.log('Validating logbook:', idLogbook, status);
+    
     const modal = document.getElementById('modalValidasi');
     const title = document.getElementById('validasiTitle');
     const btnSubmit = document.getElementById('btnSubmitValidasi');
     
-    // Set hidden inputs
     document.getElementById('validasiIdLogbook').value = idLogbook;
     document.getElementById('validasiStatus').value = status;
     document.getElementById('validasiCatatan').value = '';
     
-    // Update title dan button style
     if (status === 'disetujui') {
         title.textContent = 'Setujui Logbook';
         btnSubmit.className = 'btn btn-success';
@@ -355,56 +272,57 @@ function validasiLogbook(idLogbook, status) {
         btnSubmit.innerHTML = '<i class="fas fa-times"></i> Tolak';
     }
     
-    // Show modal
     modal.classList.add('show');
 }
 
-// ========================================
-// SUBMIT VALIDASI (AJAX)
-// ========================================
+// Submit Validasi
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Monitoring JS initialized');
+    
     const formValidasi = document.getElementById('formValidasi');
     
     if (formValidasi) {
         formValidasi.addEventListener('submit', function(e) {
             e.preventDefault();
+            console.log('Submitting validation...');
             
             const idLogbook = document.getElementById('validasiIdLogbook').value;
             const status = document.getElementById('validasiStatus').value;
             const catatan = document.getElementById('validasiCatatan').value;
             const btnSubmit = document.getElementById('btnSubmitValidasi');
             
-            // Disable button
             btnSubmit.disabled = true;
             btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
             
-            // Prepare form data
             const formData = new FormData();
             formData.append('id_logbook', idLogbook);
             formData.append('status', status);
             formData.append('catatan', catatan);
             
-            // AJAX Request
-            fetch('pages/update_validasi_logbook.php', {
+            // FIXED: URL ke ajax_handler.php
+            const url = 'ajax_handler.php?action=update_validasi_logbook';
+            console.log('Posting to:', url);
+            
+            fetch(url, {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
+                console.log('Response data:', data);
+                
                 if (data.success) {
-                    // Success - Show notification
                     showNotification('success', data.message);
-                    
-                    // Close modal
                     closeModal('modalValidasi');
-                    
-                    // Reload page after 1 second
-                    setTimeout(() => {
-                        location.reload();
-                    }, 1000);
+                    setTimeout(() => location.reload(), 1000);
                 } else {
-                    // Error
-                    showNotification('error', data.message);
+                    showNotification('error', data.message || 'Gagal memvalidasi');
                     btnSubmit.disabled = false;
                     btnSubmit.innerHTML = status === 'disetujui' 
                         ? '<i class="fas fa-check"></i> Setujui'
@@ -412,7 +330,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
+                console.error('Submit error:', error);
                 showNotification('error', 'Terjadi kesalahan. Silakan coba lagi.');
                 btnSubmit.disabled = false;
                 btnSubmit.innerHTML = status === 'disetujui' 
@@ -423,52 +341,71 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// ========================================
-// MODAL MANAGEMENT
-// ========================================
+// Modal Management
 function closeModal(modalId) {
     const modal = document.getElementById(modalId);
-    modal.classList.remove('show');
+    if (modal) modal.classList.remove('show');
 }
 
-// Close modal when clicking outside
 document.addEventListener('click', function(e) {
     if (e.target.classList.contains('modal-overlay')) {
         e.target.classList.remove('show');
     }
 });
 
-// Close modal with ESC key
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
-        const modals = document.querySelectorAll('.modal-overlay.show');
-        modals.forEach(modal => modal.classList.remove('show'));
+        document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
     }
 });
 
-// ========================================
-// IMAGE VIEWER
-// ========================================
+// Image Viewer
 function openImageModal(src) {
     const modal = document.getElementById('modalImage');
     const img = document.getElementById('modalImageContent');
-    
-    img.src = src;
-    modal.classList.add('show');
+    if (modal && img) {
+        img.src = src;
+        modal.classList.add('show');
+    }
 }
 
-// ========================================
-// NOTIFICATION SYSTEM
-// ========================================
+// Utility Functions
+function showError(container, message) {
+    container.innerHTML = `
+        <div class="empty-state">
+            <i class="fas fa-exclamation-circle"></i>
+            <h3>Error</h3>
+            <p>${message}</p>
+        </div>
+    `;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 function showNotification(type, message) {
-    // Create notification element
+    const colors = {
+        'success': '#2dbf78',
+        'error': '#f36c6c',
+        'info': '#4270f4'
+    };
+    
+    const icons = {
+        'success': 'fa-check-circle',
+        'error': 'fa-exclamation-circle',
+        'info': 'fa-info-circle'
+    };
+    
     const notification = document.createElement('div');
     notification.style.cssText = `
         position: fixed;
         top: 20px;
         right: 20px;
         padding: 16px 24px;
-        background: ${type === 'success' ? 'var(--success-color)' : 'var(--danger-color)'};
+        background: ${colors[type] || colors.info};
         color: white;
         border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -481,57 +418,28 @@ function showNotification(type, message) {
     `;
     
     notification.innerHTML = `
-        <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+        <i class="fas ${icons[type] || icons.info}"></i>
         <span>${message}</span>
     `;
     
     document.body.appendChild(notification);
     
-    // Add animation
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideInRight {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
+    if (!document.getElementById('notification-style')) {
+        const style = document.createElement('style');
+        style.id = 'notification-style';
+        style.textContent = `
+            @keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
             }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-    `;
-    document.head.appendChild(style);
+        `;
+        document.head.appendChild(style);
+    }
     
-    // Remove after 3 seconds
     setTimeout(() => {
         notification.style.animation = 'slideInRight 0.3s ease reverse';
-        setTimeout(() => {
-            notification.remove();
-        }, 300);
+        setTimeout(() => notification.remove(), 300);
     }, 3000);
 }
 
-// ========================================
-// UTILITY FUNCTIONS
-// ========================================
-
-// Format date to Indonesian
-function formatDateIndo(dateString) {
-    const hari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-    const bulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
-                   'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-    
-    const date = new Date(dateString);
-    const namaHari = hari[date.getDay()];
-    const tanggal = date.getDate();
-    const namaBulan = bulan[date.getMonth()];
-    const tahun = date.getFullYear();
-    
-    return `${namaHari}, ${tanggal} ${namaBulan} ${tahun}`;
-}
-
-// ========================================
-// INITIALIZE
-// ========================================
-console.log('Monitoring Logbook System Loaded ✓');
+console.log('✓ Monitoring Logbook System Loaded');

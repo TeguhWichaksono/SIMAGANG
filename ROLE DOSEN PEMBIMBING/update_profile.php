@@ -3,81 +3,59 @@ session_start();
 include '../Koneksi/koneksi.php';
 
 header('Content-Type: application/json');
+error_reporting(0); 
+ob_clean(); 
 
 $response = ['success' => false, 'message' => ''];
 
 try {
     if (!isset($_SESSION['id'])) {
-        throw new Exception('User tidak terautentikasi. Silakan login kembali.');
+        throw new Exception('Sesi habis. Silakan login kembali.');
     }
 
     $id_user = $_POST['id_user'] ?? null;
-    $email = trim($_POST['email'] ?? '');
-    $prodi = trim($_POST['prodi'] ?? '');
-    $nip = trim($_POST['nip'] ?? '');
-
-    if (empty($id_user) || $id_user != $_SESSION['id']) {
-        throw new Exception('ID user tidak valid');
+    
+    // Validasi User ID agar tidak edit punya orang lain
+    if ($id_user != $_SESSION['id']) {
+        throw new Exception('Validasi user gagal.');
     }
 
-    if (empty($email)) {
-        throw new Exception('Email tidak boleh kosong');
-    }
+    // Ambil Input
+    $nidn   = trim($_POST['nidn'] ?? '');
+    $prodi  = trim($_POST['prodi'] ?? '');
+    $kontak = trim($_POST['kontak'] ?? '');
 
-    if (empty($nip)) {
-        throw new Exception('NIP tidak boleh kosong');
-    }
+    // 1. Cek apakah data dosen sudah ada?
+    $stmt_cek = mysqli_prepare($conn, "SELECT id_dosen FROM dosen WHERE id_user = ?");
+    mysqli_stmt_bind_param($stmt_cek, 'i', $id_user);
+    mysqli_stmt_execute($stmt_cek);
+    mysqli_stmt_store_result($stmt_cek);
+    $exists = mysqli_stmt_num_rows($stmt_cek) > 0;
+    mysqli_stmt_close($stmt_cek);
 
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        throw new Exception('Format email tidak valid');
-    }
-
-    // Update email pada tabel users
-    $stmt1 = mysqli_prepare($conn, "UPDATE users SET email = ? WHERE id = ?");
-    if (!$stmt1) throw new Exception('Prepare users update failed: ' . mysqli_error($conn));
-
-    mysqli_stmt_bind_param($stmt1, 'si', $email, $id_user);
-    if (!mysqli_stmt_execute($stmt1)) throw new Exception('Gagal update data user: ' . mysqli_error($conn));
-    mysqli_stmt_close($stmt1);
-
-    // Cek apakah data dosen sudah ada
-    $stmt2 = mysqli_prepare($conn, "SELECT id_user FROM dosen WHERE id_user = ?");
-    if (!$stmt2) throw new Exception('Prepare dosen select failed: ' . mysqli_error($conn));
-
-    mysqli_stmt_bind_param($stmt2, 'i', $id_user);
-    mysqli_stmt_execute($stmt2);
-    mysqli_stmt_store_result($stmt2);
-
-    if (mysqli_stmt_num_rows($stmt2) > 0) {
-        // Jika sudah ada, update nip dan prodi
-        mysqli_stmt_close($stmt2);
-
-        $stmt3 = mysqli_prepare($conn, "UPDATE dosen SET nip = ?, prodi = ? WHERE id_user = ?");
-        if (!$stmt3) throw new Exception('Prepare dosen update failed: ' . mysqli_error($conn));
-
-        mysqli_stmt_bind_param($stmt3, 'ssi', $nip, $prodi, $id_user);
+    if ($exists) {
+        // UPDATE
+        $stmt = mysqli_prepare($conn, "UPDATE dosen SET nidn = ?, prodi = ?, kontak = ? WHERE id_user = ?");
+        mysqli_stmt_bind_param($stmt, 'sssi', $nidn, $prodi, $kontak, $id_user);
     } else {
-        // Jika belum ada, insert data baru
-        mysqli_stmt_close($stmt2);
-
-        $stmt3 = mysqli_prepare($conn, "INSERT INTO dosen (id_user, nip, prodi) VALUES (?, ?, ?)");
-        if (!$stmt3) throw new Exception('Prepare dosen insert failed: ' . mysqli_error($conn));
-
-        mysqli_stmt_bind_param($stmt3, 'iss', $id_user, $nip, $prodi);
+        // INSERT (Jika baru pertama kali isi profil)
+        $stmt = mysqli_prepare($conn, "INSERT INTO dosen (id_user, nidn, prodi, kontak) VALUES (?, ?, ?, ?)");
+        mysqli_stmt_bind_param($stmt, 'isss', $id_user, $nidn, $prodi, $kontak);
     }
 
-    if (!mysqli_stmt_execute($stmt3)) {
-        throw new Exception('Gagal menyimpan data dosen: ' . mysqli_error($conn));
+    if (mysqli_stmt_execute($stmt)) {
+        $response['success'] = true;
+        $response['message'] = "Profil berhasil diperbarui!";
+    } else {
+        throw new Exception("Database Error: " . mysqli_stmt_error($stmt));
     }
-    mysqli_stmt_close($stmt3);
-
-    $response['success'] = true;
-    $response['message'] = 'Profil berhasil diperbarui';
+    mysqli_stmt_close($stmt);
 
 } catch (Exception $e) {
+    $response['success'] = false;
     $response['message'] = $e->getMessage();
-} finally {
-    echo json_encode($response);
-    exit;
 }
+
+echo json_encode($response);
+exit;
 ?>

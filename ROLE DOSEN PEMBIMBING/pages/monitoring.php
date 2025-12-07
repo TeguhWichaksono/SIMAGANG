@@ -1,6 +1,9 @@
 <?php
+// ========================================
 // monitoring.php
 // Monitoring & Validasi Logbook Mahasiswa Bimbingan
+// REWRITTEN - CLEAN VERSION
+// ========================================
 
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
@@ -12,13 +15,13 @@ if (!isset($_SESSION['id'])) {
 }
 
 include '../Koneksi/koneksi.php';
+date_default_timezone_set('Asia/Jakarta');
 
 $id_user_login = $_SESSION['id'];
 
 // ========================================
-// 1. AMBIL ID DOSEN DARI ID USER
+// 1. AMBIL ID DOSEN
 // ========================================
-// Kita perlu id_dosen (bukan id_user) untuk mencocokkan dengan tabel kelompok
 $query_dosen = "SELECT id_dosen FROM dosen WHERE id_user = ?";
 $stmt_dosen = mysqli_prepare($conn, $query_dosen);
 mysqli_stmt_bind_param($stmt_dosen, 'i', $id_user_login);
@@ -27,15 +30,14 @@ $result_dosen = mysqli_stmt_get_result($stmt_dosen);
 $row_dosen = mysqli_fetch_assoc($result_dosen);
 
 if (!$row_dosen) {
-    // Jika user login bukan dosen atau data belum ada di tabel dosen
-    echo "<div style='padding:20px; color:red;'>Error: Data Dosen tidak ditemukan untuk User ID ini. Pastikan akun ini terdaftar di tabel dosen.</div>";
+    echo "<div class='error-message'>Error: Data Dosen tidak ditemukan untuk User ID ini.</div>";
     exit;
 }
 
-$id_dosen = $row_dosen['id_dosen']; // Ini ID yang dipakai untuk filter kelompok
+$id_dosen = $row_dosen['id_dosen'];
 
 // ========================================
-// GET LOGBOOK PENDING (Butuh Validasi)
+// 2. GET LOGBOOK PENDING
 // ========================================
 $query_pending = "
     SELECT 
@@ -47,7 +49,7 @@ $query_pending = "
         lh.status_validasi,
         m.id_mahasiswa,
         u.nama AS nama_mahasiswa,
-        nim,
+        u.nim,
         m.prodi,
         k.nama_kelompok,
         mp.nama_mitra,
@@ -63,15 +65,14 @@ $query_pending = "
     WHERE k.id_dosen_pembimbing = ?
     AND lh.status_validasi = 'pending'
     GROUP BY 
-        lh.id_logbook, lh.tanggal, lh.jam_absensi, lh.lokasi_absensi, lh.foto_absensi, lh.status_validasi,
-        m.id_mahasiswa, u.nama, nim, m.prodi, k.nama_kelompok, mp.nama_mitra
+        lh.id_logbook, lh.tanggal, lh.jam_absensi, lh.lokasi_absensi, 
+        lh.foto_absensi, lh.status_validasi, m.id_mahasiswa, u.nama, 
+        u.nim, m.prodi, k.nama_kelompok, mp.nama_mitra
     ORDER BY lh.tanggal DESC, lh.jam_absensi DESC
     LIMIT 50
 ";
 
 $stmt_pending = mysqli_prepare($conn, $query_pending);
-
-// Cek jika query error syntax
 if (!$stmt_pending) {
     die("Error Query Pending: " . mysqli_error($conn));
 }
@@ -85,7 +86,7 @@ while ($row = mysqli_fetch_assoc($result_pending)) {
 }
 
 // ========================================
-// GET RIWAYAT LOGBOOK (Semua Status)
+// 3. GET RIWAYAT LOGBOOK
 // ========================================
 $query_riwayat = "
     SELECT 
@@ -98,7 +99,7 @@ $query_riwayat = "
         lh.catatan_dosen,
         m.id_mahasiswa,
         u.nama AS nama_mahasiswa,
-        nim,
+        u.nim,
         k.nama_kelompok,
         mp.nama_mitra,
         COUNT(dk.id_detail) as jumlah_kegiatan
@@ -112,15 +113,14 @@ $query_riwayat = "
     LEFT JOIN detail_kegiatan dk ON lh.id_logbook = dk.id_logbook
     WHERE k.id_dosen_pembimbing = ?
     GROUP BY 
-        lh.id_logbook, lh.tanggal, lh.jam_absensi, lh.lokasi_absensi, lh.foto_absensi, lh.status_validasi, lh.catatan_dosen,
-        m.id_mahasiswa, u.nama, nim, k.nama_kelompok, mp.nama_mitra
+        lh.id_logbook, lh.tanggal, lh.jam_absensi, lh.lokasi_absensi, 
+        lh.foto_absensi, lh.status_validasi, lh.catatan_dosen, 
+        m.id_mahasiswa, u.nama, u.nim, k.nama_kelompok, mp.nama_mitra
     ORDER BY lh.tanggal DESC, lh.jam_absensi DESC
     LIMIT 100
 ";
 
 $stmt_riwayat = mysqli_prepare($conn, $query_riwayat);
-
-// Cek jika query error syntax
 if (!$stmt_riwayat) {
     die("Error Query Riwayat: " . mysqli_error($conn));
 }
@@ -137,6 +137,7 @@ while ($row = mysqli_fetch_assoc($result_riwayat)) {
 <link rel="stylesheet" href="styles/monitoring.css?v=<?= time(); ?>">
 
 <div class="monitoring-container">
+    <!-- PAGE HEADER -->
     <div class="page-header">
         <div class="header-content">
             <div class="header-icon">📊</div>
@@ -147,6 +148,7 @@ while ($row = mysqli_fetch_assoc($result_riwayat)) {
         </div>
     </div>
 
+    <!-- TABS NAVIGATION -->
     <div class="tabs-nav">
         <div class="tabs-nav-inner">
             <button class="tab-button active" onclick="switchTab('pending')" id="tab-btn-pending">
@@ -163,6 +165,7 @@ while ($row = mysqli_fetch_assoc($result_riwayat)) {
         </div>
     </div>
 
+    <!-- TAB 1: LOGBOOK PENDING -->
     <div class="tab-content active" id="tab-pending">
         <div class="card">
             <div class="card-header">
@@ -258,6 +261,7 @@ while ($row = mysqli_fetch_assoc($result_riwayat)) {
         </div>
     </div>
 
+    <!-- TAB 2: RIWAYAT LOGBOOK -->
     <div class="tab-content" id="tab-riwayat">
         <div class="card">
             <div class="card-header">
@@ -268,13 +272,13 @@ while ($row = mysqli_fetch_assoc($result_riwayat)) {
                 </p>
             </div>
 
+            <!-- FILTER BAR -->
             <div class="filters-bar">
                 <div class="filter-group">
                     <label>Mahasiswa</label>
                     <select id="filterMahasiswa">
                         <option value="">Semua Mahasiswa</option>
                         <?php
-                        // Get unique mahasiswa
                         $mahasiswa_list = [];
                         foreach ($logbook_riwayat as $log) {
                             $key = $log['id_mahasiswa'];
@@ -406,6 +410,7 @@ while ($row = mysqli_fetch_assoc($result_riwayat)) {
     </div>
 </div>
 
+<!-- MODAL: DETAIL LOGBOOK -->
 <div class="modal-overlay" id="modalDetailLogbook">
     <div class="modal-content modal-lg">
         <div class="modal-header">
@@ -429,6 +434,7 @@ while ($row = mysqli_fetch_assoc($result_riwayat)) {
     </div>
 </div>
 
+<!-- MODAL: VALIDASI LOGBOOK -->
 <div class="modal-overlay" id="modalValidasi">
     <div class="modal-content">
         <div class="modal-header">
@@ -466,6 +472,7 @@ while ($row = mysqli_fetch_assoc($result_riwayat)) {
     </div>
 </div>
 
+<!-- MODAL: IMAGE VIEWER -->
 <div class="modal-overlay" id="modalImage">
     <div class="modal-image-content">
         <span class="close-modal" onclick="closeModal('modalImage')">&times;</span>

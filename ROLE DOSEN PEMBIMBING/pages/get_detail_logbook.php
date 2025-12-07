@@ -1,30 +1,19 @@
 <?php
-/**
- * get_detail_logbook.php
- * AJAX Endpoint untuk mengambil detail logbook
- * 
- * @return JSON {success, data: {logbook, kegiatan}}
- */
+// ========================================
+// get_detail_logbook.php
+// AJAX Endpoint - Get Detail Logbook
+// DIPANGGIL VIA ajax_handler.php
+// ========================================
 
-session_start();
-header('Content-Type: application/json');
+// JANGAN ADA header() atau session_start() di sini!
+// Sudah di-handle oleh ajax_handler.php
+date_default_timezone_set('Asia/Jakarta');
 
-// Security Check
-if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'Dosen Pembimbing') {
+// Validate input
+if (!isset($_GET['id_logbook'])) {
     echo json_encode([
         'success' => false,
-        'message' => 'Unauthorized access'
-    ]);
-    exit;
-}
-
-include '../../Koneksi/koneksi.php';
-
-// Validasi Request
-if ($_SERVER['REQUEST_METHOD'] !== 'GET' || !isset($_GET['id_logbook'])) {
-    echo json_encode([
-        'success' => false,
-        'message' => 'Invalid request'
+        'message' => 'ID Logbook tidak ditemukan'
     ]);
     exit;
 }
@@ -32,9 +21,18 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET' || !isset($_GET['id_logbook'])) {
 $id_logbook = (int) $_GET['id_logbook'];
 $id_user_login = $_SESSION['id'];
 
-// Ambil ID Dosen
+// Get ID Dosen
 $query_dosen = "SELECT id_dosen FROM dosen WHERE id_user = ?";
 $stmt_dosen = mysqli_prepare($conn, $query_dosen);
+
+if (!$stmt_dosen) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Database error: ' . mysqli_error($conn)
+    ]);
+    exit;
+}
+
 mysqli_stmt_bind_param($stmt_dosen, 'i', $id_user_login);
 mysqli_stmt_execute($stmt_dosen);
 $result_dosen = mysqli_stmt_get_result($stmt_dosen);
@@ -50,9 +48,7 @@ if (!$row_dosen) {
 
 $id_dosen = $row_dosen['id_dosen'];
 
-// ========================================
-// QUERY DETAIL LOGBOOK
-// ========================================
+// Get Logbook Detail
 $query_logbook = "
     SELECT 
         lh.id_logbook,
@@ -64,7 +60,7 @@ $query_logbook = "
         lh.catatan_dosen,
         m.id_mahasiswa,
         u.nama AS nama_mahasiswa,
-        nim,
+        u.nim,
         m.prodi,
         k.nama_kelompok,
         mp.nama_mitra,
@@ -95,7 +91,6 @@ mysqli_stmt_execute($stmt_logbook);
 $result_logbook = mysqli_stmt_get_result($stmt_logbook);
 $logbook = mysqli_fetch_assoc($result_logbook);
 
-// Cek apakah logbook ditemukan dan milik mahasiswa bimbingan
 if (!$logbook) {
     echo json_encode([
         'success' => false,
@@ -104,9 +99,7 @@ if (!$logbook) {
     exit;
 }
 
-// ========================================
-// QUERY DETAIL KEGIATAN
-// ========================================
+// Get Detail Kegiatan
 $query_kegiatan = "
     SELECT 
         id_detail,
@@ -139,11 +132,7 @@ while ($row = mysqli_fetch_assoc($result_kegiatan)) {
     $kegiatan_list[] = $row;
 }
 
-// ========================================
-// FORMAT DATA
-// ========================================
-
-// Format tanggal Indonesia
+// Format Tanggal Indonesia
 $hari = [
     'Sunday' => 'Minggu',
     'Monday' => 'Senin',
@@ -165,6 +154,7 @@ $tgl = date('d', $timestamp);
 $nama_bulan = $bulan[(int)date('m', $timestamp)];
 $tahun = date('Y', $timestamp);
 
+
 $logbook['tanggal_formatted'] = "$nama_hari, $tgl $nama_bulan $tahun";
 $logbook['jam_formatted'] = date('H:i', strtotime($logbook['jam_absensi'])) . ' WIB';
 
@@ -177,5 +167,5 @@ echo json_encode([
     ]
 ]);
 
-mysqli_close($conn);
+exit;
 ?>
