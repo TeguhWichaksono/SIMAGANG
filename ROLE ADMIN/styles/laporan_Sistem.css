@@ -1,87 +1,239 @@
-/* laporan_Sistem.css */
-/* Gunakan untuk styling halaman laporan sistem */
+/* styles/laporan_Sistem.css */
 
-.laporan-container {
-  background: #fff;
-  padding: 30px;
-  border-radius: 15px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  max-width: 1100px;
-  margin: 40px auto;
+:root {
+    --primary-color: #2c3e50;
+    --secondary-color: #34495e;
+    --accent-blue: #3498db;
+    --bg-gray: #f8f9fa;
+    --border-color: #e9ecef;
 }
 
-.header-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-  flex-wrap: wrap;
-  gap: 10px;
+.laporan-wrapper {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    padding: 25px;
+    min-height: 80vh;
 }
 
-/* Tombol filter dan export */
-.filter-btn,
-.export-btn {
-  background: #4270f4;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 8px 14px;
-  cursor: pointer;
-  font-size: 13px;
-  transition: background 0.25s ease, box-shadow 0.25s ease;
+/* HEADER */
+.laporan-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 20px;
 }
 
-.filter-btn:hover,
-.export-btn:hover {
-  background: #2f57d6;
-  box-shadow: 0 2px 6px rgba(66, 112, 244, 0.4);
+.header-title h2 {
+    margin: 0;
+    color: var(--primary-color);
+    font-size: 24px;
 }
 
-/* Tabel log aktivitas */
+.header-title p {
+    margin: 5px 0 0;
+    color: #7f8c8d;
+    font-size: 14px;
+}
+
+.btn-export {
+    background: #27ae60;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: background 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-export:hover {
+    background: #219150;
+    transform: translateY(-2px);
+}
+
+/* FILTER BAR */
+.filter-bar {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    background: var(--bg-gray);
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.filter-form {
+    display: flex;
+    gap: 15px;
+    width: 100%;
+}
+
+.search-box {
+    flex-grow: 1;
+    position: relative;
+}
+
+.search-box i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #95a5a6;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 10px 15px 10px 40px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    outline: none;
+}
+
+.select-filter {
+    padding: 10px 15px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    min-width: 150px;
+}
+
+/* TABLE STYLING */
+.table-container {
+    overflow-x: auto;
+}
+
 .log-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-  font-size: 14px;
-}
-
-.log-table th,
-.log-table td {
-  border: 1px solid #ddd;
-  padding: 10px 12px;
-  text-align: left;
+    width: 100%;
+    border-collapse: collapse;
 }
 
 .log-table th {
-  background-color: #4270f4;
-  color: white;
-  font-weight: 600;
+    background: var(--primary-color);
+    color: white;
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 14px;
 }
 
-.log-table tr:nth-child(even) {
-  background-color: #f8f9fd;
+.log-table td {
+    padding: 15px;
+    border-bottom: 1px solid var(--border-color);
+    color: #34495e;
+    vertical-align: middle;
 }
 
 .log-table tr:hover {
-  background-color: #eef2ff;
-  transition: background 0.25s ease;
+    background-color: #f8f9fa;
 }
 
-/* Responsive layout */
-@media (max-width: 768px) {
-  .laporan-container {
-    padding: 20px;
-  }
-
-  .header-actions {
+/* Cell Components */
+.time-cell {
+    display: flex;
     flex-direction: column;
-    align-items: flex-start;
-  }
+}
 
-  .filter-btn,
-  .export-btn {
-    width: 100%;
-    margin-bottom: 5px;
-  }
+.date-part { font-weight: 600; font-size: 13px; }
+.time-part { font-size: 12px; color: #7f8c8d; }
+
+.user-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-avatar-small {
+    width: 32px;
+    height: 32px;
+    background: var(--accent-blue);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.user-role {
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-top: 2px;
+    width: fit-content;
+}
+
+/* Role Colors */
+.role-admin { background: #34495e; color: white; }
+.role-mahasiswa { background: #e8f6f3; color: #1abc9c; }
+.role-dosen-pembimbing { background: #eaf2f8; color: #3498db; }
+.role-koordinator-bidang { background: #fef5e7; color: #f39c12; }
+
+/* Status Badges (Icons) */
+.status-badge {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+.status-badge.success { background: #e8f6f3; color: #27ae60; } /* Tambah */
+.status-badge.warning { background: #fef9e7; color: #f39c12; } /* Edit */
+.status-badge.danger { background: #fdeded; color: #e74c3c; }  /* Hapus */
+.status-badge.info { background: #eaf2f8; color: #3498db; }    /* Lainnya */
+
+/* PAGINATION */
+.pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.pagination-buttons {
+    display: flex;
+    gap: 5px;
+}
+
+.page-btn {
+    padding: 8px 12px;
+    border: 1px solid #dee2e6;
+    background: white;
+    color: var(--primary-color);
+    text-decoration: none;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.page-btn:hover, .page-btn.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px !important;
+    color: #95a5a6;
 }

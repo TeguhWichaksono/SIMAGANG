@@ -1,161 +1,172 @@
-<link rel="stylesheet" href="styles/dashboard.css" />
-<!-- Dashboard Container -->
-<div class="dashboard-container">
-  <!-- Main Dashboard Content -->
-  <div class="dashboard-main">
-    <!-- Transfer Cards -->
-    <div class="transfer-cards">
-      <div class="transfer-card">
-        <div class="card-icon">
-          <i class="fas fa-users"></i>
-        </div>
-        <p class="card-title">Jumlah Mahasiswa Magang</p>
-        <h2 class="card-amount">94 Mahasiswa</h2>
-      </div>
+<?php
+// pages/dashboard.php
+// Dashboard khusus Administrator
+// Fokus: Monitoring User, Keamanan, dan Kesehatan Sistem
 
-      <div class="transfer-card">
-        <div class="card-icon">
-          <i class="fas fa-chalkboard-teacher"></i>
-        </div>
-        <p class="card-title">Jumlah Dosen Pembimbing</p>
-        <h2 class="card-amount">45 Dosen</h2>
-      </div>
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 
-      <div class="transfer-card">
-        <div class="card-icon">
-          <i class="fas fa-building"></i>
-        </div>
-        <p class="card-title">Jumlah Instansi/perusahaan Mitra</p>
-        <h2 class="card-amount">165 Mitra</h2>
-      </div>
-    </div>
+// Cek sesi (pastikan admin)
+if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'Admin') {
+    // Redirect atau handle error
+}
 
-    <!-- Pemetaan Mitra (Jember) -->
-    <div class="transaction-section">
-      <div class="transaction-card">
-        <h3 class="section-title">Pemetaan Mitra - Jember</h3>
-        <div id="map"></div>
-      </div>
-    </div>
+include '../Koneksi/koneksi.php';
 
-    <!-- Aktivitas Terbaru -->
-    <div class="transaction-section">
-      <div class="transaction-card">
-        <h3 class="section-title">Aktivitas Terbaru</h3>
-        <div class="transaction-item">
-          <div class="transaction-icon">
-            <i class="fas fa-file-upload"></i>
-          </div>
-          <div class="transaction-content">
-            <div class="transaction-title">Budi Santoso mengunggah Laporan Bab II</div>
-            <div class="transaction-time">
-              <i class="far fa-clock"></i> Today, 14:45
+// ========================================
+// 1. STATISTIK TOTAL USER
+// ========================================
+// Total semua user
+$q_total = mysqli_query($conn, "SELECT COUNT(*) as total FROM users");
+$total_users = mysqli_fetch_assoc($q_total)['total'];
+
+// Total Mahasiswa
+$q_mhs = mysqli_query($conn, "SELECT COUNT(*) as total FROM users WHERE role='Mahasiswa'");
+$total_mhs = mysqli_fetch_assoc($q_mhs)['total'];
+
+// Total Dosen & Korbid (Staff)
+$q_staff = mysqli_query($conn, "SELECT COUNT(*) as total FROM users WHERE role IN ('Dosen Pembimbing', 'Koordinator Bidang')");
+$total_staff = mysqli_fetch_assoc($q_staff)['total'];
+
+// ========================================
+// 2. DATA UNTUK CHART (Komposisi User)
+// ========================================
+$q_chart = mysqli_query($conn, "SELECT role, COUNT(*) as jumlah FROM users GROUP BY role");
+$chart_data = [];
+while($row = mysqli_fetch_assoc($q_chart)) {
+    // Normalisasi nama role untuk label
+    $label = str_replace('_', ' ', $row['role']);
+    $label = ucwords($label);
+    $chart_data[] = [
+        'label' => $label,
+        'value' => $row['jumlah']
+    ];
+}
+
+// ========================================
+// 3. USER TERBARU (Baru ditambahkan)
+// ========================================
+$q_recent = mysqli_query($conn, "SELECT nama, role, email, foto_profil FROM users ORDER BY id DESC LIMIT 5");
+?>
+
+<link rel="stylesheet" href="styles/dashboard.css?v=<?= time(); ?>">
+
+<div class="admin-dashboard">
+    
+    <div class="stats-overview">
+        <div class="stat-card primary">
+            <div class="stat-icon">
+                <i class="fas fa-users-cog"></i>
             </div>
-          </div>
-          <div class="transaction-amount positive">Selesai</div>
-        </div>
-
-        <div class="transaction-item">
-          <div class="transaction-icon">
-            <i class="fas fa-user-graduate"></i>
-          </div>
-          <div class="transaction-content">
-            <div class="transaction-title">Siti Aminah ditempatkan di PT Telkom</div>
-            <div class="transaction-time">
-              <i class="far fa-clock"></i> Yesterday, 16:08
+            <div class="stat-info">
+                <h3><?= $total_users ?></h3>
+                <p>Total User Sistem</p>
             </div>
-          </div>
-          <div class="transaction-amount positive">Selesai</div>
+            <div class="stat-chart-mini">
+                <div class="pulse-dot"></div> Online
+            </div>
         </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Dashboard Sidebar -->
-  <div class="dashboard-sidebar">
-    <div class="savings-card">
-      <h3 class="savings-title">Jumlah Mahasiswa Aktif</h3>
-      <div class="savings-amount">65 Mahasiswa</div>
-      <div class="time-filter">
-        <button class="time-option">Harian</button>
-        <button class="time-option">Mingguan</button>
-        <button class="time-option active">Bulanan</button>
-        <button class="time-option">Lainnya</button>
-      </div>
+        <div class="stat-card info">
+            <div class="stat-icon">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <div class="stat-info">
+                <h3><?= $total_mhs ?></h3>
+                <p>Akun Mahasiswa</p>
+            </div>
+        </div>
 
-      <div class="chart-container">
-        <svg class="chart" viewBox="0 0 300 100" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="gradientFill" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#4270F4" stop-opacity="0.7" />
-              <stop offset="100%" stop-color="#4270F4" stop-opacity="0.1" />
-            </linearGradient>
-          </defs>
-          <path
-            class="chart-line-path"
-            d="M0,80 C20,70 40,30 60,60 C80,90 100,40 120,30 C140,20 160,50 180,20 C200,30 220,60 240,80 C260,60 280,40 300,60"
-          ></path>
-          <path
-            class="chart-area"
-            d="M0,80 C20,70 40,30 60,60 C80,90 100,40 120,30 C140,20 160,50 180,20 C200,30 220,60 240,80 C260,60 280,40 300,60 L300,100 L0,100 Z"
-          ></path>
-          <circle cx="180" cy="20" r="6" fill="#4270F4" stroke="#ffffff" stroke-width="3" />
-        </svg>
-      </div>
+        <div class="stat-card success">
+            <div class="stat-icon">
+                <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+            <div class="stat-info">
+                <h3><?= $total_staff ?></h3>
+                <p>Akun Staff (Dosen/Korbid)</p>
+            </div>
+        </div>
 
-      <div class="timeline">
-        <div class="month">Okt</div>
-        <div class="month">Nov</div>
-        <div class="month active">Des</div>
-        <div class="month">Jan</div>
-        <div class="month">Feb</div>
-        <div class="month">Mar</div>
-      </div>
+        <div class="stat-card warning">
+            <div class="stat-icon">
+                <i class="fas fa-server"></i>
+            </div>
+            <div class="stat-info">
+                <h3>Stabil</h3>
+                <p>Status Server</p>
+            </div>
+        </div>
     </div>
 
-    <div class="plan-card">
-      <div class="plan-info">
-        <div class="plan-title">Mahasiswa Sudah Ditempatkan</div>
-        <div class="plan-status">Proses</div>
-      </div>
-      <div class="plan-progress">
-        <div class="plan-percentage">68%</div>
-      </div>
+    <div class="content-grid">
+        
+        <div class="main-card chart-section">
+            <div class="card-header">
+                <h4><i class="fas fa-chart-pie"></i> Komposisi Pengguna Sistem</h4>
+                <button class="btn-refresh" onclick="location.reload()"><i class="fas fa-sync-alt"></i></button>
+            </div>
+            <div class="card-body">
+                <canvas id="userRoleChart"></canvas>
+            </div>
+            <div class="card-footer-info">
+                <small><i class="fas fa-info-circle"></i> Grafik ini membantu memantau beban kapasitas user.</small>
+            </div>
+        </div>
+
+        <div class="right-column-wrapper">
+            
+            <div class="main-card actions-section">
+                <div class="card-header">
+                    <h4><i class="fas fa-bolt"></i> Aksi Cepat</h4>
+                </div>
+                <div class="quick-actions-grid">
+                    <button onclick="window.location.href='index.php?page=manajemen_User&tab=pengurus'" class="qa-btn">
+                        <i class="fas fa-user-plus"></i> Tambah Admin/Dosen
+                    </button>
+                    <button onclick="window.location.href='index.php?page=manajemen_User&tab=mahasiswa'" class="qa-btn">
+                        <i class="fas fa-file-import"></i> Import Mahasiswa
+                    </button>
+                    <button onclick="window.location.href='index.php?page=laporan_Sistem'" class="qa-btn secondary">
+                        <i class="fas fa-clipboard-list"></i> Lihat Log Sistem
+                    </button>
+                    <button class="qa-btn danger">
+                        <i class="fas fa-database"></i> Backup Database
+                    </button>
+                </div>
+            </div>
+
+            <div class="main-card recent-section">
+                <div class="card-header">
+                    <h4><i class="fas fa-history"></i> User Baru Ditambahkan</h4>
+                </div>
+                <div class="recent-list">
+                    <?php while($user = mysqli_fetch_assoc($q_recent)): ?>
+                    <div class="recent-item">
+                        <div class="recent-avatar">
+                            <?= strtoupper(substr($user['nama'], 0, 1)) ?>
+                        </div>
+                        <div class="recent-details">
+                            <span class="recent-name"><?= htmlspecialchars($user['nama']) ?></span>
+                            <span class="recent-role badge-role <?= strtolower(str_replace(' ', '-', $user['role'])) ?>">
+                                <?= htmlspecialchars($user['role']) ?>
+                            </span>
+                        </div>
+                        <div class="recent-action">
+                            <i class="fas fa-check text-success"></i>
+                        </div>
+                    </div>
+                    <?php endwhile; ?>
+                </div>
+            </div>
+
+        </div>
     </div>
-  </div>
 </div>
 
-<!-- Leaflet JS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  var map = L.map('map').setView([-8.1731, 113.7035], 12);
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
-
-  var markersGroup = L.markerClusterGroup();
-
-  var mitra = [
-    { name: "PT Jember Abadi", coords: [-8.1681, 113.7040], address: "Jl. Letjen Panjaitan No.1" },
-    { name: "CV Jember Maju", coords: [-8.1800, 113.6950], address: "Jl. Gajah Mada No.12" },
-    { name: "Koperasi Sejahtera", coords: [-8.1750, 113.7100], address: "Jl. Sudirman No.5" },
-    { name: "PT Nusantara Jember", coords: [-8.1700, 113.7200], address: "Jl. Ahmad Yani No.25" },
-    { name: "CV Sentosa", coords: [-8.1650, 113.6900], address: "Jl. Raya Jember No.8" }
-  ];
-
-  mitra.forEach(m => {
-    var marker = L.marker(m.coords).bindPopup(`<b>${m.name}</b><br>${m.address}`);
-    markersGroup.addLayer(marker);
-  });
-
-  map.addLayer(markersGroup);
-
-  if (markersGroup.getLayers().length > 0) {
-    map.fitBounds(markersGroup.getBounds(), { padding:[40,40] });
-  }
+    // Pass data PHP ke JS
+    const chartData = <?= json_encode($chart_data) ?>;
 </script>
+<script src="scripts/dashboard.js?v=<?= time(); ?>"></script>

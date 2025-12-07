@@ -2,6 +2,7 @@
 // pages/get_detail_kegiatan.php
 session_start();
 include '../../Koneksi/koneksi.php'; // Path yang diperbaiki
+date_default_timezone_set(timezoneId: 'Asia/Jakarta');
 
 header('Content-Type: application/json');
 

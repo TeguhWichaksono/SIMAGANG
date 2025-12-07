@@ -170,3 +170,27 @@ input[type="file"] {
   font-size: 20px;
   cursor: pointer;
 }
+
+/* Tambahkan di file CSS */
+
+.preview-container {
+    margin-top: 15px;
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px dashed #ccc;
+}
+
+.file-input-custom {
+    padding: 12px;
+    background: #f8f9fa;
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.file-input-custom:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+}

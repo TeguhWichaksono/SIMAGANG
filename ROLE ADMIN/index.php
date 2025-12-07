@@ -12,7 +12,7 @@ if($_SESSION['role'] !== 'Admin'){
   echo "Admin";
 }
 
-$foto_profil_path = 'images/tyakk.png';
+$foto_profil_path = 'images/admin.jpg';
 
 if (isset($_SESSION['id'])) {
   $id = $_SESSION['id'];
@@ -320,30 +320,23 @@ if (isset($_SESSION['id'])) {
         <a href="index.php?page=dashboard" class="nav-item <?= $page=='dashboard'?'active':'' ?>">
             <i class="fas fa-home"></i> <span>Dashboard</span>
         </a>
-        <a href="index.php?page=akun" class="nav-item <?= $page=='akun'?'active':'' ?>">
-            <i class="fas fa-user-circle"></i> <span>Akun</span>
-        </a>
+        
         <a href="index.php?page=manajemen_User" class="nav-item <?= $page=='manajemen_User'?'active':'' ?>">
             <i class="fas fa-users-gear"></i> <span>Manajemen User</span>
         </a>
-        <a href="index.php?page=manajemen_Mitra" class="nav-item <?= $page=='manajemen_Mitra'?'active':'' ?>">
-            <i class="fas fa-building"></i> <span>Manajemen Mitra</span>
-        </a>
+        
         <a href="index.php?page=laporan_Sistem" class="nav-item <?= $page=='laporan_Sistem'?'active':'' ?>">
             <i class="fas fa-chart-line"></i> <span>Laporan Sistem</span>
         </a>
-        <a href="index.php?page=notifikasi" class="nav-item <?= $page=='notifikasi'?'active':'' ?>">
-            <i class="fas fa-bell"></i> <span>Notifikasi</span>
-        </a>
-        <a href="index.php?page=help_Center" class="nav-item <?= $page=='help_Center'?'active':'' ?>">
-            <i class="fas fa-life-ring"></i> <span>Help Center</span>
-        </a>
+        
       </div>
 
     <div class="premium-box">
-      <h3>Buku Panduan</h3>
-      <button class="premium-btn">Selengkapnya</button>
-    </div>
+        <h3>Buku Panduan</h3>
+        <a href="PEDOMAN_MAGANG_MAHASISWA_POLIJE_2025.pdf" class="premium-btn" target="_blank">
+          Selengkapnya
+        </a>
+      </div>
   </div>
 
   <!-- Main Content -->

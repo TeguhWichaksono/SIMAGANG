@@ -7,6 +7,7 @@
 session_start();
 include '../../Koneksi/koneksi.php';
 // require_once '../../../config.php';
+date_default_timezone_set(timezoneId: 'Asia/Jakarta');
 
 header('Content-Type: application/json');
 

@@ -48,6 +48,33 @@ try {
 
     $id_mahasiswa = $mhs['id_mahasiswa'];
 
+    // --- REVISI: VALIDASI STATUS & DUPLIKASI ---
+
+    // 1. Cek Status Magang (Harus Pra-Magang)
+    $q_status = "SELECT status_magang FROM mahasiswa WHERE id_mahasiswa = ?";
+    $stmt_st = mysqli_prepare($conn, $q_status);
+    mysqli_stmt_bind_param($stmt_st, 'i', $id_mahasiswa);
+    mysqli_stmt_execute($stmt_st);
+    $res_st = mysqli_stmt_get_result($stmt_st);
+    $row_st = mysqli_fetch_assoc($res_st);
+
+    if ($row_st['status_magang'] !== 'pra-magang') {
+        throw new Exception("Gagal! Status Anda sudah Magang Aktif/Selesai. Tidak bisa mengajukan mitra.");
+    }
+
+    // 2. Cek Apakah Sudah Punya Mitra DISETUJUI
+    $q_app = "SELECT id_pengajuan FROM pengajuan_mitra 
+              WHERE id_mahasiswa = ? AND status_pengajuan = 'diterima'";
+    $stmt_app = mysqli_prepare($conn, $q_app);
+    mysqli_stmt_bind_param($stmt_app, 'i', $id_mahasiswa);
+    mysqli_stmt_execute($stmt_app);
+    $res_app = mysqli_stmt_get_result($stmt_app);
+
+    if (mysqli_num_rows($res_app) > 0) {
+        throw new Exception("Anda sudah memiliki mitra yang disetujui. Tidak bisa mengajukan lagi.");
+    }
+    // -------------------------------------------
+
     // Sanitasi input
     $nama = mysqli_real_escape_string($conn, trim($data['nama']));
     $alamat = mysqli_real_escape_string($conn, trim($data['alamat']));

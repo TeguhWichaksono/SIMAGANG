@@ -1,4 +1,7 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 include '../../Koneksi/koneksi.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -9,14 +12,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $kontak = mysqli_real_escape_string($conn, $_POST['kontak']);
     $status = mysqli_real_escape_string($conn, $_POST['status']);
 
-    $query = "INSERT INTO mitra_perusahaan (nama_mitra, bidang, alamat, kontak, status) 
-              VALUES ('$nama', '$bidang', '$alamat', '$kontak', '$status')";
+    // Tangkap Latitude & Longitude (Cek jika kosong agar masuk sebagai NULL)
+    $lat = !empty($_POST['latitude']) ? "'" . mysqli_real_escape_string($conn, $_POST['latitude']) . "'" : "NULL";
+    $long = !empty($_POST['longitude']) ? "'" . mysqli_real_escape_string($conn, $_POST['longitude']) . "'" : "NULL";
+
+    // Query Insert dengan Latitude & Longitude
+    $query = "INSERT INTO mitra_perusahaan (nama_mitra, bidang, alamat, kontak, latitude, longitude, status) 
+              VALUES ('$nama', '$bidang', '$alamat', '$kontak', $lat, $long, '$status')";
 
     if (mysqli_query($conn, $query)) {
-        header('Location: ../index.php?page=data_Mitra&status=success');
+        $_SESSION['success'] = 'Data mitra berhasil ditambahkan!';
+        header('Location: ../index.php?page=data_Mitra');
         exit();
     } else {
-        echo "<script>alert('Error: " . mysqli_error($conn) . "');</script>";
+        $_SESSION['error'] = 'Error: ' . mysqli_error($conn);
     }
 }
 ?>
@@ -74,6 +83,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-sizing: border-box;
         }
 
+        input:focus, textarea:focus, select:focus {
+            border-color: #1f3c88;
+            outline: none;
+        }
+
+        /* Layout baris untuk input sejajar */
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+        .form-col {
+            flex: 1;
+        }
+
         button,
         .btn-link {
             width: 100%;
@@ -107,6 +130,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .btn-secondary:hover {
             background: #777;
         }
+        
+        small {
+            font-weight: normal;
+            color: #666;
+            font-size: 12px;
+        }
+
+        .alert {
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
     </style>
 </head>
 
@@ -115,19 +158,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="container">
         <h2>Tambah Mitra</h2>
 
+        <?php if(isset($_SESSION['error'])): ?>
+            <div class="alert alert-error">
+                <?= $_SESSION['error']; unset($_SESSION['error']); ?>
+            </div>
+        <?php endif; ?>
+
         <form method="POST" action="">
 
             <label>Nama Mitra</label>
             <input type="text" name="nama_mitra" placeholder="Masukkan nama mitra..." required>
 
-            <label>Bidang</label>
-            <input type="text" name="bidang" placeholder="Contoh: Teknologi, Industri..." required>
+            <div class="form-row">
+                <div class="form-col">
+                    <label>Bidang</label>
+                    <input type="text" name="bidang" placeholder="Contoh: Teknologi..." required>
+                </div>
+                <div class="form-col">
+                    <label>Kontak (WhatsApp)</label>
+                    <input type="text" name="kontak" placeholder="0812xxxx" required>
+                </div>
+            </div>
 
             <label>Alamat</label>
             <textarea name="alamat" rows="3" placeholder="Alamat lengkap mitra..." required></textarea>
 
-            <label>Kontak (WhatsApp)</label>
-            <input type="text" name="kontak" placeholder="Nomor HP / Telp..." required>
+            <div class="form-row">
+                <div class="form-col">
+                    <label>Latitude <small>(Opsional)</small></label>
+                    <input type="text" name="latitude" placeholder="Contoh: -8.1724">
+                </div>
+                <div class="form-col">
+                    <label>Longitude <small>(Opsional)</small></label>
+                    <input type="text" name="longitude" placeholder="Contoh: 113.7024">
+                </div>
+            </div>
 
             <label>Status Kerja Sama</label>
             <select name="status" required>

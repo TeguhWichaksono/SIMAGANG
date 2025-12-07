@@ -74,7 +74,6 @@ if ($id_mahasiswa) {
   $kelompok = mysqli_fetch_assoc($result2);
 }
 
-// ============ PERBAIKAN: CEK PENGAJUAN (HANYA YANG AKTIF) ============
 $sudah_mengajukan = false;
 $pengajuan_ditolak = false;
 $id_kelompok = $kelompok['id_kelompok'] ?? null;
@@ -109,10 +108,8 @@ if ($id_kelompok) {
     }
   }
 }
-// ============ END PERBAIKAN ============
 
-// ===== VALIDASI MITRA DARI SESSION (FIXED) =====
-$mitra_data = $_SESSION['selected_mitra'] ?? null;
+// ============ REVISI: LOGIKA MITRA & STATUS MAGANG ============
 $mitra_valid = false;
 $id_mitra = null;
 $nama_mitra = '';
@@ -120,56 +117,86 @@ $alamat_mitra = '';
 $bidang_mitra = '';
 $mitra_status = '';
 
-if ($mitra_data && is_array($mitra_data)) {
-    $mitra_status = $mitra_data['status'] ?? '';
+// Cek status mahasiswa dulu
+$status_mhs = $mahasiswa['status_magang'];
+$is_magang_jalan = ($status_mhs == 'magang_aktif' || $status_mhs == 'selesai');
+
+if ($is_magang_jalan && $id_kelompok) {
+    // Jika sudah aktif/selesai, ambil mitra dari pengajuan yang SUDAH DITERIMA
+    $q_mitra_fix = "SELECT pm.id_mitra, mp.nama_mitra, mp.alamat, mp.bidang 
+                    FROM pengajuan_magang pm
+                    JOIN mitra_perusahaan mp ON pm.id_mitra = mp.id_mitra
+                    WHERE pm.id_kelompok = ? AND pm.status_pengajuan = 'diterima'
+                    LIMIT 1";
+    $stmt_fix = mysqli_prepare($conn, $q_mitra_fix);
+    mysqli_stmt_bind_param($stmt_fix, 'i', $id_kelompok);
+    mysqli_stmt_execute($stmt_fix);
+    $res_fix = mysqli_stmt_get_result($stmt_fix);
     
-    if ($mitra_status === 'pending') {
-        $id_pengajuan = intval($mitra_data['id_pengajuan_mitra'] ?? 0);
+    if ($row_fix = mysqli_fetch_assoc($res_fix)) {
+        $mitra_valid = true;
+        $id_mitra = $row_fix['id_mitra'];
+        $nama_mitra = $row_fix['nama_mitra'];
+        $alamat_mitra = $row_fix['alamat'];
+        $bidang_mitra = $row_fix['bidang'];
+        $mitra_status = 'approved'; // Pasti approved karena sudah aktif
+    }
+} else {
+    // Jika masih pra-magang, cek session seperti biasa
+    $mitra_data = $_SESSION['selected_mitra'] ?? null;
+    
+    if ($mitra_data && is_array($mitra_data)) {
+        $mitra_status = $mitra_data['status'] ?? '';
         
-        if ($id_pengajuan > 0) {
-            $query_check = "SELECT status_pengajuan FROM pengajuan_mitra WHERE id_pengajuan = ?";
-            $stmt_check = mysqli_prepare($conn, $query_check);
-            mysqli_stmt_bind_param($stmt_check, 'i', $id_pengajuan);
-            mysqli_stmt_execute($stmt_check);
-            $result_check = mysqli_stmt_get_result($stmt_check);
-            $pengajuan = mysqli_fetch_assoc($result_check);
-            
-            if ($pengajuan) {
-                if ($pengajuan['status_pengajuan'] === 'menunggu') {
+        if ($mitra_status === 'pending') {
+            $id_pengajuan = intval($mitra_data['id_pengajuan_mitra'] ?? 0);
+            if ($id_pengajuan > 0) {
+                // ... (Kode cek pengajuan pending tetap sama) ...
+                $query_check = "SELECT status_pengajuan FROM pengajuan_mitra WHERE id_pengajuan = ?";
+                $stmt_check = mysqli_prepare($conn, $query_check);
+                mysqli_stmt_bind_param($stmt_check, 'i', $id_pengajuan);
+                mysqli_stmt_execute($stmt_check);
+                $result_check = mysqli_stmt_get_result($stmt_check);
+                $pengajuan = mysqli_fetch_assoc($result_check);
+                
+                if ($pengajuan && $pengajuan['status_pengajuan'] === 'menunggu') {
                     $nama_mitra = $mitra_data['nama'] ?? '';
                     $alamat_mitra = $mitra_data['alamat'] ?? '';
                     $bidang_mitra = $mitra_data['bidang'] ?? '';
                     $mitra_valid = true;
-                } else if ($pengajuan['status_pengajuan'] === 'ditolak') {
-                    unset($_SESSION['selected_mitra']);
                 }
             }
-            mysqli_stmt_close($stmt_check);
-        }
-        
-    } else if ($mitra_status === 'approved') {
-        $id_mitra = intval($mitra_data['id_mitra'] ?? 0);
-        
-        if ($id_mitra > 0) {
-            $query_verify = "SELECT id_mitra, nama_mitra, alamat, bidang, kontak 
-                             FROM mitra_perusahaan 
-                             WHERE id_mitra = ? AND status = 'aktif'";
-            $stmt_verify = mysqli_prepare($conn, $query_verify);
-            mysqli_stmt_bind_param($stmt_verify, 'i', $id_mitra);
-            mysqli_stmt_execute($stmt_verify);
-            $result_verify = mysqli_stmt_get_result($stmt_verify);
-            
-            if ($mitra = mysqli_fetch_assoc($result_verify)) {
-                $nama_mitra = $mitra['nama_mitra'];
-                $alamat_mitra = $mitra['alamat'] ?? '';
-                $bidang_mitra = $mitra['bidang'] ?? '';
-                $mitra_valid = true;
-            } else {
-                unset($_SESSION['selected_mitra']);
+        } else if ($mitra_status === 'approved') {
+            // ... (Kode cek mitra approved tetap sama) ...
+            $id_mitra = intval($mitra_data['id_mitra'] ?? 0);
+            if ($id_mitra > 0) {
+                $query_verify = "SELECT nama_mitra, alamat, bidang FROM mitra_perusahaan WHERE id_mitra = ?";
+                $stmt_verify = mysqli_prepare($conn, $query_verify);
+                mysqli_stmt_bind_param($stmt_verify, 'i', $id_mitra);
+                mysqli_stmt_execute($stmt_verify);
+                $res_verify = mysqli_stmt_get_result($stmt_verify);
+                if ($mitra = mysqli_fetch_assoc($res_verify)) {
+                    $nama_mitra = $mitra['nama_mitra'];
+                    $alamat_mitra = $mitra['alamat'];
+                    $bidang_mitra = $mitra['bidang'];
+                    $mitra_valid = true;
+                }
             }
-            mysqli_stmt_close($stmt_verify);
         }
     }
+}
+
+// Validasi data lengkap (Updated)
+$warnings = [];
+// Jika sudah aktif/selesai, abaikan warning data
+if (!$is_magang_jalan) {
+    if (empty($mahasiswa['prodi'])) $warnings[] = "Data Program Studi belum lengkap";
+    if (empty($mahasiswa['kontak'])) $warnings[] = "Data Kontak belum lengkap";
+    if (empty($mahasiswa['angkatan'])) $warnings[] = "Data Angkatan belum lengkap";
+    if (!$id_mahasiswa) $warnings[] = "Data mahasiswa belum terdaftar";
+    if (!$kelompok) $warnings[] = "Anda belum terdaftar dalam kelompok";
+    if ($kelompok && $kelompok['peran'] !== 'ketua') $warnings[] = "Hanya ketua kelompok yang dapat mengajukan";
+    if (!$mitra_valid) $warnings[] = "Mitra magang belum dipilih";
 }
 
 // Validasi data lengkap
@@ -291,28 +318,38 @@ if (!$mitra_valid) $warnings[] = "Mitra magang belum dipilih atau tidak valid";
   <form id="formDokumenPendukung" method="POST" action="pages/handler_pengajuan_magang.php" enctype="multipart/form-data">
     <input type="hidden" name="action" value="submit_pengajuan">
 
-    <div class="dokumen-grid" style="max-width: 600px;">
-      <div class="form-group">
-        <label for="file_cv">Upload Proposal & CV (gabung dalam satu file PDF) <span style="color: red;">*</span></label>
-        <input type="file" id="file_proposal_cv" name="file_proposal_cv" accept=".pdf" required />
-        <small style="color: #666;">Format: PDF | Gabungkan CV dan Proposal dalam 1 file | Maks: 10MB</small>
-        <div id="preview-proposal-cv" class="preview-box"></div>
-        <div id="preview-cv" class="preview-box"></div>
+    <div class="dokumen-grid" style="max-width: 100%;"> <div class="form-group">
+        <label for="file_proposal_cv">Upload Proposal & CV (PDF, Max 5MB) <span style="color: red;">*</span></label>
+        
+        <?php if ($is_magang_jalan): ?>
+            <div class="alert-success">
+                <i class="fas fa-check-circle"></i> Dokumen Proposal & CV sudah diverifikasi.
+            </div>
+        <?php else: ?>
+            <input type="file" id="file_proposal_cv" name="file_proposal_cv" accept=".pdf" required 
+                   class="file-input-custom" />
+            
+            <div id="preview-container" class="preview-container" style="display:none;">
+                <p style="margin-bottom:10px; font-weight:bold; color:#555;">Preview Dokumen:</p>
+                <iframe id="pdf-preview-frame" src="" width="100%" height="500px" style="border: 1px solid #ddd; border-radius: 8px;"></iframe>
+            </div>
+        <?php endif; ?>
       </div>
 
-    <div class="form-actions" style="display: flex; gap: 10px; justify-content: space-between; margin-top: 20px;">
-      <button type="button" class="btn-secondary" onclick="window.location.href='index.php?page=pengajuan_Mitra'" style="padding: 12px 24px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer;">
+    <div class="form-actions" style="display: flex; gap: 10px; justify-content: center; margin-top: 30px;">
+      <button type="button" class="btn-secondary" onclick="window.location.href='index.php?page=pengajuan_Mitra'">
         <i class="fas fa-arrow-left"></i> Kembali
       </button>
 
-      <button type="submit" class="btn-submit"
-        <?= (!empty($warnings) || $sudah_mengajukan) ? 'disabled' : '' ?>
-        style="padding: 12px 24px; background: <?= (!empty($warnings) || $sudah_mengajukan) ? '#ccc' : '#28a745' ?>; color: white; border: none; border-radius: 6px; cursor: <?= (!empty($warnings) || $sudah_mengajukan) ? 'not-allowed' : 'pointer' ?>;">
-        <i class="fas fa-paper-plane"></i> Kirim Pengajuan ke Korbid
-      </button>
+      <?php if (!$is_magang_jalan && !$sudah_mengajukan): ?>
+          <button type="submit" class="btn-submit"
+            <?= (!empty($warnings)) ? 'disabled' : '' ?>
+            style="background: <?= (!empty($warnings)) ? '#ccc' : '#28a745' ?>;">
+            <i class="fas fa-paper-plane"></i> Kirim Pengajuan
+          </button>
+      <?php endif; ?>
     </div>
   </form>
-</div>
 
 <!-- POPUP PDF VIEW -->
 <div id="pdfPopup" class="popup-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center;">
@@ -323,73 +360,53 @@ if (!$mitra_valid) $warnings[] = "Mitra magang belum dipilih atau tidak valid";
 </div>
 
 <script>
-  const fileInputs = ['file_proposal_cv'];
+  // Ambil elemen input dan container preview
+  const fileInput = document.getElementById('file_proposal_cv');
+  const previewContainer = document.getElementById('preview-container');
+  const previewFrame = document.getElementById('pdf-preview-frame');
 
-  fileInputs.forEach(id => {
-    const input = document.getElementById(id);
-    const preview = document.getElementById('preview-proposal-cv');
+  // Cek apakah elemen ada (untuk menghindari error)
+  if (fileInput) {
+      fileInput.addEventListener('change', function(e) {
+          const file = e.target.files[0];
+          
+          if (file) {
+              // Validasi Ukuran (Maks 5MB)
+              if (file.size > 5 * 1024 * 1024) {
+                  alert('Ukuran file maksimal 5MB!');
+                  this.value = ''; // Reset input agar user bisa upload ulang
+                  previewContainer.style.display = 'none';
+                  return;
+              }
 
-    input.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        const maxSize = 10 * 1024 * 1024;
-        if (file.size > maxSize) {
-          alert('Ukuran file maksimal 5MB!');
-          input.value = '';
-          preview.innerHTML = '';
-          return;
-        }
+              // Validasi Tipe File (Wajib PDF)
+              if (file.type !== 'application/pdf') {
+                  alert('File harus berformat PDF!');
+                  this.value = ''; 
+                  previewContainer.style.display = 'none';
+                  return;
+              }
 
-        if (file.type !== 'application/pdf') {
-          alert('File harus berformat PDF!');
-          input.value = '';
-          preview.innerHTML = '';
-          return;
-        }
-
-        const fileURL = URL.createObjectURL(file);
-        const fileSize = (file.size / (1024 * 1024)).toFixed(2);
-
-        preview.innerHTML = `
-        <div class="pdf-preview-item" style="border: 1px solid #ddd; padding: 10px; border-radius: 5px; margin-top: 10px;">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <i class="fas fa-file-pdf" style="font-size: 24px; color: #dc3545;"></i>
-            <div style="flex: 1;">
-              <div style="font-weight: bold;">${file.name}</div>
-              <div style="font-size: 12px; color: #666;">${fileSize} MB</div>
-            </div>
-            <button type="button" onclick="viewPDF('${fileURL}')" class="btn-view-pdf" style="padding: 6px 12px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
-              <i class="fas fa-eye"></i> Lihat
-            </button>
-          </div>
-        </div>`;
-      }
-    });
-  });
-
-  function viewPDF(url) {
-    document.getElementById('pdfViewer').src = url;
-    document.getElementById('pdfPopup').style.display = 'flex';
+              // Tampilkan Preview PDF Full
+              const fileURL = URL.createObjectURL(file);
+              previewFrame.src = fileURL;
+              previewContainer.style.display = 'block'; // Tampilkan container
+          } else {
+              // Jika user cancel upload
+              previewContainer.style.display = 'none';
+          }
+      });
   }
 
-  document.getElementById('closePopup').addEventListener('click', () => {
-    document.getElementById('pdfPopup').style.display = 'none';
-    document.getElementById('pdfViewer').src = '';
-  });
-
-  document.getElementById('formDokumenPendukung').addEventListener('submit', (e) => {
-    const proposalCV = document.getElementById('file_proposal_cv').files[0];
-    if (!proposalCV) {
-      e.preventDefault();
-      alert('Harap upload file Proposal & CV!');
-      return false;
-    }
-
-    if (!confirm('Apakah Anda yakin ingin mengirim pengajuan magang? Pastikan semua data sudah benar.')) {
-      e.preventDefault();
-      return false;
-    }
-  });
+  // Handle Submit (Konfirmasi Pengiriman)
+  const formDokumen = document.getElementById('formDokumenPendukung');
+  if (formDokumen) {
+      formDokumen.addEventListener('submit', (e) => {
+        if (!confirm('Apakah Anda yakin ingin mengirim pengajuan magang? Pastikan dokumen sudah benar.')) {
+          e.preventDefault();
+        }
+      });
+  }
 </script>
 
 <style>

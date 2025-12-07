@@ -143,6 +143,12 @@ if ($id_kelompok) {
         <div class="content-box">
             <h3>Profil Kelompok</h3>
             
+            <?php 
+            // LOGIKA PENGUNCIAN (LOCK)
+            // Jika status ketua sudah 'magang_aktif' atau 'selesai', kunci form ini.
+            $is_locked_group = ($status_magang_saya == 'magang_aktif' || $status_magang_saya == 'selesai');
+            ?>
+
             <form action="pages/crud_kelompok/handler_kelompok.php" method="POST">
                 <input type="hidden" name="action" value="simpan_profil">
                 <input type="hidden" name="id_kelompok" value="<?= $id_kelompok ?>">
@@ -152,24 +158,36 @@ if ($id_kelompok) {
                     <label>Nama Kelompok</label>
                     <input type="text" class="form-control" name="nama_kelompok" 
                            placeholder="Masukkan Nama Kelompok" 
-                           value="<?= htmlspecialchars($nama_kelompok) ?>" required />
+                           value="<?= htmlspecialchars($nama_kelompok) ?>" 
+                           required 
+                           <?= $is_locked_group ? 'readonly style="background-color: #f0f0f0; cursor: not-allowed; color: #666;"' : '' ?> />
+                    
                     <?php if(!$id_kelompok): ?>
                         <small style="color: #666;">*Anda belum memiliki kelompok. Simpan untuk membuat kelompok baru.</small>
+                    <?php elseif($is_locked_group): ?>
+                        <small style="color: #d32f2f; margin-top: 5px; display: block;">
+                            <i class="fa fa-lock"></i> Nama kelompok tidak dapat diubah karena anda sedang melaksanakan atau telah menyelesaikan magang.
+                        </small>
                     <?php endif; ?>
                 </div>
 
-                <div class="action-right" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
-                    <?php if ($id_kelompok && $peran_saya == 'ketua' && $jumlah_anggota == 1): ?>
-                        <button type="button" class="btn-danger-custom" onclick="showModal('modalBubarkan')">
-                            <i class="fa fa-exclamation-triangle"></i> Bubarkan Kelompok
-                        </button>
-                    <?php else: ?>
-                        <div></div> <?php endif; ?>
+                <?php if (!$is_locked_group): ?>
+                    <div class="action-right" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+                        
+                        <?php if ($id_kelompok && $peran_saya == 'ketua' && $jumlah_anggota == 1): ?>
+                            <button type="button" class="btn-danger-custom" onclick="showModal('modalBubarkan')">
+                                <i class="fa fa-exclamation-triangle"></i> Bubarkan Kelompok
+                            </button>
+                        <?php else: ?>
+                            <div></div> 
+                        <?php endif; ?>
 
-                    <button type="submit" class="btn-primary">
-                        <i class="fa fa-save"></i> Simpan Perubahan
-                    </button>
-                </div>
+                        <button type="submit" class="btn-primary">
+                            <i class="fa fa-save"></i> Simpan Perubahan
+                        </button>
+                    </div>
+                <?php endif; ?>
+                
             </form>
         </div>
     </div>
@@ -178,7 +196,11 @@ if ($id_kelompok) {
         <div class="content-box">
             <div class="box-header">
                 <h3>Daftar Anggota</h3>
-                <?php if ($id_kelompok && $peran_saya == 'ketua'): ?>
+                <?php 
+                // LOGIKA TOMBOL TAMBAH:
+                // Hanya muncul jika: Punya Kelompok + Ketua + Status Pra-Magang
+                if ($id_kelompok && $peran_saya == 'ketua' && $status_magang_saya == 'pra-magang'): 
+                ?>
                     <?php if ($jumlah_anggota < 4): ?>
                         <button class="btn-add" onclick="showModal('modalTambah')">
                             <i class="fa fa-plus"></i> Tambah Anggota
@@ -188,6 +210,10 @@ if ($id_kelompok) {
                             <i class="fa fa-ban"></i> Kelompok Penuh (Max 4)
                         </span>
                     <?php endif; ?>
+                <?php elseif ($id_kelompok && $peran_saya == 'ketua'): ?>
+                    <span class="badge-status status-aktif" style="cursor: help;" title="Perubahan anggota dikunci saat magang berlangsung/selesai">
+                        <i class="fa fa-lock"></i> Kelompok Terkunci
+                    </span>
                 <?php endif; ?>
             </div>
 
@@ -210,6 +236,9 @@ if ($id_kelompok) {
                     $no = 1; 
                     while($row = $anggota->fetch_assoc()): 
                         $is_magang_aktif = ($row['status_magang'] == 'magang_aktif');
+                        // Cek apakah kelompok ini sedang terkunci (aktif/selesai)
+                        // Kita gunakan $status_magang_saya (milik ketua) sebagai acuan global kelompok
+                        $is_locked_group = ($status_magang_saya == 'magang_aktif' || $status_magang_saya == 'selesai');
                     ?>
                     <tr>
                         <td><?= $no++ ?></td>
@@ -218,6 +247,8 @@ if ($id_kelompok) {
                         <td>
                             <?php if($is_magang_aktif): ?>
                                 <span class="badge-status status-aktif">Magang Aktif</span>
+                            <?php elseif($row['status_magang'] == 'selesai'): ?>
+                                <span class="badge-status" style="background:#e3f2fd; color:#0d47a1;">Selesai</span>
                             <?php else: ?>
                                 -
                             <?php endif; ?>
@@ -231,20 +262,20 @@ if ($id_kelompok) {
                         </td>
                         <?php if ($peran_saya == 'ketua'): ?>
                         <td>
-                            <?php if(!$is_magang_aktif): ?>
+                            <?php if(!$is_locked_group): ?>
                                 <button class="btn-icon btn-edit" 
                                         onclick="openEditModal('<?= $row['id_anggota'] ?>', '<?= addslashes($row['nama']) ?>', '<?= $row['peran'] ?>', '<?= $row['id_mahasiswa'] ?>')">
                                     <i class="fa fa-pencil"></i>
                                 </button>
                             <?php else: ?>
-                                <button class="btn-icon btn-disabled" title="Sedang Magang Aktif (Locked)">
+                                <button class="btn-icon btn-disabled" title="Data Terkunci">
                                     <i class="fa fa-lock"></i>
                                 </button>
                             <?php endif; ?>
                             
                             <?php if ($row['id_mahasiswa'] != $id_mahasiswa_login): ?>
-                                <?php if($is_magang_aktif): ?>
-                                    <button class="btn-icon btn-disabled" onclick="alert('Tidak dapat menghapus anggota yang sedang berstatus Magang Aktif demi integritas data!')">
+                                <?php if($is_locked_group): ?>
+                                    <button class="btn-icon btn-disabled" onclick="alert('Tidak dapat menghapus anggota saat status Magang Aktif/Selesai!')">
                                         <i class="fa fa-ban"></i>
                                     </button>
                                 <?php else: ?>
@@ -272,7 +303,6 @@ if ($id_kelompok) {
             <?php endif; ?>
         </div>
     </div>
-</div>
 
 <div id="modalTambah" class="modal">
     <div class="modal-content">

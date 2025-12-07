@@ -12,7 +12,7 @@ if($_SESSION['role'] !== 'Dosen Pembimbing'){
   echo "Anda bukan Dosen Pembimbing";
 }
 
-$foto_profil_path = ''; 
+$foto_profil_path = 'images/faisal.png'; 
 
 if (isset($_SESSION['id'])) {
     $id = $_SESSION['id'];
@@ -326,20 +326,15 @@ if (isset($_SESSION['id'])) {
         <a href="index.php?page=monitoring" class="nav-item <?= $page=='monitoring'?'active':'' ?>">
             <i class="fas fa-clipboard-list"></i> <span>Monitoring</span>
         </a>
-        <a href="index.php?page=validasi_Absensi" class="nav-item <?= $page=='validasi_Absensi'?'active':'' ?>">
-            <i class="fas fa-calendar-check"></i> <span>Validasi Absensi</span>
-        </a>
-        <a href="index.php?page=evaluasi_Nilai" class="nav-item <?= $page=='evaluasi_Nilai'?'active':'' ?>">
-            <i class="fas fa-star-half-alt"></i> <span>Evaluasi & Nilai</span>
-        </a>
-        <a href="index.php?page=notifikasi" class="nav-item <?= $page=='notifikasi'?'active':'' ?>">
-            <i class="fas fa-bell"></i> <span>Notifikasi</span>
-        </a>
+        
+        
       </div>
 
       <div class="premium-box">
         <h3>Buku Panduan</h3>
-        <button class="premium-btn">Selengkapnya</button>
+        <a href="PEDOMAN_MAGANG_MAHASISWA_POLIJE_2025.pdf" class="premium-btn" target="_blank">
+          Selengkapnya
+        </a>
       </div>
     </div>
 

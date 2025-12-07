@@ -2,6 +2,7 @@
 // pages/delete_kegiatan_logbook.php
 session_start();
 include '../../Koneksi/koneksi.php';
+date_default_timezone_set('Asia/Jakarta');
 
 header('Content-Type: application/json');
 

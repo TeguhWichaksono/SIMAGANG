@@ -1,214 +1,341 @@
 <?php
-include 'C:/xampp/htdocs/SIMAGANG/Koneksi/koneksi.php';
+// pages/dashboard.php
+// Dashboard Koordinator Bidang Magang
 
-// Hitung jumlah mahasiswa
-$queryMahasiswa = mysqli_query($conn, "SELECT COUNT(*) as total FROM mahasiswa");
-$dataMahasiswa = mysqli_fetch_assoc($queryMahasiswa);
-$totalMahasiswa = $dataMahasiswa['total'];
+include '../Koneksi/koneksi.php';
 
-// Hitung jumlah dosen pembimbing
-$queryDosen = mysqli_query($conn, "SELECT COUNT(*) as total FROM dosen");
-$dataDosen = mysqli_fetch_assoc($queryDosen);
-$totalDosen = $dataDosen['total'];
+// --- 1. STATS: Pengajuan Magang Pending ---
+$q_pending_magang = mysqli_query($conn, "SELECT COUNT(*) as total FROM pengajuan_magang WHERE status_pengajuan IN ('menunggu', 'menunggu_mitra')");
+$pending_magang = ($q_pending_magang) ? mysqli_fetch_assoc($q_pending_magang)['total'] : 0;
 
-// Hitung jumlah mitra/perusahaan
-$queryMitra = mysqli_query($conn, "SELECT COUNT(*) as total FROM mitra_perusahaan");
-$dataMitra = mysqli_fetch_assoc($queryMitra);
-$totalMitra = $dataMitra['total'];
+// --- 2. STATS: Mitra Baru Pending ---
+$q_pending_mitra = mysqli_query($conn, "SELECT COUNT(*) as total FROM pengajuan_mitra WHERE status_pengajuan = 'menunggu'");
+$pending_mitra = ($q_pending_mitra) ? mysqli_fetch_assoc($q_pending_mitra)['total'] : 0;
 
-// Hitung mahasiswa aktif (yang sedang magang)
-$queryMahasiswaAktif = mysqli_query($conn, "SELECT COUNT(*) as total FROM mahasiswa WHERE status_magang = 'magang_aktif'");
-$dataMahasiswaAktif = mysqli_fetch_assoc($queryMahasiswaAktif);
-$totalMahasiswaAktif = $dataMahasiswaAktif['total'];
+// --- 3. STATS: Mahasiswa Magang Aktif ---
+$q_mhs_aktif = mysqli_query($conn, "SELECT COUNT(*) as total FROM mahasiswa WHERE status_magang = 'magang_aktif'");
+$mhs_aktif = ($q_mhs_aktif) ? mysqli_fetch_assoc($q_mhs_aktif)['total'] : 0;
 
-// Hitung mahasiswa yang sudah ditempatkan
-$queryDitempatkan = mysqli_query($conn, "SELECT COUNT(*) as total FROM pengajuan_mitra WHERE status_pengajuan = 'disetujui'");
-$dataDitempatkan = mysqli_fetch_assoc($queryDitempatkan);
-$totalDitempatkan = $dataDitempatkan['total'];
+// --- 4. STATS: Total Mitra Kerjasama ---
+$q_total_mitra = mysqli_query($conn, "SELECT COUNT(*) as total FROM mitra_perusahaan WHERE status = 'aktif'");
+$total_mitra = ($q_total_mitra) ? mysqli_fetch_assoc($q_total_mitra)['total'] : 0;
 
-// Hitung persentase mahasiswa ditempatkan
-$persenDitempatkan = $totalMahasiswa > 0 ? round(($totalDitempatkan / $totalMahasiswa) * 100) : 0;
+// --- 5. CHART DATA: Status Mahasiswa ---
+$q_chart_status = mysqli_query($conn, "SELECT status_magang, COUNT(*) as jumlah FROM mahasiswa GROUP BY status_magang");
+$chart_status_data = [];
+if ($q_chart_status) {
+    while($row = mysqli_fetch_assoc($q_chart_status)) {
+        $label = ucwords(str_replace('_', ' ', $row['status_magang']));
+        $chart_status_data[] = ['label' => $label, 'value' => (int)$row['jumlah']];
+    }
+}
 
-// Ambil aktivitas terbaru dari log_aktivitas
-$queryAktivitas = mysqli_query($conn, "SELECT * FROM log_aktivitas ORDER BY waktu DESC LIMIT 5");
+// --- 6. LIST PRIORITAS: 5 Pengajuan Terbaru ---
+$q_list_pending = mysqli_query($conn, "
+    SELECT pm.id_pengajuan, k.nama_kelompok, m.nama_mitra, pm.tanggal_pengajuan 
+    FROM pengajuan_magang pm
+    JOIN kelompok k ON pm.id_kelompok = k.id_kelompok
+    JOIN mitra_perusahaan m ON pm.id_mitra = m.id_mitra
+    WHERE pm.status_pengajuan = 'menunggu'
+    ORDER BY pm.tanggal_pengajuan ASC 
+    LIMIT 5
+");
 
-// Ambil data mitra untuk pemetaan (dengan koordinat)
-$queryMitraPeta = mysqli_query($conn, "SELECT nama_mitra, alamat, bidang FROM mitra_perusahaan WHERE status = 'aktif' LIMIT 20");
+// --- 7. PETA SEBARAN: Ambil Data Mitra ---
+$queryMitraPeta = mysqli_query($conn, "
+    SELECT 
+        mp.id_mitra,
+        mp.nama_mitra, 
+        mp.bidang, 
+        mp.alamat,
+        mp.latitude,
+        mp.longitude,
+        (SELECT COUNT(*) 
+         FROM pengajuan_magang pm 
+         WHERE pm.id_mitra = mp.id_mitra 
+         AND pm.status_pengajuan = 'diterima') as jumlah_mhs
+    FROM mitra_perusahaan mp 
+    WHERE mp.status = 'aktif'
+");
+
+$map_data = [];
+if ($queryMitraPeta) {
+    while ($m = mysqli_fetch_assoc($queryMitraPeta)) {
+        
+        $lat = $m['latitude'];
+        $lng = $m['longitude'];
+        $is_real = true;
+
+        // PERBAIKAN: Cek NULL atau 0 dengan lebih tepat
+        if ($lat === null || $lng === null || $lat == 0 || $lng == 0) {
+            $lat = -8.172 + (mt_rand(-50, 50) / 1000); 
+            $lng = 113.700 + (mt_rand(-50, 50) / 1000);
+            $is_real = false; 
+        }
+
+        $map_data[] = [
+            'id' => $m['id_mitra'],
+            'name' => htmlspecialchars($m['nama_mitra']),
+            'bidang' => htmlspecialchars($m['bidang']),
+            'alamat' => htmlspecialchars($m['alamat']),
+            'lat' => (float)$lat,
+            'lng' => (float)$lng,
+            'jumlah_mhs' => (int)$m['jumlah_mhs'],
+            'is_real' => $is_real
+        ];
+    }
+}
 ?>
 
-<link rel="stylesheet" href="styles/dashboard.css" />
-<!-- Dashboard Container -->
-<div class="dashboard-container">
-  <!-- Main Dashboard Content -->
-  <div class="dashboard-main">
-    <!-- Transfer Cards -->
-    <div class="transfer-cards">
-      <!-- Card Mahasiswa - Klik ke halaman data mahasiswa -->
-      <div class="transfer-card clickable" onclick="window.location.href='index.php?page=data_Mahasiswa'">
-        <div class="card-icon">
-          <i class="fas fa-users"></i>
-        </div>
-        <p class="card-title">Jumlah Mahasiswa Magang</p>
-        <h2 class="card-amount"><?= $totalMahasiswa ?> Mahasiswa</h2>
-      </div>
+<!-- CSS: PERBAIKAN - Tanpa ../ karena load dari root via index.php -->
+<link rel="stylesheet" href="styles/dashboard.css?v=<?= time(); ?>">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
-      <!-- Card Dosen - Klik ke halaman data dosen -->
-      <div class="transfer-card clickable" onclick="window.location.href='index.php?page=data_dospem'">
-        <div class="card-icon">
-          <i class="fas fa-chalkboard-teacher"></i>
+<div class="dashboard-coord">
+    <div class="stats-grid">
+        <div class="stat-card urgent clickable" onclick="window.location.href='index.php?page=persetujuan_magang_korbid'">
+            <div class="stat-icon-bg red"><i class="fas fa-file-contract"></i></div>
+            <div class="stat-content">
+                <p>Approval Magang</p>
+                <h3><?= $pending_magang ?> <span class="unit">Pending</span></h3>
+            </div>
+            <?php if($pending_magang > 0): ?>
+                <div class="notification-badge pulse">!</div>
+            <?php endif; ?>
         </div>
-        <p class="card-title">Jumlah Dosen Pembimbing</p>
-        <h2 class="card-amount"><?= $totalDosen ?> Dosen</h2>
-      </div>
 
-      <!-- Card Mitra - Klik ke halaman data mitra -->
-      <div class="transfer-card clickable" onclick="window.location.href='index.php?page=data_Mitra'">
-        <div class="card-icon">
-          <i class="fas fa-building"></i>
+        <div class="stat-card warning clickable" onclick="window.location.href='index.php?page=persetujuan_mitra_korbid'">
+            <div class="stat-icon-bg orange"><i class="fas fa-handshake"></i></div>
+            <div class="stat-content">
+                <p>Approval Mitra</p>
+                <h3><?= $pending_mitra ?> <span class="unit">Baru</span></h3>
+            </div>
         </div>
-        <p class="card-title">Jumlah Instansi/Perusahaan Mitra</p>
-        <h2 class="card-amount"><?= $totalMitra ?> Mitra</h2>
-      </div>
+
+        <div class="stat-card info clickable" onclick="window.location.href='index.php?page=data_Mahasiswa'">
+            <div class="stat-icon-bg blue"><i class="fas fa-user-graduate"></i></div>
+            <div class="stat-content">
+                <p>Mahasiswa Magang</p>
+                <h3><?= $mhs_aktif ?> <span class="unit">Aktif</span></h3>
+            </div>
+        </div>
+
+        <div class="stat-card success clickable" onclick="window.location.href='index.php?page=data_Mitra'">
+            <div class="stat-icon-bg green"><i class="fas fa-building"></i></div>
+            <div class="stat-content">
+                <p>Total Mitra</p>
+                <h3><?= $total_mitra ?> <span class="unit">Instansi</span></h3>
+            </div>
+        </div>
     </div>
 
-    <!-- Pemetaan Mitra (Jember) -->
-    <div class="transaction-section">
-      <div class="transaction-card">
-        <h3 class="section-title">Pemetaan Mitra - Jember</h3>
-        <div id="map"></div>
-      </div>
-    </div>
-
-    <!-- Aktivitas Terbaru -->
-    <div class="transaction-section">
-      <div class="transaction-card">
-        <h3 class="section-title">Aktivitas Terbaru</h3>
+    <div class="dashboard-layout">
         
-        <?php if (mysqli_num_rows($queryAktivitas) > 0) : ?>
-          <?php while ($aktivitas = mysqli_fetch_assoc($queryAktivitas)) : ?>
-            <div class="transaction-item">
-              <div class="transaction-icon">
-                <i class="fas fa-file-upload"></i>
-              </div>
-              <div class="transaction-content">
-                <div class="transaction-title"><?= htmlspecialchars($aktivitas['aktivitas']) ?></div>
-                <div class="transaction-time">
-                  <i class="far fa-clock"></i> <?= date('d M Y, H:i', strtotime($aktivitas['waktu'])) ?>
+        <div class="layout-left">
+            <div class="content-card map-section">
+                <div class="card-header">
+                    <h4><i class="fas fa-map-marked-alt"></i> Sebaran Mitra Magang</h4>
                 </div>
-              </div>
-              <div class="transaction-amount positive">Selesai</div>
+                <div class="card-body">
+                    <div id="map" style="height: 350px; width: 100%; border-radius: 8px; z-index: 1;"></div>
+                    
+                    <div style="margin-top: 10px; font-size: 11px; color: #64748b; display:flex; gap:15px;">
+                        <span><i class="fas fa-map-marker-alt" style="color:#2563eb;"></i> Lokasi Terverifikasi</span>
+                        <span><i class="fas fa-map-marker-alt" style="color:#94a3b8;"></i> Lokasi Belum Diset (Estimasi)</span>
+                    </div>
+                </div>
             </div>
-          <?php endwhile; ?>
-        <?php else : ?>
-          <div class="transaction-item">
-            <div class="transaction-content">
-              <div class="transaction-title">Belum ada aktivitas terbaru</div>
+        </div>
+
+        <div class="layout-right">
+            <div class="content-card todo-section">
+                <div class="card-header">
+                    <h4><i class="fas fa-list-ul"></i> Perlu Diproses</h4>
+                    <a href="index.php?page=persetujuan_magang_korbid" class="see-all">Lihat Semua</a>
+                </div>
+                <div class="card-body p-0">
+                    <?php if($q_list_pending && mysqli_num_rows($q_list_pending) > 0): ?>
+                        <div class="todo-list">
+                            <?php while($item = mysqli_fetch_assoc($q_list_pending)): ?>
+                                <div class="todo-item" onclick="window.location.href='index.php?page=persetujuan_magang_korbid'">
+                                    <div class="todo-icon"><i class="fas fa-clock"></i></div>
+                                    <div class="todo-info">
+                                        <span class="todo-title"><?= htmlspecialchars($item['nama_kelompok']) ?></span>
+                                        <span class="todo-subtitle">Ke: <?= htmlspecialchars($item['nama_mitra']) ?></span>
+                                    </div>
+                                    <div class="todo-date"><?= date('d M', strtotime($item['tanggal_pengajuan'])) ?></div>
+                                </div>
+                            <?php endwhile; ?>
+                        </div>
+                    <?php else: ?>
+                        <div class="empty-state">
+                            <i class="fas fa-check-circle" style="font-size: 24px; color: #cbd5e1; margin-bottom: 10px;"></i>
+                            <p>Tidak ada pengajuan pending.</p>
+                        </div>
+                    <?php endif; ?>
+                </div>
             </div>
-          </div>
-        <?php endif; ?>
-        
-      </div>
+
+            <div class="content-card quick-links">
+                <div class="card-header">
+                    <h4><i class="fas fa-bolt"></i> Aksi Cepat</h4>
+                </div>
+                <div class="card-body action-grid">
+                    <button onclick="window.location.href='index.php?page=data_Mitra'" class="action-btn">
+                        <i class="fas fa-building"></i> Data Mitra
+                    </button>
+                    <button onclick="window.location.href='index.php?page=data_Kelompok'" class="action-btn">
+                        <i class="fas fa-layer-group"></i> Kelompok
+                    </button>
+                    <button onclick="window.location.href='index.php?page=data_Dospem'" class="action-btn">
+                        <i class="fas fa-chalkboard-teacher"></i> Dospem
+                    </button>
+                    <button onclick="window.location.href='index.php?page=persetujuan_mitra_korbid'" class="action-btn">
+                        <i class="fas fa-handshake"></i> ACC Mitra
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-
-  <!-- Dashboard Sidebar -->
-  <div class="dashboard-sidebar">
-    <div class="savings-card">
-      <h3 class="savings-title">Jumlah Mahasiswa Aktif</h3>
-      <div class="savings-amount"><?= $totalMahasiswaAktif ?> Mahasiswa</div>
-      <div class="time-filter">
-        <button class="time-option">Harian</button>
-        <button class="time-option">Mingguan</button>
-        <button class="time-option active">Bulanan</button>
-        <button class="time-option">Lainnya</button>
-      </div>
-
-      <div class="chart-container">
-        <svg class="chart" viewBox="0 0 300 100" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="gradientFill" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#4270F4" stop-opacity="0.7" />
-              <stop offset="100%" stop-color="#4270F4" stop-opacity="0.1" />
-            </linearGradient>
-          </defs>
-          <path
-            class="chart-line-path"
-            d="M0,80 C20,70 40,30 60,60 C80,90 100,40 120,30 C140,20 160,50 180,20 C200,30 220,60 240,80 C260,60 280,40 300,60"></path>
-          <path
-            class="chart-area"
-            d="M0,80 C20,70 40,30 60,60 C80,90 100,40 120,30 C140,20 160,50 180,20 C200,30 220,60 240,80 C260,60 280,40 300,60 L300,100 L0,100 Z"></path>
-          <circle cx="180" cy="20" r="6" fill="#4270F4" stroke="#ffffff" stroke-width="3" />
-        </svg>
-      </div>
-
-      <div class="timeline">
-        <div class="month">Okt</div>
-        <div class="month">Nov</div>
-        <div class="month active">Des</div>
-        <div class="month">Jan</div>
-        <div class="month">Feb</div>
-        <div class="month">Mar</div>
-      </div>
-    </div>
-
-    <div class="plan-card">
-      <div class="plan-info">
-        <div class="plan-title">Mahasiswa Sudah Ditempatkan</div>
-        <div class="plan-status">Proses</div>
-      </div>
-      <div class="plan-progress">
-        <div class="plan-percentage"><?= $persenDitempatkan ?>%</div>
-      </div>
-    </div>
-  </div>
 </div>
 
-<!-- Leaflet JS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+<!-- JS Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-  var map = L.map('map').setView([-8.1731, 113.7035], 12);
+    // PASSING DATA KE JS
+    const mapData = <?= json_encode($map_data) ?>;
+    const chartData = <?= json_encode($chart_status_data) ?>;
+    
+    // DEBUG
+    console.log('=== DEBUG INFO ===');
+    console.log('Total Mitra:', mapData.length);
+    console.log('Map Data:', mapData);
+    console.log('==================');
+</script>
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
+<!-- JS: PERBAIKAN - Tanpa ../ karena load dari root via index.php -->
+<script>
+/**
+ * Dashboard Koordinator Logic (Chart & Map)
+ */
 
-  var markersGroup = L.markerClusterGroup();
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Dashboard JS Loaded!');
+    initMap();
+});
 
-  // Data mitra dari database
-  var mitra = [
-    <?php 
-    $mitraArray = [];
-    while ($mitraPeta = mysqli_fetch_assoc($queryMitraPeta)) {
-      // Generate koordinat random di sekitar Jember untuk demo
-      $lat = -8.1731 + (rand(-100, 100) / 1000);
-      $lng = 113.7035 + (rand(-100, 100) / 1000);
-      
-      echo "{
-        name: '" . addslashes($mitraPeta['nama_mitra']) . "',
-        coords: [" . $lat . ", " . $lng . "],
-        address: '" . addslashes($mitraPeta['alamat']) . "',
-        bidang: '" . addslashes($mitraPeta['bidang']) . "'
-      },";
+// LEAFLET MAP INITIALIZATION
+function initMap() {
+    const mapElement = document.getElementById('map');
+    
+    if(!mapElement) {
+        console.error('❌ Element #map tidak ditemukan!');
+        return;
     }
-    ?>
-  ];
 
-  mitra.forEach(m => {
-    var marker = L.marker(m.coords).bindPopup(`
-      <b>${m.name}</b><br>
-      <i class="fas fa-map-marker-alt"></i> ${m.address}<br>
-      <i class="fas fa-briefcase"></i> ${m.bidang}
-    `);
-    markersGroup.addLayer(marker);
-  });
+    console.log('✅ Element #map ditemukan');
 
-  map.addLayer(markersGroup);
+    if (typeof L === 'undefined') {
+        console.error('❌ Leaflet library belum dimuat!');
+        return;
+    }
 
-  if (markersGroup.getLayers().length > 0) {
-    map.fitBounds(markersGroup.getBounds(), { padding: [40, 40] });
-  }
+    console.log('✅ Leaflet library tersedia');
+
+    try {
+        const map = L.map('map').setView([-8.1731, 113.7035], 11);
+        console.log('✅ Peta diinisialisasi');
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap',
+            maxZoom: 19
+        }).addTo(map);
+        console.log('✅ Tile layer ditambahkan');
+
+        if (typeof mapData === 'undefined' || !Array.isArray(mapData)) {
+            console.error('❌ Variable mapData tidak ditemukan!');
+            return;
+        }
+
+        console.log('✅ Data mitra:', mapData.length, 'items');
+
+        if (mapData.length === 0) {
+            console.warn('⚠️ Tidak ada data mitra');
+            return;
+        }
+
+        const markersGroup = L.featureGroup();
+        let markerCount = 0;
+
+        mapData.forEach((p, index) => {
+            
+            console.log(`Marker ${index + 1}:`, p.name, `(${p.lat}, ${p.lng})`);
+            
+            if (!p.lat || !p.lng || isNaN(p.lat) || isNaN(p.lng)) {
+                console.warn(`⚠️ Koordinat tidak valid untuk ${p.name}`);
+                return;
+            }
+
+            const statusLokasi = p.is_real 
+                ? '<span style="color:green; font-weight:bold;">✓ Terverifikasi</span>' 
+                : '<span style="color:orange; font-weight:bold;">⚠ Estimasi</span>';
+
+            let popupContent = `
+                <div style="min-width: 200px; font-family: sans-serif;">
+                    <h4 style="margin: 0 0 5px; color: #262A39; border-bottom:1px solid #eee; padding-bottom:5px;">
+                        ${p.name}
+                    </h4>
+                    <div style="font-size: 11px; margin-bottom: 8px;">
+                        <span style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #64748b;">
+                            ${p.bidang}
+                        </span>
+                    </div>
+                    <p style="margin: 5px 0; font-size: 12px;">
+                        <i class="fas fa-map-marker-alt"></i> ${statusLokasi}
+                    </p>
+                    <p style="margin: 5px 0; font-size: 12px;">
+                        <i class="fas fa-users"></i> <b>${p.jumlah_mhs}</b> Mahasiswa
+                    </p>
+                    <p style="margin: 5px 0 0; font-size: 11px; color: #94a3b8; font-style: italic;">
+                        ${p.alamat}
+                    </p>
+                </div>
+            `;
+
+            const iconColor = p.is_real ? 'blue' : 'grey';
+            
+            const marker = L.marker([p.lat, p.lng], {
+                icon: L.icon({
+                    iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${iconColor}.png`,
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                })
+            })
+            .addTo(map)
+            .bindPopup(popupContent);
+            
+            if(p.is_real && markerCount === 0) {
+                marker.openPopup();
+            }
+
+            markersGroup.addLayer(marker);
+            markerCount++;
+        });
+
+        console.log(`✅ ${markerCount} marker ditambahkan`);
+
+        if (markerCount > 0) {
+            map.fitBounds(markersGroup.getBounds().pad(0.1));
+            console.log('✅ Auto-zoom ke semua marker');
+        }
+
+    } catch (error) {
+        console.error('❌ Error:', error);
+    }
+}
 </script>

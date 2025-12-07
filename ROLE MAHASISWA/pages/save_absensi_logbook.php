@@ -7,6 +7,7 @@
 session_start();
 include '../../Koneksi/koneksi.php';
 // require_once '../../../config.php';
+date_default_timezone_set('Asia/Jakarta');
 
 header('Content-Type: application/json');
 
@@ -55,7 +56,6 @@ if (!$mahasiswa) {
 }
 
 $id_mahasiswa = $mahasiswa['id_mahasiswa'];
-date_default_timezone_set('Asia/Jakarta');
 $today = date('Y-m-d');
 
 // Check if already absen today
@@ -141,6 +141,7 @@ if (!file_put_contents($filepath, $foto_base64)) {
 
 // Get time from timestamp
 $datetime = new DateTime($timestamp);
+$datetime->setTimezone(new DateTimeZone('Asia/Jakarta'));
 $jam_absensi = $datetime->format('H:i:s');
 
 // Insert to database
