@@ -31,9 +31,8 @@ $query = mysqli_query($conn, "SELECT * FROM mitra_perusahaan ORDER BY id_mitra D
         <i class="fas fa-plus"></i> Tambah
       </a>
       
-      <button onclick="openImportModal()" class="btn btn-import">
-        <i class="fas fa-file-import"></i> Import Excel
-      </button>
+      
+      
       
       <a href="pages/Export_Mitra_Excel.php" class="btn btn-export">
         <i class="fas fa-file-excel"></i> Export
@@ -97,25 +96,7 @@ $query = mysqli_query($conn, "SELECT * FROM mitra_perusahaan ORDER BY id_mitra D
   </div>
 </div>
 
-<div id="importModal" class="modal-overlay">
-    <div class="modal-content">
-        <div class="modal-header">Import Data Mitra</div>
-        <form action="pages/Import_Mitra.php" method="POST" enctype="multipart/form-data">
-            <p style="margin-bottom:15px; font-size:13px; color:#666; line-height:1.5;">
-                Gunakan file format <strong>.CSV</strong> (Excel -> Save As -> CSV).<br>
-                Pastikan urutan kolom: <br>
-                <code>Nama, Bidang, Alamat, Kontak, Status</code>
-            </p>
-            
-            <input type="file" name="file_mitra" class="file-input" accept=".csv" required style="margin-bottom:20px;">
-            
-            <div class="modal-actions">
-                <button type="button" class="btn btn-secondary" onclick="closeImportModal()">Batal</button>
-                <button type="submit" class="btn btn-import" name="import">Upload & Import</button>
-            </div>
-        </form>
-    </div>
-</div>
+
 
 <style>
 .alert {
@@ -170,21 +151,10 @@ $query = mysqli_query($conn, "SELECT * FROM mitra_perusahaan ORDER BY id_mitra D
     }
   }
 
-  // Modal Logic
-  function openImportModal() {
-    document.getElementById('importModal').style.display = 'flex';
-  }
-  function closeImportModal() {
-    document.getElementById('importModal').style.display = 'none';
-  }
+
   
-  // Close modal when clicking outside
-  window.onclick = function(event) {
-    let modal = document.getElementById('importModal');
-    if (event.target == modal) {
-      modal.style.display = "none";
-    }
-  }
+  
+  
 
   // Auto-hide alert after 5 seconds
   setTimeout(() => {
