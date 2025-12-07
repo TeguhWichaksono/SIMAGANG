@@ -2,7 +2,6 @@
 include '../Koneksi/koneksi.php';
 
 $query_pengurus = mysqli_query($conn, "SELECT * FROM users WHERE role <> 'mahasiswa' ORDER BY id ASC");
-
 $query_mahasiswa = mysqli_query($conn, "SELECT * FROM users WHERE role = 'mahasiswa' ORDER BY id ASC");
 ?>
 <!DOCTYPE html>
@@ -13,144 +12,177 @@ $query_mahasiswa = mysqli_query($conn, "SELECT * FROM users WHERE role = 'mahasi
   <title>Manajemen User</title>
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-  <link rel="stylesheet" href="styles/manajemen_user.css?v=3">
+  <link rel="stylesheet" href="styles/manajemen_user.css?v=<?= time(); ?>">
 
 </head>
 <body>
 
 <div class="user-container">
-  <h2 style="margin-bottom:15px;">Manajemen User</h2>
-
-  <div class="header-action" style="gap:8px;">
-    <button id="btnPengurus" class="add-btn tab-btn" onclick="showPengurus()">Data Pengurus</button>
-    <button id="btnMahasiswa" class="add-btn tab-btn" onclick="showMahasiswa()">Data Mahasiswa</button>
+  
+  <div class="page-header">
+    <h2><i class="fas fa-users-cog text-primary"></i> Manajemen User</h2>
+    
+    <div class="tab-navigation">
+      <button id="btnPengurus" class="tab-btn active" onclick="showPengurus()">
+        <i class="fas fa-user-tie"></i> Pengurus
+      </button>
+      <button id="btnMahasiswa" class="tab-btn" onclick="showMahasiswa()">
+        <i class="fas fa-user-graduate"></i> Mahasiswa
+      </button>
+    </div>
   </div>
 
-  <!-- ===================== PENGURUS ========================= -->
-  <div id="pengurusTable">
-    <div class="header-action">
-      <button class="add-btn" data-bs-toggle="modal" data-bs-target="#modalPengurus">+ Tambah Pengurus</button>
+  <div class="content-wrapper">
+    
+    <div id="pengurusTable">
+      <div class="action-bar">
+        <button class="btn-add-new" data-bs-toggle="modal" data-bs-target="#modalPengurus">
+          <i class="fas fa-plus"></i> Tambah Pengurus
+        </button>
+      </div>
+
+      <div class="table-responsive">
+        <table class="user-table">
+          <thead>
+            <tr>
+              <th width="5%">No</th>
+              <th width="25%">Nama</th>
+              <th width="25%">Email</th>
+              <th width="20%">Role</th>
+              <th width="15%">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php $no=1; while($row = mysqli_fetch_assoc($query_pengurus)): ?>
+            <tr>
+              <td><?= $no++ ?></td>
+              <td>
+                <div class="fw-bold"><?= htmlspecialchars($row['nama']) ?></div>
+              </td>
+              <td><?= htmlspecialchars($row['email']) ?></td>
+              <td>
+                <?php 
+                  $roleRaw = $row['role'];
+                  $badgeClass = 'role-admin'; // default
+                  $roleLabel = $roleRaw;
+
+                  if ($roleRaw == 'koordinator_bidang') {
+                      $roleLabel = 'Koordinator Bidang';
+                      $badgeClass = 'role-korbid';
+                  } elseif ($roleRaw == 'dosen_pembimbing') {
+                      $roleLabel = 'Dosen Pembimbing';
+                      $badgeClass = 'role-dosen';
+                  } elseif ($roleRaw == 'Admin') {
+                      $badgeClass = 'role-admin';
+                  }
+                ?>
+                <span class="badge-role <?= $badgeClass ?>"><?= htmlspecialchars($roleLabel) ?></span>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <button class="btn-icon btn-edit" onclick="editPengurus(<?= $row['id'] ?>, '<?= addslashes($row['nama']) ?>', '<?= addslashes($row['email']) ?>', '<?= addslashes($row['role']) ?>')">
+                    <i class="fa fa-pen"></i>
+                  </button>
+                  <a href="pages/crud_user/delete_pengurus.php?id=<?= $row['id'] ?>" class="delete-link">
+                    <button class="btn-icon btn-delete"><i class="fa fa-trash"></i></button>
+                  </a>
+                </div>
+              </td>
+            </tr>
+            <?php endwhile; ?>
+          </tbody>
+        </table>
+      </div>
     </div>
 
-    <table class="user-table">
-      <thead>
-        <tr><th>No</th><th>Nama</th><th>Email</th><th>Role</th><th>Aksi</th></tr>
-      </thead>
-      <tbody>
-        <?php $no=1; while($row = mysqli_fetch_assoc($query_pengurus)): ?>
-        <tr>
-          <td><?= $no++ ?></td>
-          <td><?= htmlspecialchars($row['nama']) ?></td>
-          <td><?= htmlspecialchars($row['email']) ?></td>
-          <td>
-            <?php 
-              // Format tampilan role
-              $roleDisplay = $row['role'];
-              if ($row['role'] == 'koordinator_bidang') {
-                  $roleDisplay = 'Koordinator Bidang';
-              } elseif ($row['role'] == 'dosen_pembimbing') {
-                  $roleDisplay = 'Dosen Pembimbing';
-              }
-              echo htmlspecialchars($roleDisplay);
-            ?>
-          </td>
-          <td>
-            <button class="action-btn edit-btn" onclick="editPengurus(<?= $row['id'] ?>, '<?= addslashes($row['nama']) ?>', '<?= addslashes($row['email']) ?>', '<?= addslashes($row['role']) ?>')">
-              <i class="fa fa-pen"></i>
-            </button>
-            <a href="pages/crud_user/delete_pengurus.php?id=<?= $row['id'] ?>" class="delete-link">
-              <button class="action-btn delete-btn"><i class="fa fa-trash"></i></button>
-            </a>
-          </td>
-        </tr>
-        <?php endwhile; ?>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- ===================== MAHASISWA ========================= -->
-  <div id="mahasiswaTable" style="display:none;">
-    <div class="header-action">
-      <button class="add-btn" data-bs-toggle="modal" data-bs-target="#modalMahasiswa">+ Tambah Mahasiswa</button>
-    </div>
-
-    <!-- Upload Excel Section -->
-    <div class="upload-container">
-      <form action="pages/crud_user/upload_excel_mahasiswa.php" method="POST" enctype="multipart/form-data" id="formUploadExcel">
-        <div class="upload-row">
-          <input type="file" name="excel_file" class="file-input" accept=".csv,.xlsx,.xls" required>
-          <button type="submit" class="upload-btn">
-            <i class="fa fa-upload"></i> Upload Excel
-          </button>
+    <div id="mahasiswaTable" style="display:none;">
+      
+      <div class="upload-box">
+        <div class="upload-info">
+          <h5><i class="fas fa-file-excel text-success"></i> Import Data Mahasiswa</h5>
+          <p>Format: Kolom A (Nama), Kolom B (NIM). Mendukung .csv, .xlsx</p>
         </div>
-        <small class="upload-note small-note">
-          Format: <strong>Kolom A = Nama</strong>, <strong>Kolom B = NIM</strong> | Support sheets (File .csv)
-        </small>
-      </form>
+        <form action="pages/crud_user/upload_excel_mahasiswa.php" method="POST" enctype="multipart/form-data" id="formUploadExcel" class="upload-form-group">
+          <input type="file" name="excel_file" class="file-input-custom" accept=".csv,.xlsx,.xls" required>
+          <button type="submit" class="btn-upload">
+            <i class="fa fa-upload"></i> Upload
+          </button>
+        </form>
+      </div>
+
+      <div class="action-bar">
+        <button class="btn-add-new" data-bs-toggle="modal" data-bs-target="#modalMahasiswa">
+          <i class="fas fa-plus"></i> Tambah Mahasiswa
+        </button>
+      </div>
+
+      <div class="table-responsive">
+        <table class="user-table">
+          <thead>
+            <tr>
+              <th width="5%">No</th>
+              <th width="20%">NIM</th>
+              <th width="30%">Nama</th>
+              <th width="30%">Email</th>
+              <th width="15%">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php $no=1; while($m = mysqli_fetch_assoc($query_mahasiswa)): ?>
+            <tr>
+              <td><?= $no++ ?></td>
+              <td><span class="fw-bold text-primary"><?= htmlspecialchars($m['nim']) ?></span></td>
+              <td><?= htmlspecialchars($m['nama']) ?></td>
+              <td><?= htmlspecialchars($m['email']) ?></td>
+              <td>
+                <div class="action-buttons">
+                  <button class="btn-icon btn-edit" onclick="editMahasiswa(<?= $m['id'] ?>, '<?= addslashes($m['nama']) ?>', '<?= addslashes($m['nim']) ?>', '<?= addslashes($m['email']) ?>')">
+                    <i class="fa fa-pen"></i>
+                  </button>
+                  <a href="pages/crud_user/delete_mahasiswa.php?id=<?= $m['id'] ?>" class="delete-link">
+                    <button class="btn-icon btn-delete"><i class="fa fa-trash"></i></button>
+                  </a>
+                </div>
+              </td>
+            </tr>
+            <?php endwhile; ?>
+          </tbody>
+        </table>
+      </div>
     </div>
 
-    <table class="user-table">
-      <thead>
-        <tr><th>No</th><th>NIM</th><th>Nama</th><th>Email</th><th>Aksi</th></tr>
-      </thead>
-      <tbody>
-        <?php $no=1; while($m = mysqli_fetch_assoc($query_mahasiswa)): ?>
-        <tr>
-          <td><?= $no++ ?></td>
-          <td><?= htmlspecialchars($m['nim']) ?></td>
-          <td><?= htmlspecialchars($m['nama']) ?></td>
-          <td><?= htmlspecialchars($m['email']) ?></td>
-          <td>
-            <button class="action-btn edit-btn" onclick="editMahasiswa(<?= $m['id'] ?>, '<?= addslashes($m['nama']) ?>', '<?= addslashes($m['nim']) ?>', '<?= addslashes($m['email']) ?>')">
-              <i class="fa fa-pen"></i>
-            </button>
-            <a href="pages/crud_user/delete_mahasiswa.php?id=<?= $m['id'] ?>" class="delete-link">
-              <button class="action-btn delete-btn"><i class="fa fa-trash"></i></button>
-            </a>
-          </td>
-        </tr>
-        <?php endwhile; ?>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- =================== MODAL EDIT PENGURUS ==================== -->
-<div class="modal fade" id="modalEditPengurus" tabindex="-1" aria-hidden="true">
+  </div> </div> <div class="modal fade" id="modalEditPengurus" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-primary text-white">
         <h5 class="modal-title">Edit Data Pengurus</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <form action="pages/crud_user/update_pengurus.php" method="POST" id="formEditPengurus">
         <input type="hidden" name="id" id="edit_pengurus_id">
         <input type="hidden" name="is_modal" value="1">
-        <div class="modal-body">
-          <label class="form-label">Nama</label>
+        <div class="modal-body p-4">
+          <label class="form-label fw-bold">Nama</label>
           <input type="text" name="nama" id="edit_pengurus_nama" class="form-control mb-3" required>
 
-          <label class="form-label">Email</label>
+          <label class="form-label fw-bold">Email</label>
           <input type="email" name="email" id="edit_pengurus_email" class="form-control mb-3" required>
 
-          <label class="form-label">Password</label>
-          <input type="password" name="password" class="form-control mb-3" placeholder="Kosongkan jika tidak ingin mengubah">
-          <small class="text-muted">*Isi hanya jika ingin mengubah password</small>
+          <label class="form-label fw-bold">Password</label>
+          <input type="password" name="password" class="form-control mb-1" placeholder="Kosongkan jika tidak ingin mengubah">
+          <small class="text-muted d-block mb-3">*Isi hanya jika ingin mengubah password</small>
 
-          <label class="form-label">Role</label>
+          <label class="form-label fw-bold">Role</label>
           <select name="role" id="edit_pengurus_role" class="form-select mb-3" required>
             <option value="Admin">Admin</option>
             <option value="koordinator_bidang">Koordinator Bidang</option>
             <option value="dosen_pembimbing">Dosen Pembimbing</option>
           </select>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
           <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
         </div>
       </form>
@@ -158,33 +190,32 @@ $query_mahasiswa = mysqli_query($conn, "SELECT * FROM users WHERE role = 'mahasi
   </div>
 </div>
 
-<!-- =================== MODAL EDIT MAHASISWA ==================== -->
 <div class="modal fade" id="modalEditMahasiswa" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-primary text-white">
         <h5 class="modal-title">Edit Data Mahasiswa</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <form action="pages/crud_user/update_mahasiswa.php" method="POST" id="formEditMahasiswa">
         <input type="hidden" name="id" id="edit_mahasiswa_id">
         <input type="hidden" name="is_modal" value="1">
-        <div class="modal-body">
-          <label class="form-label">NIM</label>
+        <div class="modal-body p-4">
+          <label class="form-label fw-bold">NIM</label>
           <input type="text" name="nim" id="edit_mahasiswa_nim" class="form-control mb-3" required>
 
-          <label class="form-label">Nama</label>
+          <label class="form-label fw-bold">Nama</label>
           <input type="text" name="nama" id="edit_mahasiswa_nama" class="form-control mb-3" required>
 
-          <label class="form-label">Email</label>
+          <label class="form-label fw-bold">Email</label>
           <input type="email" name="email" id="edit_mahasiswa_email" class="form-control mb-3" required>
 
-          <label class="form-label">Password</label>
-          <input type="password" name="password" class="form-control mb-3" placeholder="Kosongkan jika tidak ingin mengubah">
-          <small class="text-muted">*Isi hanya jika ingin mengubah password</small>
+          <label class="form-label fw-bold">Password</label>
+          <input type="password" name="password" class="form-control mb-1" placeholder="Kosongkan jika tidak ingin mengubah">
+          <small class="text-muted d-block mb-3">*Isi hanya jika ingin mengubah password</small>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
           <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
         </div>
       </form>
@@ -192,94 +223,90 @@ $query_mahasiswa = mysqli_query($conn, "SELECT * FROM users WHERE role = 'mahasi
   </div>
 </div>
 
-<!-- =================== MODAL TAMBAH PENGURUS ==================== -->
 <div class="modal fade" id="modalPengurus" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-
-      <div class="modal-header">
-        <h5 class="modal-title">Tambah Pengurus</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">Tambah Pengurus Baru</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-
       <form action="pages/crud_user/create_pengurus.php" method="POST">
-        <div class="modal-body">
-          
-          <label class="form-label">Nama</label>
-          <input type="text" name="nama" class="form-control mb-3" placeholder="Masukkan Nama" required>
+        <div class="modal-body p-4">
+          <label class="form-label fw-bold">Nama Lengkap</label>
+          <input type="text" name="nama" class="form-control mb-3" placeholder="Contoh: Budi Santoso" required>
 
-          <label class="form-label">Email</label>
-          <input type="email" name="email" class="form-control mb-3" placeholder="Masukkan Email" required>
+          <label class="form-label fw-bold">Email</label>
+          <input type="email" name="email" class="form-control mb-3" placeholder="email@polije.ac.id" required>
 
-          <label class="form-label">Password</label>
+          <label class="form-label fw-bold">Password</label>
           <input type="password" name="password" class="form-control mb-3" placeholder="Masukkan Password" required>
 
-          <label class="form-label">Role</label>
+          <label class="form-label fw-bold">Role</label>
           <select name="role" class="form-select mb-3" required>
             <option value="" disabled selected>Pilih Role</option>
             <option value="Admin">Admin</option>
             <option value="koordinator_bidang">Koordinator Bidang</option>
             <option value="dosen_pembimbing">Dosen Pembimbing</option>
           </select>
-
         </div>
-
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
           <button type="submit" class="btn btn-primary">Simpan</button>
         </div>
       </form>
-
     </div>
   </div>
 </div>
 
-<!-- =================== MODAL TAMBAH MAHASISWA ==================== -->
 <div class="modal fade" id="modalMahasiswa" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-
-      <div class="modal-header">
-        <h5 class="modal-title">Tambah Mahasiswa</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">Tambah Mahasiswa Baru</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-
       <form action="pages/crud_user/create_mahasiswa.php" method="POST">
-        <div class="modal-body">
-          
-          <label class="form-label">NIM</label>
-          <input type="text" name="nim" class="form-control mb-3" placeholder="Masukkan NIM" required>
+        <div class="modal-body p-4">
+          <label class="form-label fw-bold">NIM</label>
+          <input type="text" name="nim" class="form-control mb-3" placeholder="Contoh: E41211001" required>
 
-          <label class="form-label">Nama</label>
+          <label class="form-label fw-bold">Nama Lengkap</label>
           <input type="text" name="nama" class="form-control mb-3" placeholder="Masukkan Nama" required>
 
-          <label class="form-label">Email</label>
-          <input type="email" name="email" class="form-control mb-3" placeholder="Masukkan Email" required>
+          <label class="form-label fw-bold">Email</label>
+          <input type="email" name="email" class="form-control mb-3" placeholder="email@student.polije.ac.id" required>
 
-          <label class="form-label">Password</label>
+          <label class="form-label fw-bold">Password</label>
           <input type="password" name="password" class="form-control mb-3" placeholder="Masukkan Password" required>
-
         </div>
-
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
           <button type="submit" class="btn btn-primary">Simpan</button>
         </div>
       </form>
-
     </div>
   </div>
 </div>
 
 
 <script>
+// Logic Switch Tab & Active State
 function showPengurus(){
   document.getElementById('pengurusTable').style.display='block';
   document.getElementById('mahasiswaTable').style.display='none';
+  
+  // Update tombol active
+  document.getElementById('btnPengurus').classList.add('active');
+  document.getElementById('btnMahasiswa').classList.remove('active');
 }
+
 function showMahasiswa(){
   document.getElementById('pengurusTable').style.display='none';
   document.getElementById('mahasiswaTable').style.display='block';
+  
+  // Update tombol active
+  document.getElementById('btnMahasiswa').classList.add('active');
+  document.getElementById('btnPengurus').classList.remove('active');
 }
 
 // Cek parameter tab dari URL
