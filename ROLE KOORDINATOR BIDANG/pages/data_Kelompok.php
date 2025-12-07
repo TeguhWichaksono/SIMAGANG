@@ -24,23 +24,26 @@ $dataKelompok = array();
 if (mysqli_num_rows($result) > 0) {
     $no = 1;
     while ($row = mysqli_fetch_assoc($result)) {
-        // Query untuk mengambil anggota kelompok
+        // Query untuk mengambil anggota kelompok (DIPERBAIKI)
         $id_kelompok = $row['id_kelompok'];
         $queryAnggota = "SELECT 
                           m.id_mahasiswa,
                           m.kontak,
                           ak.id_anggota,
+                          ak.peran,
                           u.nama AS nama_mahasiswa,
                           u.nim,
-                          pm.id_mitra,
+                          MAX(pm.id_mitra) as id_mitra,
                           mp.nama_mitra
                         FROM anggota_kelompok ak
                         INNER JOIN mahasiswa m ON ak.id_mahasiswa = m.id_mahasiswa
                         LEFT JOIN users u ON m.id_user = u.id
-                        LEFT JOIN pengajuan_mitra pm ON m.id_mahasiswa = pm.id_mahasiswa
+                        LEFT JOIN pengajuan_mitra pm ON m.id_mahasiswa = pm.id_mahasiswa 
+                            AND pm.status_pengajuan = 'disetujui'
                         LEFT JOIN mitra_perusahaan mp ON pm.id_mitra = mp.id_mitra
                         WHERE ak.id_kelompok = '$id_kelompok'
-                        ORDER BY ak.id_anggota";
+                        GROUP BY ak.id_anggota, m.id_mahasiswa, m.kontak, ak.peran, u.nama, u.nim, mp.nama_mitra
+                        ORDER BY ak.peran DESC, ak.id_anggota";
         
         $resultAnggota = mysqli_query($conn, $queryAnggota);
         $anggota = array();
@@ -50,16 +53,18 @@ if (mysqli_num_rows($result) > 0) {
         while ($rowAnggota = mysqli_fetch_assoc($resultAnggota)) {
             $anggota[] = array(
                 'nama' => $rowAnggota['nama_mahasiswa'],
-                'nim' => $rowAnggota['nim']
+                'nim' => $rowAnggota['nim'],
+                'peran' => $rowAnggota['peran']
             );
             
-            // Anggota pertama dianggap sebagai ketua kelompok
-            if (empty($kontakKetua)) {
+            // Ambil kontak dari ketua kelompok
+            if ($rowAnggota['peran'] == 'ketua') {
                 $kontakKetua = $rowAnggota['kontak'];
-                // Ambil nama mitra hanya jika ada
-                if (!empty($rowAnggota['nama_mitra'])) {
-                    $namaMitra = $rowAnggota['nama_mitra'];
-                }
+            }
+            
+            // Ambil nama mitra (dari ketua atau anggota pertama yang punya)
+            if (empty($namaMitra) && !empty($rowAnggota['nama_mitra'])) {
+                $namaMitra = $rowAnggota['nama_mitra'];
             }
         }
         
@@ -124,7 +129,15 @@ if (isset($_GET['ajax'])) {
                 <td>
                   <ul class="anggota-list">
                     <?php foreach ($kelompok['anggota'] as $anggota): ?>
-                      <li><?php echo $anggota['nama'] . ' (' . $anggota['nim'] . ')'; ?></li>
+                      <li>
+                        <?php 
+                        // Tampilkan dengan icon ketua jika peran = ketua
+                        if ($anggota['peran'] == 'ketua') {
+                            echo '<i class="fas fa-crown" style="color: #fbbf24;"></i> ';
+                        }
+                        echo $anggota['nama'] . ' (' . $anggota['nim'] . ')'; 
+                        ?>
+                      </li>
                     <?php endforeach; ?>
                   </ul>
                 </td>

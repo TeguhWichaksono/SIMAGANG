@@ -10,11 +10,11 @@ $query = "SELECT
             u.nim,
             u.nama,
             m.prodi,
+            m.status_magang,
             k.nama_kelompok,
             ak.peran,
             ud.nama AS nama_dosen,
-            mitra_kelompok.nama_mitra,
-            mitra_kelompok.status_pengajuan
+            mitra_kelompok.nama_mitra
           FROM mahasiswa m
           LEFT JOIN users u ON m.id_user = u.id
           LEFT JOIN anggota_kelompok ak ON m.id_mahasiswa = ak.id_mahasiswa
@@ -22,11 +22,9 @@ $query = "SELECT
           LEFT JOIN dosen d ON k.id_dosen_pembimbing = d.id_dosen
           LEFT JOIN users ud ON d.id_user = ud.id
           LEFT JOIN (
-              -- Subquery: ambil mitra dari kelompok (dari salah satu anggota yang sudah punya pengajuan)
               SELECT 
                   ak2.id_kelompok,
-                  mt.nama_mitra,
-                  pm.status_pengajuan
+                  mt.nama_mitra
               FROM anggota_kelompok ak2
               JOIN pengajuan_mitra pm ON ak2.id_mahasiswa = pm.id_mahasiswa
               JOIN mitra_perusahaan mt ON pm.id_mitra = mt.id_mitra
@@ -80,24 +78,23 @@ if (!$result) {
           if (mysqli_num_rows($result) > 0) {
             $no = 1;
             while ($row = mysqli_fetch_assoc($result)) {
-              // Tentukan class status berdasarkan status_pengajuan
-              $statusClass = '';
-              $statusText = '';
-              
-              if ($row['status_pengajuan'] == 'disetujui') {
-                $statusClass = 'status-aktif';
-                $statusText = 'Aktif';
-              } elseif ($row['status_pengajuan'] == 'menunggu') {
-                $statusClass = 'status-proses';
-                $statusText = 'Proses';
-              } elseif ($row['status_pengajuan'] == 'ditolak') {
-                $statusClass = 'status-ditolak';
-                $statusText = 'Ditolak';
-              } else {
-                $statusClass = 'status-proses';
-                $statusText = 'Belum Terdaftar';
-              }
-              
+          // Tentukan class status berdasarkan status_magang dari tabel mahasiswa
+$statusClass = '';
+$statusText = '';
+
+if ($row['status_magang'] == 'magang_aktif') {
+    $statusClass = 'status-aktif';
+    $statusText = 'Aktif';
+} elseif ($row['status_magang'] == 'pra-magang') {
+    $statusClass = 'status-proses';
+    $statusText = 'Pra-Magang';
+} elseif ($row['status_magang'] == 'selesai') {
+    $statusClass = 'status-selesai';
+    $statusText = 'Selesai';
+} else {
+    $statusClass = 'status-proses';
+    $statusText = 'Belum Terdaftar';
+}
               // Format peran dengan styling
               $peranText = '-';
               if ($row['peran'] == 'ketua') {
