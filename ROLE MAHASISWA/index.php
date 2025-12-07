@@ -357,7 +357,6 @@ if (isset($_SESSION['id'])) {
         // Toggle class 'show' (memicu transisi CSS max-height & opacity)
         submenu.classList.toggle('show');
         
-        // Toggle class 'active' pada tombol (untuk rotasi panah)
         btnElement.classList.toggle('active');
       }
 

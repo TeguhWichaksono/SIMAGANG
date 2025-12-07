@@ -267,6 +267,8 @@ $submenuClass = in_array($page, $masterDataPages) ? 'show' : '';
       }
     });
 
+        // (Opsional) Placeholder function
+
     // (Opsional) Placeholder function
     function openChangePasswordModal() {
         alert("Fitur ganti password akan muncul di sini.");

@@ -543,7 +543,6 @@ if (isset($_SESSION['id'])) {
       });
     });
 
-    // Confirm logout
     function confirmLogout() {
       if (confirm('Apakah Anda yakin ingin keluar?')) {
         window.location.href = '/WSI/SIMAGANGG/Login/logout.php';
