@@ -353,11 +353,6 @@ if (isset($_SESSION['id'])) {
       </div>
 
       <div class="header-right">
-        <div class="notification-bell">
-          <i class="fas fa-bell"></i>
-          <div class="notification-indicator"></div>
-        </div>
-
         <div class="user-profile" onclick="toggleProfileMenu(event)">
           <img src="<?= $foto_profil_path ?>" alt="Foto Profil" class="profile-pic" />
           

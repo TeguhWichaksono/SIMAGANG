@@ -54,7 +54,6 @@ $query = mysqli_query($conn, "SELECT * FROM mitra_perusahaan ORDER BY id_mitra D
           <th>Bidang</th>
           <th>Alamat</th>
           <th>Kontak</th>
-          <th>Titik Lokasi</th>
           <th>Status</th>
           <th width="10%">Aksi</th>
         </tr>
@@ -73,22 +72,6 @@ $query = mysqli_query($conn, "SELECT * FROM mitra_perusahaan ORDER BY id_mitra D
                     </a>
                 <?php else: ?>
                     -
-                <?php endif; ?>
-            </td>
-            
-            <td>
-                <?php 
-                if (!empty($row['latitude']) && !empty($row['longitude'])): 
-                ?>
-                    <div style="font-size:11px; line-height:1.4; color:#555;">
-                        Lat: <?= htmlspecialchars($row['latitude']) ?><br>
-                        Long: <?= htmlspecialchars($row['longitude']) ?>
-                    </div>
-                    <a href="https://www.google.com/maps/search/?api=1&query=<?= $row['latitude'] ?>,<?= $row['longitude'] ?>" target="_blank" style="color:#4270f4; font-size:12px; text-decoration:none; font-weight:600;">
-                        <i class="fas fa-map-marker-alt"></i> Buka Maps
-                    </a>
-                <?php else: ?>
-                    <span style="color:#ccc; font-style:italic; font-size:12px;">- Kosong -</span>
                 <?php endif; ?>
             </td>
 
@@ -121,7 +104,7 @@ $query = mysqli_query($conn, "SELECT * FROM mitra_perusahaan ORDER BY id_mitra D
             <p style="margin-bottom:15px; font-size:13px; color:#666; line-height:1.5;">
                 Gunakan file format <strong>.CSV</strong> (Excel -> Save As -> CSV).<br>
                 Pastikan urutan kolom: <br>
-                <code>Nama, Bidang, Alamat, Kontak, Status, Latitude, Longitude</code>
+                <code>Nama, Bidang, Alamat, Kontak, Status</code>
             </p>
             
             <input type="file" name="file_mitra" class="file-input" accept=".csv" required style="margin-bottom:20px;">
