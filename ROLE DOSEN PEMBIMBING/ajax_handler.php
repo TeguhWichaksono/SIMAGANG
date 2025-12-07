@@ -2,10 +2,8 @@
 /**
  * ajax_handler.php
  * Central AJAX Router untuk semua endpoint
- * Letakkan di: ROLE DOSEN PEMBIMBING/ajax_handler.php
  */
 
-// PENTING: Jangan ada output apapun sebelum ini!
 session_start();
 header('Content-Type: application/json');
 
@@ -34,7 +32,7 @@ switch ($action) {
         include 'pages/update_validasi_logbook.php';
         break;
         
-    case 'get_detail_mahasiswa_bimbingan':
+    case 'get_detail_mahasiswa_bimbingan': 
         include 'pages/get_detail_mahasiswa_bimbingan.php';
         break;
         

@@ -61,6 +61,7 @@ $query_logbook = "
         m.id_mahasiswa,
         u.nama AS nama_mahasiswa,
         u.nim,
+        u.foto_profil,
         m.prodi,
         k.nama_kelompok,
         mp.nama_mitra,

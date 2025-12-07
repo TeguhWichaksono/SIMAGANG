@@ -761,15 +761,12 @@
     border-radius: 16px;
     max-width: 600px;
     width: 90%;
-    max-height: 90vh;
+    max-height: 85vh; /* Ubah dari 90vh ke 85vh */
     overflow: hidden;
     display: flex;
     flex-direction: column;
     box-shadow: var(--shadow-xl);
     animation: slideUp 0.3s ease;
-    max_height: 85vh; 
-    display: flex;
-    flex-direction: column;
 }
 
 @keyframes slideUp {
@@ -798,8 +795,7 @@
     justify-content: space-between;
     align-items: center;
     flex-shrink: 0;
-    flex-shrink: 0; 
-    background: white; /* Biar gak transparan pas discroll */
+    background: white;
     z-index: 10;
 }
 
@@ -839,6 +835,7 @@
     padding: 24px;
     overflow-y: auto;
     flex: 1;
+    scroll-behavior: smooth;
 }
 
 .modal-body::-webkit-scrollbar {
@@ -860,8 +857,8 @@
     display: flex;
     gap: 12px;
     justify-content: flex-end;
-    flex-shrink: 0; 
-    background: white; /* Biar gak transparan pas discroll */
+    flex-shrink: 0;
+    background: white;
     z-index: 10;
 }
 
@@ -1122,17 +1119,22 @@ textarea:focus {
 }
 
 /* Preview Foto Kegiatan */
+/* Preview Foto Kegiatan */
 #previewFotoKegiatan {
     position: relative;
     margin-top: 16px;
     border-radius: 8px;
     overflow: hidden;
     box-shadow: var(--shadow-md);
+    max-height: 300px;
 }
 
 #previewFotoKegiatanImg {
     width: 100%;
+    max-height: 300px;
+    object-fit: contain;
     display: block;
+    background: #f5f5f5;
 }
 
 .btn-remove-preview {
@@ -2760,4 +2762,45 @@ textarea:focus {
     box-shadow: 0 2px 4px rgba(0,0,0,0.02);
     border: 1px solid var(--gray-200);
     border-left-width: 3px;
+}
+
+/* ========================================
+   FIX MODAL KEGIATAN - FORCE SCROLLABLE
+======================================== */
+
+/* Pastikan modal kegiatan bisa scroll */
+#modalKegiatan .modal-body {
+    max-height: calc(85vh - 180px); /* 85vh dikurangi tinggi header + footer */
+    overflow-y: auto !important;
+    padding: 24px;
+}
+
+/* Batasi tinggi preview foto kegiatan agar tidak terlalu besar */
+#modalKegiatan #previewFotoKegiatan {
+    max-height: 250px; /* Lebih kecil dari sebelumnya */
+    margin-top: 16px;
+}
+
+#modalKegiatan #previewFotoKegiatanImg {
+    max-height: 250px;
+    width: 100%;
+    object-fit: contain;
+    background: #f5f5f5;
+}
+
+/* Pastikan footer tetap terlihat */
+#modalKegiatan .modal-footer {
+    position: sticky;
+    bottom: 0;
+    background: white;
+    border-top: 2px solid var(--gray-200);
+    box-shadow: 0 -4px 6px rgba(0,0,0,0.05);
+    z-index: 100;
+}
+
+/* Paksa modal content menggunakan flexbox dengan benar */
+#modalKegiatan.modal-overlay .modal-content {
+    display: flex !important;
+    flex-direction: column !important;
+    max-height: 85vh !important;
 }

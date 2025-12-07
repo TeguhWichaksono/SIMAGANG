@@ -1045,3 +1045,34 @@ tbody tr:hover {
         gap: 4px;
     }
 }
+
+
+/* ========================================
+   MAHASISWA AVATAR WRAPPER
+======================================== */
+.mahasiswa-avatar-wrapper {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.mahasiswa-avatar-img {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--gray-200);
+}
+
+.mahasiswa-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 15px;
+    flex-shrink: 0;
+}

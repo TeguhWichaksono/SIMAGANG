@@ -50,6 +50,7 @@ $query_pending = "
         m.id_mahasiswa,
         u.nama AS nama_mahasiswa,
         u.nim,
+        u.foto_profil,  
         m.prodi,
         k.nama_kelompok,
         mp.nama_mitra,
@@ -67,7 +68,7 @@ $query_pending = "
     GROUP BY 
         lh.id_logbook, lh.tanggal, lh.jam_absensi, lh.lokasi_absensi, 
         lh.foto_absensi, lh.status_validasi, m.id_mahasiswa, u.nama, 
-        u.nim, m.prodi, k.nama_kelompok, mp.nama_mitra
+        u.nim, u.foto_profil, m.prodi, k.nama_kelompok, mp.nama_mitra  
     ORDER BY lh.tanggal DESC, lh.jam_absensi DESC
     LIMIT 50
 ";
@@ -100,6 +101,7 @@ $query_riwayat = "
         m.id_mahasiswa,
         u.nama AS nama_mahasiswa,
         u.nim,
+        u.foto_profil,  
         k.nama_kelompok,
         mp.nama_mitra,
         COUNT(dk.id_detail) as jumlah_kegiatan
@@ -115,7 +117,7 @@ $query_riwayat = "
     GROUP BY 
         lh.id_logbook, lh.tanggal, lh.jam_absensi, lh.lokasi_absensi, 
         lh.foto_absensi, lh.status_validasi, lh.catatan_dosen, 
-        m.id_mahasiswa, u.nama, u.nim, k.nama_kelompok, mp.nama_mitra
+        m.id_mahasiswa, u.nama, u.nim, u.foto_profil, k.nama_kelompok, mp.nama_mitra  
     ORDER BY lh.tanggal DESC, lh.jam_absensi DESC
     LIMIT 100
 ";
@@ -202,8 +204,16 @@ while ($row = mysqli_fetch_assoc($result_riwayat)) {
                                     <td class="text-center"><?= $index + 1 ?></td>
                                     <td>
                                         <div class="mahasiswa-info">
-                                            <div class="mahasiswa-avatar">
-                                                <?= strtoupper(substr($log['nama_mahasiswa'], 0, 2)) ?>
+                                            <div class="mahasiswa-avatar-wrapper">
+                                                <?php if (!empty($log['foto_profil'])): ?>
+                                                    <img src="../ROLE Mahasiswa/uploads/<?= htmlspecialchars($log['foto_profil']) ?>" 
+                                                        alt="<?= htmlspecialchars($log['nama_mahasiswa']) ?>"
+                                                        class="mahasiswa-avatar-img">
+                                                <?php else: ?>
+                                                    <div class="mahasiswa-avatar">
+                                                        <?= strtoupper(substr($log['nama_mahasiswa'], 0, 2)) ?>
+                                                    </div>
+                                                <?php endif; ?>
                                             </div>
                                             <div class="mahasiswa-details">
                                                 <h4><?= htmlspecialchars($log['nama_mahasiswa']) ?></h4>
@@ -211,7 +221,6 @@ while ($row = mysqli_fetch_assoc($result_riwayat)) {
                                             </div>
                                         </div>
                                     </td>
-                                    <td>
                                         <div class="date-display">
                                             <i class="fas fa-calendar"></i>
                                             <?= date('d M Y', strtotime($log['tanggal'])) ?>
@@ -345,10 +354,20 @@ while ($row = mysqli_fetch_assoc($result_riwayat)) {
                                     data-status="<?= $log['status_validasi'] ?>"
                                     data-tanggal="<?= $log['tanggal'] ?>">
                                     <td class="text-center"><?= $index + 1 ?></td>
+                                    
+                                    <!-- 👇 MAHASISWA INFO - FIXED! -->
                                     <td>
                                         <div class="mahasiswa-info">
-                                            <div class="mahasiswa-avatar">
-                                                <?= strtoupper(substr($log['nama_mahasiswa'], 0, 2)) ?>
+                                            <div class="mahasiswa-avatar-wrapper">
+                                                <?php if (!empty($log['foto_profil'])): ?>
+                                                    <img src="../ROLE Mahasiswa/uploads/<?= htmlspecialchars($log['foto_profil']) ?>" 
+                                                        alt="<?= htmlspecialchars($log['nama_mahasiswa']) ?>"
+                                                        class="mahasiswa-avatar-img">
+                                                <?php else: ?>
+                                                    <div class="mahasiswa-avatar">
+                                                        <?= strtoupper(substr($log['nama_mahasiswa'], 0, 2)) ?>
+                                                    </div>
+                                                <?php endif; ?>
                                             </div>
                                             <div class="mahasiswa-details">
                                                 <h4><?= htmlspecialchars($log['nama_mahasiswa']) ?></h4>
@@ -356,6 +375,8 @@ while ($row = mysqli_fetch_assoc($result_riwayat)) {
                                             </div>
                                         </div>
                                     </td>
+                                    
+                                    <!-- Tanggal -->
                                     <td>
                                         <div class="date-display">
                                             <i class="fas fa-calendar"></i>
@@ -365,13 +386,19 @@ while ($row = mysqli_fetch_assoc($result_riwayat)) {
                                             <?= date('H:i', strtotime($log['jam_absensi'])) ?> WIB
                                         </small>
                                     </td>
+                                    
+                                    <!-- Kegiatan -->
                                     <td class="text-center">
                                         <span class="badge-count"><?= $log['jumlah_kegiatan'] ?></span>
                                     </td>
+                                    
+                                    <!-- Tempat Magang -->
                                     <td>
                                         <div style="font-weight: 500;"><?= htmlspecialchars($log['nama_mitra'] ?? '-') ?></div>
                                         <small style="color: var(--gray-500);"><?= htmlspecialchars($log['nama_kelompok'] ?? '-') ?></small>
                                     </td>
+                                    
+                                    <!-- Status -->
                                     <td class="text-center">
                                         <?php
                                         $status_class = $log['status_validasi'];
@@ -391,6 +418,8 @@ while ($row = mysqli_fetch_assoc($result_riwayat)) {
                                             <?= $status_text[$status_class] ?>
                                         </span>
                                     </td>
+                                    
+                                    <!-- Aksi -->
                                     <td>
                                         <div class="action-buttons">
                                             <button class="btn-action btn-view" 

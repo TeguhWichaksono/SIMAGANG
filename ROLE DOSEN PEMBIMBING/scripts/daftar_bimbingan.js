@@ -12,6 +12,9 @@
 // ========================================
 // FILTER & SEARCH
 // ========================================
+console.log('Mahasiswa data:', mahasiswa);
+console.log('Foto profil path:', mahasiswa.foto_profil);
+console.log('Full URL:', `../ROLE Mahasiswa/uploads/${mahasiswa.foto_profil}`);
 function applyFilters() {
     const searchValue = document.getElementById('searchMahasiswa').value.toLowerCase();
     const filterKelompok = document.getElementById('filterKelompok').value;
@@ -131,10 +134,22 @@ function lihatDetailMahasiswa(idMahasiswa) {
         </div>
     `;
     
+    // 👇 FIXED: URL ke ajax_handler.php
+    const url = `ajax_handler.php?action=get_detail_mahasiswa_bimbingan&id_mahasiswa=${idMahasiswa}`;
+    console.log('Fetching from:', url);
+    
     // AJAX Request
-    fetch(`index.php?page=get_detail_mahasiswa_bimbingan&id_mahasiswa=${idMahasiswa}`)
-        .then(response => response.json())
+    fetch(url)
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log('Data received:', data);
+            
             if (data.success) {
                 renderDetailMahasiswa(data.data);
             } else {
@@ -191,7 +206,7 @@ function renderDetailMahasiswa(data) {
             <!-- Profile Section -->
             <div style="display: flex; align-items: center; gap: 20px; padding: 20px; background: var(--gray-50); border-radius: 12px;">
                 ${mahasiswa.foto_profil ? `
-                    <img src="../Mahasiswa/${mahasiswa.foto_profil}" 
+                    <img src="../ROLE Mahasiswa/uploads/${mahasiswa.foto_profil}" 
                          alt="${mahasiswa.nama_mahasiswa}"
                          style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                 ` : `
