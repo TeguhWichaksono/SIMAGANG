@@ -41,55 +41,43 @@ $q_list_pending = mysqli_query($conn, "
     LIMIT 5
 ");
 
-// --- 7. PETA SEBARAN: Ambil Data Mitra ---
-$queryMitraPeta = mysqli_query($conn, "
+// --- 7. DATA MITRA POPULER (Berdasarkan Jumlah Mahasiswa) ---
+$q_mitra_populer = mysqli_query($conn, "
     SELECT 
-        mp.id_mitra,
         mp.nama_mitra, 
-        mp.bidang, 
-        mp.alamat,
-        mp.latitude,
-        mp.longitude,
-        (SELECT COUNT(*) 
-         FROM pengajuan_magang pm 
-         WHERE pm.id_mitra = mp.id_mitra 
-         AND pm.status_pengajuan = 'diterima') as jumlah_mhs
+        mp.bidang,
+        COUNT(pm.id_pengajuan) as jumlah_mhs
     FROM mitra_perusahaan mp 
+    LEFT JOIN pengajuan_magang pm ON mp.id_mitra = pm.id_mitra 
+        AND pm.status_pengajuan = 'diterima'
     WHERE mp.status = 'aktif'
+    GROUP BY mp.id_mitra
+    ORDER BY jumlah_mhs DESC
+    LIMIT 5
 ");
 
-$map_data = [];
-if ($queryMitraPeta) {
-    while ($m = mysqli_fetch_assoc($queryMitraPeta)) {
-        
-        $lat = $m['latitude'];
-        $lng = $m['longitude'];
-        $is_real = true;
-
-        // PERBAIKAN: Cek NULL atau 0 dengan lebih tepat
-        if ($lat === null || $lng === null || $lat == 0 || $lng == 0) {
-            $lat = -8.172 + (mt_rand(-50, 50) / 1000); 
-            $lng = 113.700 + (mt_rand(-50, 50) / 1000);
-            $is_real = false; 
-        }
-
-        $map_data[] = [
-            'id' => $m['id_mitra'],
-            'name' => htmlspecialchars($m['nama_mitra']),
-            'bidang' => htmlspecialchars($m['bidang']),
-            'alamat' => htmlspecialchars($m['alamat']),
-            'lat' => (float)$lat,
-            'lng' => (float)$lng,
-            'jumlah_mhs' => (int)$m['jumlah_mhs'],
-            'is_real' => $is_real
+// --- 8. STATISTIK BIDANG MITRA ---
+$q_bidang_stats = mysqli_query($conn, "
+    SELECT bidang, COUNT(*) as jumlah 
+    FROM mitra_perusahaan 
+    WHERE status = 'aktif'
+    GROUP BY bidang 
+    ORDER BY jumlah DESC 
+    LIMIT 6
+");
+$bidang_stats = [];
+if ($q_bidang_stats) {
+    while($row = mysqli_fetch_assoc($q_bidang_stats)) {
+        $bidang_stats[] = [
+            'label' => htmlspecialchars($row['bidang']),
+            'value' => (int)$row['jumlah']
         ];
     }
 }
 ?>
 
-<!-- CSS: PERBAIKAN - Tanpa ../ karena load dari root via index.php -->
+<!-- CSS -->
 <link rel="stylesheet" href="styles/dashboard.css?v=<?= time(); ?>">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
 <div class="dashboard-coord">
     <div class="stats-grid">
@@ -132,22 +120,53 @@ if ($queryMitraPeta) {
     <div class="dashboard-layout">
         
         <div class="layout-left">
-            <div class="content-card map-section">
+            <!-- CHART: Status Mahasiswa -->
+            <div class="content-card chart-section">
                 <div class="card-header">
-                    <h4><i class="fas fa-map-marked-alt"></i> Sebaran Mitra Magang</h4>
+                    <h4><i class="fas fa-chart-pie"></i> Statistik Status Mahasiswa</h4>
                 </div>
                 <div class="card-body">
-                    <div id="map" style="height: 350px; width: 100%; border-radius: 8px; z-index: 1;"></div>
-                    
-                    <div style="margin-top: 10px; font-size: 11px; color: #64748b; display:flex; gap:15px;">
-                        <span><i class="fas fa-map-marker-alt" style="color:#2563eb;"></i> Lokasi Terverifikasi</span>
-                        <span><i class="fas fa-map-marker-alt" style="color:#94a3b8;"></i> Lokasi Belum Diset (Estimasi)</span>
-                    </div>
+                    <canvas id="chartStatusMahasiswa" style="max-height: 280px;"></canvas>
+                </div>
+            </div>
+
+            <!-- MITRA POPULER -->
+            <div class="content-card" style="margin-top: 20px;">
+                <div class="card-header">
+                    <h4><i class="fas fa-trophy"></i> Mitra Paling Diminati</h4>
+                    <a href="index.php?page=data_Mitra" class="see-all">Lihat Semua</a>
+                </div>
+                <div class="card-body p-0">
+                    <?php if($q_mitra_populer && mysqli_num_rows($q_mitra_populer) > 0): ?>
+                        <div class="mitra-list">
+                            <?php 
+                            $rank = 1;
+                            while($mitra = mysqli_fetch_assoc($q_mitra_populer)): 
+                            ?>
+                                <div class="mitra-item">
+                                    <div class="mitra-rank"><?= $rank++ ?></div>
+                                    <div class="mitra-info">
+                                        <span class="mitra-name"><?= htmlspecialchars($mitra['nama_mitra']) ?></span>
+                                        <span class="mitra-bidang"><?= htmlspecialchars($mitra['bidang']) ?></span>
+                                    </div>
+                                    <div class="mitra-count">
+                                        <i class="fas fa-users"></i> <?= $mitra['jumlah_mhs'] ?>
+                                    </div>
+                                </div>
+                            <?php endwhile; ?>
+                        </div>
+                    <?php else: ?>
+                        <div class="empty-state">
+                            <i class="fas fa-building" style="font-size: 24px; color: #cbd5e1; margin-bottom: 10px;"></i>
+                            <p>Belum ada data mitra.</p>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
 
         <div class="layout-right">
+            <!-- PENGAJUAN PENDING -->
             <div class="content-card todo-section">
                 <div class="card-header">
                     <h4><i class="fas fa-list-ul"></i> Perlu Diproses</h4>
@@ -176,7 +195,18 @@ if ($queryMitraPeta) {
                 </div>
             </div>
 
-            <div class="content-card quick-links">
+            <!-- CHART: Bidang Mitra -->
+            <div class="content-card" style="margin-top: 20px;">
+                <div class="card-header">
+                    <h4><i class="fas fa-chart-bar"></i> Bidang Mitra</h4>
+                </div>
+                <div class="card-body">
+                    <canvas id="chartBidangMitra" style="max-height: 250px;"></canvas>
+                </div>
+            </div>
+
+            <!-- AKSI CEPAT -->
+            <div class="content-card quick-links" style="margin-top: 20px;">
                 <div class="card-header">
                     <h4><i class="fas fa-bolt"></i> Aksi Cepat</h4>
                 </div>
@@ -199,143 +229,180 @@ if ($queryMitraPeta) {
     </div>
 </div>
 
+<!-- CSS Tambahan untuk Mitra List -->
+<style>
+.mitra-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.mitra-item {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    gap: 15px;
+    border-bottom: 1px solid #f1f5f9;
+    transition: all 0.2s;
+}
+
+.mitra-item:last-child {
+    border-bottom: none;
+}
+
+.mitra-item:hover {
+    background: #f8fafc;
+}
+
+.mitra-rank {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.mitra-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.mitra-name {
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 14px;
+}
+
+.mitra-bidang {
+    font-size: 12px;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 2px 8px;
+    border-radius: 4px;
+    width: fit-content;
+}
+
+.mitra-count {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #2563eb;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.mitra-count i {
+    font-size: 13px;
+}
+</style>
+
 <!-- JS Libraries -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-    // PASSING DATA KE JS
-    const mapData = <?= json_encode($map_data) ?>;
-    const chartData = <?= json_encode($chart_status_data) ?>;
-    
-    // DEBUG
-    console.log('=== DEBUG INFO ===');
-    console.log('Total Mitra:', mapData.length);
-    console.log('Map Data:', mapData);
-    console.log('==================');
-</script>
-
-<!-- JS: PERBAIKAN - Tanpa ../ karena load dari root via index.php -->
-<script>
-/**
- * Dashboard Koordinator Logic (Chart & Map)
- */
+// PASSING DATA KE JS
+const chartStatusData = <?= json_encode($chart_status_data) ?>;
+const bidangStatsData = <?= json_encode($bidang_stats) ?>;
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Dashboard JS Loaded!');
-    initMap();
+    initCharts();
 });
 
-// LEAFLET MAP INITIALIZATION
-function initMap() {
-    const mapElement = document.getElementById('map');
-    
-    if(!mapElement) {
-        console.error('❌ Element #map tidak ditemukan!');
-        return;
-    }
-
-    console.log('✅ Element #map ditemukan');
-
-    if (typeof L === 'undefined') {
-        console.error('❌ Leaflet library belum dimuat!');
-        return;
-    }
-
-    console.log('✅ Leaflet library tersedia');
-
-    try {
-        const map = L.map('map').setView([-8.1731, 113.7035], 11);
-        console.log('✅ Peta diinisialisasi');
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap',
-            maxZoom: 19
-        }).addTo(map);
-        console.log('✅ Tile layer ditambahkan');
-
-        if (typeof mapData === 'undefined' || !Array.isArray(mapData)) {
-            console.error('❌ Variable mapData tidak ditemukan!');
-            return;
-        }
-
-        console.log('✅ Data mitra:', mapData.length, 'items');
-
-        if (mapData.length === 0) {
-            console.warn('⚠️ Tidak ada data mitra');
-            return;
-        }
-
-        const markersGroup = L.featureGroup();
-        let markerCount = 0;
-
-        mapData.forEach((p, index) => {
-            
-            console.log(`Marker ${index + 1}:`, p.name, `(${p.lat}, ${p.lng})`);
-            
-            if (!p.lat || !p.lng || isNaN(p.lat) || isNaN(p.lng)) {
-                console.warn(`⚠️ Koordinat tidak valid untuk ${p.name}`);
-                return;
+function initCharts() {
+    // CHART 1: Status Mahasiswa (Pie Chart)
+    const ctxStatus = document.getElementById('chartStatusMahasiswa');
+    if (ctxStatus && chartStatusData.length > 0) {
+        new Chart(ctxStatus, {
+            type: 'doughnut',
+            data: {
+                labels: chartStatusData.map(d => d.label),
+                datasets: [{
+                    data: chartStatusData.map(d => d.value),
+                    backgroundColor: [
+                        '#3b82f6', // blue
+                        '#22c55e', // green
+                        '#f59e0b', // orange
+                        '#ef4444', // red
+                        '#8b5cf6', // purple
+                        '#64748b'  // gray
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            font: { size: 12 }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' + context.parsed + ' mahasiswa';
+                            }
+                        }
+                    }
+                }
             }
-
-            const statusLokasi = p.is_real 
-                ? '<span style="color:green; font-weight:bold;">✓ Terverifikasi</span>' 
-                : '<span style="color:orange; font-weight:bold;">⚠ Estimasi</span>';
-
-            let popupContent = `
-                <div style="min-width: 200px; font-family: sans-serif;">
-                    <h4 style="margin: 0 0 5px; color: #262A39; border-bottom:1px solid #eee; padding-bottom:5px;">
-                        ${p.name}
-                    </h4>
-                    <div style="font-size: 11px; margin-bottom: 8px;">
-                        <span style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #64748b;">
-                            ${p.bidang}
-                        </span>
-                    </div>
-                    <p style="margin: 5px 0; font-size: 12px;">
-                        <i class="fas fa-map-marker-alt"></i> ${statusLokasi}
-                    </p>
-                    <p style="margin: 5px 0; font-size: 12px;">
-                        <i class="fas fa-users"></i> <b>${p.jumlah_mhs}</b> Mahasiswa
-                    </p>
-                    <p style="margin: 5px 0 0; font-size: 11px; color: #94a3b8; font-style: italic;">
-                        ${p.alamat}
-                    </p>
-                </div>
-            `;
-
-            const iconColor = p.is_real ? 'blue' : 'grey';
-            
-            const marker = L.marker([p.lat, p.lng], {
-                icon: L.icon({
-                    iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${iconColor}.png`,
-                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-                    iconSize: [25, 41],
-                    iconAnchor: [12, 41],
-                    popupAnchor: [1, -34],
-                    shadowSize: [41, 41]
-                })
-            })
-            .addTo(map)
-            .bindPopup(popupContent);
-            
-            if(p.is_real && markerCount === 0) {
-                marker.openPopup();
-            }
-
-            markersGroup.addLayer(marker);
-            markerCount++;
         });
+    }
 
-        console.log(`✅ ${markerCount} marker ditambahkan`);
-
-        if (markerCount > 0) {
-            map.fitBounds(markersGroup.getBounds().pad(0.1));
-            console.log('✅ Auto-zoom ke semua marker');
-        }
-
-    } catch (error) {
-        console.error('❌ Error:', error);
+    // CHART 2: Bidang Mitra (Bar Chart)
+    const ctxBidang = document.getElementById('chartBidangMitra');
+    if (ctxBidang && bidangStatsData.length > 0) {
+        new Chart(ctxBidang, {
+            type: 'bar',
+            data: {
+                labels: bidangStatsData.map(d => d.label),
+                datasets: [{
+                    label: 'Jumlah Mitra',
+                    data: bidangStatsData.map(d => d.value),
+                    backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 1,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y + ' mitra';
+                            }
+                        }
+                    }
+                }
+            }
+        });
     }
 }
 </script>

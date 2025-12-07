@@ -28,33 +28,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $kontak = mysqli_real_escape_string($conn, $_POST['kontak']);
     $status = mysqli_real_escape_string($conn, $_POST['status']);
 
-    // Handle koordinat (biarkan NULL jika kosong)
-    $lat = !empty($_POST['latitude']) ? "'" . mysqli_real_escape_string($conn, $_POST['latitude']) . "'" : "NULL";
-    $long = !empty($_POST['longitude']) ? "'" . mysqli_real_escape_string($conn, $_POST['longitude']) . "'" : "NULL";
-
-    // Query Update dengan Latitude & Longitude
+    // Query Update
     $updateQuery = "UPDATE mitra_perusahaan SET 
                     nama_mitra = '$nama',
                     bidang = '$bidang',
                     alamat = '$alamat',
                     kontak = '$kontak',
-                    latitude = $lat,
-                    longitude = $long,
                     status = '$status'
                     WHERE id_mitra = $id_mitra";
 
-    if (mysqli_query($conn, $updateQuery)) {
-    // DEBUG: Cek apakah query benar-benar jalan
-    echo "<pre>Query berhasil dijalankan!</pre>";
-    echo "<pre>Affected rows: " . mysqli_affected_rows($conn) . "</pre>";
-    
-    $_SESSION['success'] = 'Data berhasil diperbarui!';
-    header('Location: ../index.php?page=data_Mitra');
-    exit();
-}
-
-    echo "<pre>Query: " . $updateQuery . "</pre>";
-    exit();
     if (mysqli_query($conn, $updateQuery)) {
         $_SESSION['success'] = 'Data berhasil diperbarui!';
         header('Location: ../index.php?page=data_Mitra');
@@ -200,17 +182,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <label>Alamat</label>
             <textarea name="alamat" rows="3" required><?= htmlspecialchars($data['alamat']); ?></textarea>
-
-            <div class="form-row">
-                <div class="form-col">
-                    <label>Latitude</label>
-                    <input type="text" name="latitude" value="<?= htmlspecialchars($data['latitude'] ?? ''); ?>" placeholder="-8.xxxxx">
-                </div>
-                <div class="form-col">
-                    <label>Longitude</label>
-                    <input type="text" name="longitude" value="<?= htmlspecialchars($data['longitude'] ?? ''); ?>" placeholder="113.xxxxx">
-                </div>
-            </div>
 
             <label>Status Kerja Sama</label>
             <select name="status" required>

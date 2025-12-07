@@ -12,13 +12,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $kontak = mysqli_real_escape_string($conn, $_POST['kontak']);
     $status = mysqli_real_escape_string($conn, $_POST['status']);
 
-    // Tangkap Latitude & Longitude (Cek jika kosong agar masuk sebagai NULL)
-    $lat = !empty($_POST['latitude']) ? "'" . mysqli_real_escape_string($conn, $_POST['latitude']) . "'" : "NULL";
-    $long = !empty($_POST['longitude']) ? "'" . mysqli_real_escape_string($conn, $_POST['longitude']) . "'" : "NULL";
-
-    // Query Insert dengan Latitude & Longitude
-    $query = "INSERT INTO mitra_perusahaan (nama_mitra, bidang, alamat, kontak, latitude, longitude, status) 
-              VALUES ('$nama', '$bidang', '$alamat', '$kontak', $lat, $long, '$status')";
+    // Query Insert
+    $query = "INSERT INTO mitra_perusahaan (nama_mitra, bidang, alamat, kontak, status) 
+              VALUES ('$nama', '$bidang', '$alamat', '$kontak', '$status')";
 
     if (mysqli_query($conn, $query)) {
         $_SESSION['success'] = 'Data mitra berhasil ditambahkan!';
@@ -182,17 +178,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <label>Alamat</label>
             <textarea name="alamat" rows="3" placeholder="Alamat lengkap mitra..." required></textarea>
-
-            <div class="form-row">
-                <div class="form-col">
-                    <label>Latitude <small>(Opsional)</small></label>
-                    <input type="text" name="latitude" placeholder="Contoh: -8.1724">
-                </div>
-                <div class="form-col">
-                    <label>Longitude <small>(Opsional)</small></label>
-                    <input type="text" name="longitude" placeholder="Contoh: 113.7024">
-                </div>
-            </div>
 
             <label>Status Kerja Sama</label>
             <select name="status" required>
